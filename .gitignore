@@ -1,0 +1,11 @@
+.env
+.env.*
+!.env.example
+.DS_Store
+.build/
+.gradle/
+.kotlin/
+build/
+.swiftpm/
+.idea/
+local.properties

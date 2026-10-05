@@ -1,0 +1,16 @@
+{
+  "challenge_direct": {"id": 42, "parent": 7, "name": "Survey benches", "instruction": "Look at the bench", "description": null, "enabled": true, "isArchived": false, "requiresLocal": true, "futureField": "ignored"},
+  "challenges_search": [
+    {"id": 42, "parent": {"id": 7, "name": "Community"}, "name": "Survey benches", "instruction": "Look at the bench", "description": null, "enabled": true, "isArchived": false, "requiresLocal": true},
+    {"id": 43, "parent": {"id": 7}, "name": "Survey shops", "tags": ["mobile", "cycling"], "instruction": null}
+  ],
+  "task": {"id": 101, "parent": 42, "name": "Bench", "instruction": "", "status": 73, "location": {"type": "Point", "coordinates": [4.9, 52.3]}, "geometries": {"type": "FeatureCollection", "features": [{"type": "Feature", "geometry": {"type": "Point", "coordinates": [4.9, 52.3]}, "properties": {"osmid": "123456789012345", "nested": {"survey": [true, null, 3.5]}, "amenity": "bench"}}, {"type": "Feature", "geometry": null, "properties": {"another": true}}]}, "cooperativeWork": {"type": 1, "operations": [{"operation": "modifyElement", "data": {"backrest": "yes"}}]}},
+  "tasks": [
+    {"id": 101, "parent": 42, "name": "Bench", "status": 1, "geometries": {"type": "FeatureCollection", "features": []}},
+    {"id": 102, "parent": 42, "name": "Bench two", "status": null, "geometries": {"type": "FeatureCollection", "features": []}}
+  ],
+  "task_summaries": {"total": 12, "tasks": [{"id": 101, "parentId": 42, "title": "Bench", "status": 0, "point": {"type": "Point", "coordinates": [4.9, 52.3]}}, {"id": 102, "parentId": 42, "title": "Bench two", "point": null}]},
+  "tags": [{"id": 8, "name": "cycling"}],
+  "identity": {"id": 900, "guest": false, "apiKey": "fixture-secret-do-not-expose", "email": "private@example.invalid", "osmProfile": {"displayName": "Example"}},
+  "malformed_challenge": {"id": "42", "parent": 7, "name": "Wrong identity type"}
+}

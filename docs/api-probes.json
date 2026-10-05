@@ -1,0 +1,438 @@
+{
+  "capturedAt": "2026-10-05T16:43:32.707730+00:00",
+  "service": "https://maproulette.org/api/v2",
+  "sourceCommit": "b9b2e69b0115cbfb7a1f997a29dfc3b2ca32512a",
+  "deployedCommitVerified": false,
+  "scope": "Read-only probes; no start/release/skip/status/comment or OSM write calls. Authentication headers and raw identity response excluded.",
+  "requests": [
+    {
+      "name": "challenges",
+      "url": "https://maproulette.org/api/v2/challenges/find?limit=2&page=0",
+      "status": 200,
+      "contentType": "application/json"
+    },
+    {
+      "name": "empty_tags",
+      "url": "https://maproulette.org/api/v2/challenges/tags?tags=&limit=2",
+      "status": 400,
+      "contentType": "application/json"
+    },
+    {
+      "name": "missing_tag",
+      "url": "https://maproulette.org/api/v2/challenges/tags?tags=cantino-probe-no-such-tag-20261005&limit=2",
+      "status": 200,
+      "contentType": "application/json"
+    },
+    {
+      "name": "source_tree",
+      "url": "https://api.github.com/repos/maproulette/maproulette-backend/git/trees/master?recursive=1",
+      "status": 404,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "name": "bike_search",
+      "url": "https://maproulette.org/api/v2/challenges/find?q=bike&limit=2&page=0",
+      "status": 403
+    },
+    {
+      "name": "tags_search",
+      "url": "https://maproulette.org/api/v2/challenges/tags?tags=bicycle&limit=2&page=0",
+      "status": 403
+    },
+    {
+      "name": "known_challenge",
+      "url": "https://maproulette.org/api/v2/challenge/53395",
+      "status": 403
+    },
+    {
+      "name": "repo",
+      "url": "https://api.github.com/repos/maproulette/maproulette-backend",
+      "status": 200
+    },
+    {
+      "name": "extended",
+      "url": "https://maproulette.org/api/v2/challenges/extendedFind?limit=2&page=0",
+      "status": 403
+    },
+    {
+      "name": "bike_search",
+      "url": "https://maproulette.org/api/v2/challenges/find?q=bike&limit=2&page=0",
+      "status": 200
+    },
+    {
+      "name": "tags_search",
+      "url": "https://maproulette.org/api/v2/challenges/tags?tags=bicycle&limit=2&page=0",
+      "status": 200
+    },
+    {
+      "name": "known_challenge",
+      "url": "https://maproulette.org/api/v2/challenge/53395",
+      "status": 200
+    },
+    {
+      "name": "source_tree",
+      "url": "https://api.github.com/repos/maproulette/maproulette-backend/git/trees/main?recursive=1",
+      "status": 200
+    },
+    {
+      "name": "extended",
+      "url": "https://maproulette.org/api/v2/challenges/extendedFind?limit=2&page=0",
+      "status": 200
+    },
+    {
+      "name": "tag_page1",
+      "url": "https://maproulette.org/api/v2/challenges/tags?tags=bicycle&limit=2&page=1",
+      "status": 200
+    },
+    {
+      "name": "tag_union",
+      "url": "https://maproulette.org/api/v2/challenges/tags?tags=bicycle,cantino-probe-no-such-tag-20261005&limit=2&page=0",
+      "status": 200
+    },
+    {
+      "name": "challenge_tags",
+      "url": "https://maproulette.org/api/v2/challenge/16441/tags",
+      "status": 200
+    },
+    {
+      "name": "tasks_page0",
+      "url": "https://maproulette.org/api/v2/challenge/16441/tasks?limit=2&page=0",
+      "status": 200
+    },
+    {
+      "name": "tasks_page1",
+      "url": "https://maproulette.org/api/v2/challenge/16441/tasks?limit=2&page=1",
+      "status": 200
+    },
+    {
+      "name": "active_tagged",
+      "url": "https://maproulette.org/api/v2/challenges/extendedFind?ct=bicycle&ca=false&ce=true&pe=true&limit=2&page=0&sort=id&order=ASC",
+      "status": 200
+    },
+    {
+      "name": "missing_task",
+      "url": "https://maproulette.org/api/v2/task/9223372036854775807",
+      "status": 404
+    },
+    {
+      "name": "auth_tag_page2",
+      "url": "https://maproulette.org/api/v2/challenges/tags?tags=bicycle&limit=2&page=2",
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "name": "auth_find",
+      "url": "https://maproulette.org/api/v2/challenges/find?q=bike&limit=2&page=0",
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "name": "auth_active",
+      "url": "https://maproulette.org/api/v2/challenges/extendedFind?ct=bicycle&ca=false&ce=true&pe=true&limit=2&page=0&sort=id&order=ASC",
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "name": "auth_task",
+      "url": "https://maproulette.org/api/v2/task/81182727",
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "name": "auth_bbox",
+      "url": "https://maproulette.org/api/v2/tasks/box/144.98/-37.83/145.00/-37.81?cId=16441&ca=true&tStatus=-1&limit=2&page=0&includeTotal=true&includeGeometries=true&sort=id&order=ASC",
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "name": "identity",
+      "url": "https://maproulette.org/api/v2/user/whoami",
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "name": "extended_tagged_all",
+      "url": "https://maproulette.org/api/v2/challenges/extendedFind?ct=bicycle&ca=true&cLocal=1&limit=2&page=0&sort=id&order=ASC",
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "name": "extended_leisure0",
+      "url": "https://maproulette.org/api/v2/challenges/extendedFind?ct=leisure&ca=false&cLocal=1&limit=2&page=0&sort=id&order=ASC",
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "name": "extended_leisure1",
+      "url": "https://maproulette.org/api/v2/challenges/extendedFind?ct=leisure&ca=false&cLocal=1&limit=2&page=1&sort=id&order=ASC",
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "name": "bbox_corrected",
+      "url": "https://maproulette.org/api/v2/tasks/box/144.98/-37.83/145.00/-37.81?cid=16441&ca=true&cLocal=1&tStatus=-1&limit=2&page=0&includeTotal=true&includeGeometries=true&sort=id&order=ASC",
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "name": "bounds",
+      "url": "https://maproulette.org/api/v2/tasks/bounds?bounds=144.98,-37.83,145.00,-37.81&challengeIds=16441&limit=2&page=0",
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "name": "extended_leisure2",
+      "url": "https://maproulette.org/api/v2/challenges/extendedFind?ct=leisure&ca=false&cLocal=1&limit=2&page=2&sort=id&order=ASC",
+      "status": 200
+    },
+    {
+      "name": "local_excluded",
+      "url": "https://maproulette.org/api/v2/challenges/extendedFind?cid=13810&ca=true&limit=2&page=0&sort=id&order=ASC",
+      "status": 200
+    },
+    {
+      "name": "local_included",
+      "url": "https://maproulette.org/api/v2/challenges/extendedFind?cid=13810&ca=true&cLocal=1&limit=2&page=0&sort=id&order=ASC",
+      "status": 200
+    },
+    {
+      "name": "bbox_page1",
+      "url": "https://maproulette.org/api/v2/tasks/box/144.98/-37.83/145.00/-37.81?cid=16441&ca=true&cLocal=1&tStatus=-1&limit=2&page=1&includeTotal=true&sort=id&order=ASC",
+      "status": 200
+    }
+  ],
+  "observations": {
+    "tags_search": {
+      "ids": [
+        16441,
+        25977
+      ],
+      "statuses": [
+        5,
+        5
+      ],
+      "parentShapes": [
+        "int"
+      ],
+      "parentIds": [
+        42776,
+        47769
+      ]
+    },
+    "tag_page1": {
+      "ids": [
+        25977,
+        29863
+      ],
+      "statuses": [
+        5,
+        2
+      ],
+      "parentShapes": [
+        "int"
+      ],
+      "parentIds": [
+        47769,
+        48227
+      ]
+    },
+    "auth_tag_page2": {
+      "ids": [
+        29863,
+        43442
+      ],
+      "statuses": [
+        2,
+        3
+      ],
+      "parentShapes": [
+        "int"
+      ],
+      "parentIds": [
+        48227,
+        54197
+      ]
+    },
+    "tag_union": {
+      "ids": [
+        16441,
+        25977
+      ],
+      "statuses": [
+        5,
+        5
+      ],
+      "parentShapes": [
+        "int"
+      ],
+      "parentIds": [
+        42776,
+        47769
+      ]
+    },
+    "missing_tag": {
+      "ids": [],
+      "statuses": [],
+      "parentShapes": [],
+      "parentIds": []
+    },
+    "extended_leisure0": {
+      "ids": [
+        494,
+        8021
+      ],
+      "statuses": [
+        3,
+        3
+      ],
+      "parentShapes": [
+        "dict"
+      ],
+      "parentIds": [
+        null,
+        null
+      ]
+    },
+    "extended_leisure1": {
+      "ids": [
+        8021,
+        9396
+      ],
+      "statuses": [
+        3,
+        3
+      ],
+      "parentShapes": [
+        "dict"
+      ],
+      "parentIds": [
+        null,
+        null
+      ]
+    },
+    "extended_leisure2": {
+      "ids": [
+        9396,
+        13148
+      ],
+      "statuses": [
+        3,
+        3
+      ],
+      "parentShapes": [
+        "dict"
+      ],
+      "parentIds": [
+        null,
+        null
+      ]
+    },
+    "local_excluded": {
+      "ids": [],
+      "statuses": [],
+      "parentShapes": [],
+      "parentIds": []
+    },
+    "local_included": {
+      "ids": [
+        13810
+      ],
+      "statuses": [
+        3
+      ],
+      "parentShapes": [
+        "dict"
+      ],
+      "parentIds": [
+        null
+      ]
+    },
+    "tasks_page0": {
+      "ids": [
+        81182727,
+        81182729
+      ],
+      "statuses": [
+        1,
+        1
+      ],
+      "parentShapes": [
+        "int"
+      ],
+      "parentIds": [
+        16441,
+        16441
+      ]
+    },
+    "tasks_page1": {
+      "ids": [
+        81182730,
+        81182807
+      ],
+      "statuses": [
+        1,
+        6
+      ],
+      "parentShapes": [
+        "int"
+      ],
+      "parentIds": [
+        16441,
+        16441
+      ]
+    },
+    "bbox_corrected": {
+      "ids": [
+        81182727,
+        81182729
+      ],
+      "statuses": [
+        1,
+        1
+      ],
+      "parentShapes": [
+        "NoneType"
+      ],
+      "parentIds": [
+        16441,
+        16441
+      ]
+    },
+    "bbox_page1": {
+      "ids": [
+        81182730,
+        81183458
+      ],
+      "statuses": [
+        1,
+        1
+      ],
+      "parentShapes": [
+        "NoneType"
+      ],
+      "parentIds": [
+        16441,
+        16441
+      ]
+    },
+    "identity": {
+      "authenticated": true,
+      "responseFields": [
+        "id",
+        "created",
+        "modified",
+        "osmProfile",
+        "grants",
+        "apiKey",
+        "guest",
+        "settings",
+        "properties",
+        "score",
+        "followingGroupId",
+        "followersGroupId",
+        "achievements"
+      ],
+      "nonGuestIdentityVerified": true
+    }
+  }
+}
