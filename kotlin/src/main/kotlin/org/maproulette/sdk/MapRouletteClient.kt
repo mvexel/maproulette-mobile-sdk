@@ -11,7 +11,15 @@ class MapRouletteClient(
     serviceUrl: String = "https://maproulette.org/api/v2/",
     private val transport: Transport,
     private val apiKey: suspend () -> String? = { null },
+    private val accessToken: suspend () -> String? = { null },
 ) {
+    /** Retains the original positional/trailing-lambda API-key constructor. */
+    constructor(
+        serviceUrl: String = "https://maproulette.org/api/v2/",
+        transport: Transport,
+        apiKey: suspend () -> String?,
+    ) : this(serviceUrl, transport, apiKey, { null })
+
     private val base = serviceUrl.toHttpUrl()
         .also {
             require(
@@ -140,11 +148,35 @@ class MapRouletteClient(
     }
 
     suspend fun getCurrentUser(): UserIdentity {
-        val body = request("user/whoami")
+        currentCoroutineContext().ensureActive()
+        val credentials = readCredentials()
+        val bearer = credentials.accessToken != null
+        val body = request(
+            if (bearer) "oauth/mobile/me" else "user/whoami",
+            credentials = credentials, atOriginRoot = bearer,
+        )
         return decode {
             val value = body.obj()
-            UserIdentity(value.long("id"), requireNotNull(value.bool("guest")))
+            if (bearer) {
+                val id = value.long("id")
+                require(id > 0 && value.long("osmId") > 0)
+                value.str("displayName")
+                require(value.str("scope") == "tasks:read")
+                UserIdentity(id, false)
+            } else UserIdentity(value.long("id"), requireNotNull(value.bool("guest")))
         }
+    }
+
+    // Credential values never enter a data-class diagnostic or persist in the client.
+    private class Credentials(val apiKey: String?, val accessToken: String?)
+
+    private suspend fun readCredentials(): Credentials {
+        val key = apiKey()
+        val token = accessToken()
+        require(key == null || token == null) { "Configure one authentication mechanism per request" }
+        key?.let { require(it.isNotBlank() && '\r' !in it && '\n' !in it) }
+        token?.let { require(it.matches(Regex("[A-Za-z0-9._~+/-]+=*"))) { "Invalid bearer credential" } }
+        return Credentials(key, token)
     }
 
     private suspend fun <T> page(
@@ -194,9 +226,11 @@ class MapRouletteClient(
     }
 
     private suspend fun request(path: String, params: Map<String, String> = emptyMap(),
-                            method: HttpMethod = HttpMethod.GET, body: String? = null): JsonElement {
+                            method: HttpMethod = HttpMethod.GET, body: String? = null,
+                            credentials: Credentials? = null, atOriginRoot: Boolean = false): JsonElement {
         currentCoroutineContext().ensureActive()
         val url = base.newBuilder()
+            .apply { if (atOriginRoot) encodedPath("/") }
             .addPathSegments(path)
             .apply {
                 params.filterValues { it.isNotEmpty() }.forEach { (key, value) ->
@@ -209,10 +243,9 @@ class MapRouletteClient(
             "User-Agent" to "MapRoulette-Mobile-SDK/0.1",
         )
         if (body != null) headers["Content-Type"] = "application/json"
-        apiKey()?.let {
-            require(it.isNotBlank() && '\r' !in it && '\n' !in it)
-            headers["apiKey"] = it
-        }
+        val authentication = credentials ?: readCredentials()
+        authentication.apiKey?.let { headers["apiKey"] = it }
+        authentication.accessToken?.let { headers["Authorization"] = "Bearer $it" }
         val response = try {
             transport.execute(HttpRequest(url.toString(), headers, method, body))
         } catch (e: CancellationException) {

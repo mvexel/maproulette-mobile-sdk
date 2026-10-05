@@ -37,17 +37,17 @@ import org.maplibre.android.style.sources.GeoJsonSource
 import org.maplibre.geojson.Feature
 import org.maplibre.geojson.FeatureCollection
 import org.maproulette.sdk.Bounds
-import org.maproulette.sdk.MapRouletteClient
+import org.maproulette.example.auth.AppSession
 import org.maproulette.sdk.MapRouletteException
-import org.maproulette.sdk.OkHttpTransport
 import org.maproulette.sdk.TaskFilter
 import org.maproulette.sdk.TaskId
 
 /** Online map demonstration; location is requested only when the user asks. */
 class MapActivity : Activity() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
-    private val transport = OkHttpTransport()
-    private val client = MapRouletteClient(transport = transport)
+    private lateinit var session: AppSession
+    private lateinit var sessionClient: AppSession.SessionClient
+    private val client get() = sessionClient.client
     private lateinit var mapView: MapView
     private lateinit var status: TextView
     private lateinit var searchButton: Button
@@ -60,6 +60,8 @@ class MapActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        session = AppSession.get(this)
+        sessionClient = session.newClient()
         MapLibre.getInstance(this)
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -118,6 +120,19 @@ class MapActivity : Activity() {
                 status.text = "Pan or zoom, then tap Search this area."
             }
         }
+        var observedGeneration = session.view.value.generation
+        scope.launch {
+            session.view.collect { view ->
+                if (view.generation != observedGeneration) {
+                    request?.cancel()
+                    sessionClient.close()
+                    sessionClient = session.newClient()
+                    source?.setGeoJson(FeatureCollection.fromFeatures(emptyArray()))
+                    status.text = "Session changed. Tap Search this area."
+                    observedGeneration = view.generation
+                }
+            }
+        }
     }
 
     private fun searchArea() {
@@ -169,8 +184,9 @@ class MapActivity : Activity() {
         status.text = "Loading task ${id.value}…"
         request = scope.launch {
             try {
-                val task = client.getTask(id)
-                val challenge = client.getChallenge(task.challengeId)
+                val currentClient = client
+                val task = currentClient.getTask(id)
+                val challenge = currentClient.getChallenge(task.challengeId)
                 val text = TextView(this@MapActivity).apply {
                     setPadding(24, 12, 24, 24)
                     textSize = 16f
@@ -288,7 +304,7 @@ class MapActivity : Activity() {
     override fun onDestroy() {
         stopLocation()
         scope.cancel()
-        transport.close()
+        sessionClient.close()
         mapView.onDestroy()
         super.onDestroy()
     }

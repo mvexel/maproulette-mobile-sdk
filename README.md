@@ -2,7 +2,7 @@
 
 Inspectable, native Kotlin and Swift clients for the deployed MapRoulette API.
 The first slice is **read-only**: discover challenges, retrieve tasks and task
-locations, and validate a user API key. No Rust, FFI, OSM database, or area
+locations, and retrieve the current user identity. No Rust, FFI, OSM database, or area
 initialization is required.
 
 This is an unpublished development SDK. APIs may change. Kotlin/JVM supports
@@ -86,9 +86,9 @@ task marker to read its details and challenge instructions. Map rendering and
 location handling belong to this example, not the SDK. The map uses the SDK’s
 default statuses (Created, Skipped and TooHard), excluding archived challenges
 and requiring enabled projects/challenges;
-these statuses do not guarantee a task can be completed in a mobile app. It makes
-anonymous read calls only. No credentials are bundled, and sign-in will be
-added after the backend authentication contract is ready.
+these statuses do not guarantee a task can be completed in a mobile app. It uses anonymous access by default. An opt-in browser sign-in prototype can
+connect to a backend with the mobile OAuth endpoints enabled; see the
+[Android setup](android-example/README.md). No credentials are bundled.
 
 Validated on a Pixel 8: live challenge 16441, its first 20 tasks, full task
 details, missing-challenge error, retry and recovery. `:app:assembleDebug` and
@@ -96,7 +96,10 @@ details, missing-challenge error, retry and recovery. `:app:assembleDebug` and
 backup configuration and available dependency/SDK updates. Nearby markers and
 a marker’s task/challenge instructions were verified on the Pixel 8; location
 centering worked, and permission-denied fallback was checked on the emulator.
-Map conversion tests and both SDK contract suites pass.
+Map conversion tests and both SDK contract suites pass. The opt-in Android
+sign-in flow was verified against a local synthetic OSM provider on the Pixel:
+browser consent, session restoration, refresh rotation and confirmed logout.
+Real OSM sign-in still requires development OAuth registration.
 
 ## Swift
 
@@ -140,14 +143,19 @@ convenience for running a single-user example, not an end-user sign-in design.
 The shared tests verify two users, anonymous access, key rotation and logout
 without leaking credentials between clients.
 
-**Browser sign-in and credential acquisition are not implemented yet.** This
-read client is not a complete end-user authentication SDK. MapRoulette's
-existing web OAuth callback uses a server-side client secret; applications
-must not embed that secret or assume an OSM access token is a MapRoulette key.
-Backend-supported mobile sign-in is the agreed next direction: a registered
-public client, browser authorization with PKCE, and credentials bound to the
-user and application. That backend contract and native auth component are not
-yet implemented; the current client supports injected personal API keys only.
+Both SDKs accept either `apiKey: { ... }` or `accessToken: { ... }` providers.
+Bearer credentials use `Authorization` and the same configured service origin;
+`getCurrentUser()` uses `/oauth/mobile/me` for bearer identity. Supplying both
+credential types fails before HTTP, and a rejected bearer never falls back to
+an API key. Providers are evaluated per request so hosts can rotate credentials.
+
+The Android example owns a browser/PKCE sign-in prototype using AppAuth,
+Android Keystore storage, serialized refresh and local-first logout. It requires
+the opt-in backend implementation in the companion local backend checkout;
+the deployed MapRoulette service is not assumed to support these endpoints.
+The native SDKs remain read clients: browser integration and credential storage
+belong to the host app, and Swift has no sign-in UI. OSM access tokens and
+server-side client secrets must never be supplied as MapRoulette credentials.
 
 For an application that already has a user's MapRoulette key, supply it through
 that user's provider, validate it with `getCurrentUser()`, and store it securely

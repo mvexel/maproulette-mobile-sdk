@@ -210,6 +210,82 @@ class ContractTest {
             withTimeout(2000) { assertFailsWith<CancellationException> { request.await() } }
         } } }
     }
+    @Test fun bearerIdentityUsesOneCredentialSnapshotAndOriginRoot() = runBlocking<Unit> {
+        val wire = fake("identity_mobile")
+        var keyCalls = 0; var tokenCalls = 0
+        val client = MapRouletteClient(serviceUrl = "https://example.invalid:9443/prefix/api/v2/",
+            transport = wire, apiKey = { keyCalls++; null }, accessToken = { tokenCalls++; "synthetic-access-token" })
+        assertEquals(UserIdentity(900, false), client.getCurrentUser())
+        assertEquals(1, keyCalls); assertEquals(1, tokenCalls)
+        val request = wire.requests.single()
+        assertEquals("https://example.invalid:9443/oauth/mobile/me", request.url)
+        assertEquals("Bearer synthetic-access-token", request.headers["Authorization"])
+        assertFalse(request.headers.containsKey("apiKey"))
+        assertFalse(request.toString().contains("synthetic-access-token"))
+        assertEquals(HttpMethod.GET, request.method); assertNull(request.body)
+    }
+
+    @Test fun credentialsCanSwitchPerUserWithoutSharingStateOrRetryFallback() = runBlocking<Unit> {
+        val wire = fake("identity_mobile")
+        var key: String? = null; var token: String? = "first-user-token"
+        val client = MapRouletteClient(transport = wire, apiKey = { key }, accessToken = { token })
+        val second = MapRouletteClient(transport = wire, accessToken = { "second-user-token" })
+        client.getCurrentUser(); second.getCurrentUser()
+        assertEquals(listOf("Bearer first-user-token", "Bearer second-user-token"), wire.requests.map { it.headers["Authorization"] })
+        token = null; key = "legacy-user-key"
+        wire.response = HttpResponse(200, body = body("identity"))
+        client.getCurrentUser()
+        assertTrue(wire.requests.last().url.endsWith("/api/v2/user/whoami"))
+        assertEquals("legacy-user-key", wire.requests.last().headers["apiKey"])
+        assertNull(wire.requests.last().headers["Authorization"])
+        key = null
+        client.getCurrentUser()
+        assertTrue(wire.requests.last().url.endsWith("/api/v2/user/whoami"))
+        assertNull(wire.requests.last().headers["apiKey"]); assertNull(wire.requests.last().headers["Authorization"])
+        token = "expired-bearer"
+        for (status in listOf(401, 403)) {
+            wire.response = HttpResponse(status)
+            val before = wire.requests.size
+            assertFailsWith<MapRouletteException> { client.getCurrentUser() }
+            assertEquals(before + 1, wire.requests.size)
+            assertTrue(wire.requests.last().url.endsWith("/oauth/mobile/me"))
+        }
+    }
+
+    @Test fun conflictingOrMalformedCredentialsFailBeforeHttpAndLegacyLambdasKeepMeaning() = runBlocking<Unit> {
+        val wire = fake("challenge_direct")
+        val conflict = MapRouletteClient(transport = wire, apiKey = { "legacy" }, accessToken = { "bearer" })
+        assertFailsWith<IllegalArgumentException> { conflict.getCurrentUser() }
+        assertTrue(wire.requests.isEmpty())
+        for (invalid in listOf("", " ", "bad token", "token\r\n", "token?")) {
+            val client = MapRouletteClient(transport = wire, accessToken = { invalid })
+            assertFailsWith<IllegalArgumentException> { client.getChallenge(ChallengeId(42)) }
+        }
+        assertTrue(wire.requests.isEmpty())
+        MapRouletteClient(transport = wire) { "trailing-legacy-key" }.getChallenge(ChallengeId(42))
+        assertEquals("trailing-legacy-key", wire.requests.last().headers["apiKey"])
+        assertNull(wire.requests.last().headers["Authorization"])
+        MapRouletteClient("https://maproulette.org/api/v2/", wire, { "positional-legacy-key" }).getChallenge(ChallengeId(42))
+        assertEquals("positional-legacy-key", wire.requests.last().headers["apiKey"])
+    }
+
+    @Test fun bearerAndMeRouteReachWireAndRedirectsCannotLeakCredentials() = runBlocking<Unit> {
+        MockWebServer().use { server -> MockWebServer().use { destination -> OkHttpTransport().use { transport ->
+            server.start(); destination.start()
+            val client = MapRouletteClient(serviceUrl = server.url("/api/v2/").toString(), transport = transport,
+                accessToken = { "wire-bearer" })
+            server.enqueue(MockResponse().setBody(body("identity_mobile")))
+            assertEquals(UserIdentity(900, false), client.getCurrentUser())
+            val identity = assertNotNull(server.takeRequest(2, TimeUnit.SECONDS))
+            assertEquals("/oauth/mobile/me", identity.path)
+            assertEquals("Bearer wire-bearer", identity.getHeader("Authorization"))
+            assertNull(identity.getHeader("apiKey"))
+            server.enqueue(MockResponse().setResponseCode(302).addHeader("Location", destination.url("/capture")))
+            assertEquals(ErrorKind.HTTP, assertFailsWith<MapRouletteException> { client.getCurrentUser() }.kind)
+            assertNull(destination.takeRequest(150, TimeUnit.MILLISECONDS))
+        } } }
+    }
+
     @Test fun malformedIdentitiesAndCredentialValidation() = runBlocking<Unit> {
         val wire = fake("challenge_direct"); val client = MapRouletteClient(transport = wire)
         assertEquals(ErrorKind.PROTOCOL, assertFailsWith<MapRouletteException> { client.getChallenge(ChallengeId(99)) }.kind)

@@ -14,5 +14,6 @@
   "markers": [{"id": 101, "parentId": 42, "title": "Bench", "status": 0, "point": {"lat": 52.3, "lng": 4.9}}, {"id": 202, "parentId": 99, "title": "Shop", "status": 3, "point": {"lat": 52.4, "lng": 4.8}}],
   "tags": [{"id": 8, "name": "cycling"}],
   "identity": {"id": 900, "guest": false, "apiKey": "fixture-secret-do-not-expose", "email": "private@example.invalid", "osmProfile": {"displayName": "Example"}},
+  "identity_mobile": {"id": 900, "osmId": 12345, "displayName": "Example", "scope": "tasks:read"},
   "malformed_challenge": {"id": "42", "parent": 7, "name": "Wrong identity type"}
 }

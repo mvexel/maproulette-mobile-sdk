@@ -5,10 +5,23 @@ public final class MapRouletteClient: Sendable {
   private let base: URL
   private let transport: any Transport
   private let apiKey: @Sendable () async throws -> String?
+  private let accessToken: @Sendable () async throws -> String?
   private let owner = UUID()
+  /// Existing API-key initializer retained so unlabeled trailing closures keep their meaning.
+  public convenience init(
+    serviceURL: URL = URL(string: "https://maproulette.org/api/v2/")!,
+    transport: any Transport = URLSessionTransport(),
+    apiKey: @escaping @Sendable () async throws -> String? = { nil }
+  ) throws {
+    try self.init(
+      serviceURL: serviceURL, transport: transport, accessToken: { nil }, apiKey: apiKey)
+  }
+
+  /// Inject a current per-user access token. Supplying both credential types is rejected.
   public init(
     serviceURL: URL = URL(string: "https://maproulette.org/api/v2/")!,
     transport: any Transport = URLSessionTransport(),
+    accessToken: @escaping @Sendable () async throws -> String?,
     apiKey: @escaping @Sendable () async throws -> String? = { nil }
   ) throws {
     guard let c = URLComponents(url: serviceURL, resolvingAgainstBaseURL: false),
@@ -20,6 +33,7 @@ public final class MapRouletteClient: Sendable {
     base = serviceURL
     self.transport = transport
     self.apiKey = apiKey
+    self.accessToken = accessToken
   }
   public func searchChallenges(
     filter: ChallengeFilter = ChallengeFilter(), pageSize: Int = 50, after: Continuation? = nil
@@ -67,13 +81,28 @@ public final class MapRouletteClient: Sendable {
     return result
   }
   public func getCurrentUser() async throws -> UserIdentity {
-    let o = try await request("user/whoami").object()
+    let credential = try await credentials()
+    let mobile = credential.bearer != nil
+    let o = try await request(
+      mobile ? "oauth/mobile/me" : "user/whoami",
+      credential: credential, originRelative: mobile
+    ).object()
+    if mobile {
+      let id = try o.required("id").integer()
+      let osmID = try o.required("osmId").integer()
+      _ = try o.required("displayName").string()
+      guard id > 0, osmID > 0, try o.required("scope").string() == "tasks:read" else {
+        throw MapRouletteError(.protocolFailure)
+      }
+      return UserIdentity(id: id, guest: false)
+    }
     return try UserIdentity(id: o.required("id").integer(), guest: o.required("guest").boolean())
   }
   public func findTasksInBounds(filter: TaskFilter, pageSize: Int = 50, after: Continuation? = nil)
     async throws -> Page<TaskSummary>
   {
-    guard filter.statuses.map({ !$0.isEmpty && $0.allSatisfy { $0 >= 0 && $0 <= Int32.max } }) ?? true
+    guard
+      filter.statuses.map({ !$0.isEmpty && $0.allSatisfy { $0 >= 0 && $0 <= Int32.max } }) ?? true
     else { throw MapRouletteError(.validation) }
     let b = filter.bounds
     var params = [
@@ -88,7 +117,10 @@ public final class MapRouletteClient: Sendable {
     let result = try await page(
       path: "tasks/box/\(b.west)/\(b.south)/\(b.east)/\(b.north)", params: params, size: pageSize,
       after: after, offset: false, envelope: true, parse: summary)
-    guard filter.challengeIDs.isEmpty || result.items.allSatisfy({ filter.challengeIDs.contains($0.challengeID) }) else {
+    guard
+      filter.challengeIDs.isEmpty
+        || result.items.allSatisfy({ filter.challengeIDs.contains($0.challengeID) })
+    else {
       throw MapRouletteError(.protocolFailure)
     }
     return result
@@ -100,9 +132,11 @@ public final class MapRouletteClient: Sendable {
     guard (1...1000).contains(limit),
       filter.statuses.map({ !$0.isEmpty && $0.allSatisfy { $0 >= 0 && $0 <= Int32.max } }) ?? true
     else { throw MapRouletteError(.validation) }
-    var params = ["cLocal": "1", "ca": String(filter.includeArchived),
+    var params = [
+      "cLocal": "1", "ca": String(filter.includeArchived),
       "tStatus": filter.statuses?.map(String.init).joined(separator: ",") ?? "-1",
-      "excludeLocked": "true", "limit": String(limit)]
+      "excludeLocked": "true", "limit": String(limit),
+    ]
     if !filter.challengeIDs.isEmpty {
       params["cid"] = filter.challengeIDs.map { String($0.value) }.joined(separator: ",")
     }
@@ -111,12 +145,15 @@ public final class MapRouletteClient: Sendable {
       params["ce"] = "true"
       params["pe"] = "true"
     }
-    let response = try await request("markers/box/\(b.west)/\(b.south)/\(b.east)/\(b.north)",
+    let response = try await request(
+      "markers/box/\(b.west)/\(b.south)/\(b.east)/\(b.north)",
       params: params, method: .put, body: Data("{}".utf8))
     let rows = try response.array()
     guard rows.count <= limit else { throw MapRouletteError(.protocolFailure) }
     let markers = try rows.map(summary)
-    guard filter.challengeIDs.isEmpty || markers.allSatisfy({ filter.challengeIDs.contains($0.challengeID) })
+    guard
+      filter.challengeIDs.isEmpty
+        || markers.allSatisfy({ filter.challengeIDs.contains($0.challengeID) })
     else { throw MapRouletteError(.protocolFailure) }
     return markers
   }
@@ -159,13 +196,48 @@ public final class MapRouletteClient: Sendable {
       ? Continuation(owner: owner, key: key, position: nextPosition.partialValue) : nil
     return try Page(items: rows.map(parse), next: next, total: total)
   }
-  private func request(_ path: String, params: [String: String] = [:], method: HTTPMethod = .get,
-    body: Data? = nil) async throws -> JSONValue {
+  private struct Credentials {
+    let key: String?
+    let bearer: String?
+  }
+
+  private func credentials() async throws -> Credentials {
     try Task.checkCancellation()
+    let key = try await apiKey()
+    let bearer = try await accessToken()
+    guard key == nil || bearer == nil else { throw MapRouletteError(.validation) }
+    for value in [key, bearer].compactMap({ $0 }) {
+      guard !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+        !value.contains("\r"), !value.contains("\n")
+      else { throw MapRouletteError(.validation) }
+    }
+    if let bearer {
+      guard bearer.range(of: "^[A-Za-z0-9._~+/-]+=*$", options: .regularExpression) != nil else {
+        throw MapRouletteError(.validation)
+      }
+    }
+    try Task.checkCancellation()
+    return Credentials(key: key, bearer: bearer)
+  }
+
+  private func request(
+    _ path: String, params: [String: String] = [:], method: HTTPMethod = .get,
+    body: Data? = nil, credential suppliedCredential: Credentials? = nil,
+    originRelative: Bool = false
+  ) async throws -> JSONValue {
+    try Task.checkCancellation()
+    let credential: Credentials
+    if let supplied = suppliedCredential {
+      credential = supplied
+    } else {
+      credential = try await credentials()
+    }
     guard
       var url = URLComponents(
         url: base.appendingPathComponent(path), resolvingAgainstBaseURL: false)
     else { throw MapRouletteError(.validation) }
+    // Replace only the path: scheme, host and explicit port remain the configured service origin.
+    if originRelative { url.path = "/" + path }
     let items = params.filter { !$0.value.isEmpty }.sorted { $0.key < $1.key }.map {
       URLQueryItem(name: $0.key, value: $0.value)
     }
@@ -173,15 +245,12 @@ public final class MapRouletteClient: Sendable {
     guard let target = url.url else { throw MapRouletteError(.validation) }
     var headers = ["Accept": "application/json", "User-Agent": "MapRoulette-Mobile-SDK/0.1"]
     if body != nil { headers["Content-Type"] = "application/json" }
-    if let key = try await apiKey() {
-      guard !key.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, !key.contains("\r"),
-        !key.contains("\n")
-      else { throw MapRouletteError(.validation) }
-      headers["apiKey"] = key
-    }
+    if let key = credential.key { headers["apiKey"] = key }
+    if let bearer = credential.bearer { headers["Authorization"] = "Bearer " + bearer }
     let response: HTTPResponse
     do {
-      response = try await transport.execute(HTTPRequest(url: target, headers: headers, method: method, body: body))
+      response = try await transport.execute(
+        HTTPRequest(url: target, headers: headers, method: method, body: body))
       try Task.checkCancellation()
     } catch is CancellationError { throw CancellationError() } catch let error as URLError
       where error.code == .cancelled

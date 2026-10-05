@@ -223,3 +223,111 @@ private actor SuspendedTransport: Transport {
     selected.challengeIDs = [try ChallengeID(42)]
     try await errorKind(.protocolFailure) { _ = try await client.findTaskMarkers(filter: selected) }
 }
+
+private actor CredentialProbe {
+    var value: String?
+    var calls = 0
+    init(_ value: String?) { self.value = value }
+    func read() -> String? { calls += 1; return value }
+    func set(_ value: String?) { self.value = value }
+}
+
+@Test func bearerIdentityUsesConfiguredOriginAndSingleCredentialSnapshot() async throws {
+    let wire = try Fake("identity_mobile")
+    let token = CredentialProbe("synthetic-first-access-token")
+    let key = CredentialProbe(nil)
+    let client = try MapRouletteClient(serviceURL: URL(string: "https://example.org:9443/nested/api/v2/")!,
+        transport: wire, accessToken: { await token.read() }, apiKey: { await key.read() })
+    let identity = try await client.getCurrentUser()
+    #expect(identity.id == 900); #expect(!identity.guest)
+    let request = await wire.last()
+    #expect(request.url.absoluteString == "https://example.org:9443/oauth/mobile/me")
+    #expect(request.headers["Authorization"] == "Bearer synthetic-first-access-token")
+    #expect(request.headers["apiKey"] == nil)
+    #expect(await token.calls == 1); #expect(await key.calls == 1)
+    #expect(!String(describing: request).contains("synthetic"))
+    #expect(!String(describing: identity).contains("token"))
+
+    await wire.set(HTTPResponse(status: 200, body: try fixture("challenge_direct")))
+    await token.set("synthetic-rotated-access-token")
+    _ = try await client.getChallenge(ChallengeID(42))
+    #expect(await wire.last().url.path == "/nested/api/v2/challenge/42")
+    #expect(await wire.last().headers["Authorization"] == "Bearer synthetic-rotated-access-token")
+    #expect(await token.calls == 2); #expect(await key.calls == 2)
+
+    await token.set(nil)
+    await wire.set(HTTPResponse(status: 200, body: try fixture("identity")))
+    _ = try await client.getCurrentUser()
+    #expect(await wire.last().url.path == "/nested/api/v2/user/whoami")
+    #expect(await wire.last().headers["Authorization"] == nil)
+    #expect(await wire.last().headers["apiKey"] == nil)
+    #expect(await token.calls == 3); #expect(await key.calls == 3)
+}
+
+@Test func legacyTrailingClosureKeepsAPIKeySemantics() async throws {
+    let wire = try Fake("identity")
+    let client = try MapRouletteClient(transport: wire) { "legacy-trailing-key" }
+    _ = try await client.getCurrentUser()
+    #expect(await wire.last().url.path == "/api/v2/user/whoami")
+    #expect(await wire.last().headers["apiKey"] == "legacy-trailing-key")
+    #expect(await wire.last().headers["Authorization"] == nil)
+}
+
+@Test func bearerConflictsInvalidTokensAndErrorsNeverFallback() async throws {
+    let wire = try Fake("identity_mobile")
+    let key = CredentialProbe("legacy-secret")
+    let token = CredentialProbe("synthetic-access-token")
+    let conflict = try MapRouletteClient(transport: wire,
+        accessToken: { await token.read() }, apiKey: { await key.read() })
+    try await errorKind(.validation) { _ = try await conflict.getCurrentUser() }
+    #expect(await wire.requests.isEmpty)
+    #expect(await token.calls == 1); #expect(await key.calls == 1)
+    for invalid in ["", " ", "token with spaces", "token\n", "token\r", "token:wrong"] {
+        let client = try MapRouletteClient(transport: wire, accessToken: { invalid })
+        try await errorKind(.validation) { _ = try await client.getCurrentUser() }
+    }
+    #expect(await wire.requests.isEmpty)
+    let client = try MapRouletteClient(transport: wire, accessToken: { "synthetic-access-token" })
+    for (status, kind) in [(401, ErrorKind.authentication), (403, .permission), (404, .notFound), (302, .http)] {
+        await wire.set(HTTPResponse(status: status, body: Data("secret response".utf8)))
+        let count = await wire.requests.count
+        try await errorKind(kind) { _ = try await client.getCurrentUser() }
+        #expect(await wire.requests.count == count + 1)
+        #expect(await wire.last().url.path == "/oauth/mobile/me")
+        #expect(await wire.last().headers["apiKey"] == nil)
+    }
+}
+
+@Test func malformedMobileIdentitiesFailAndProviderErrorsRemainDistinct() async throws {
+    let wire = try Fake("identity_mobile")
+    let client = try MapRouletteClient(transport: wire, accessToken: { "synthetic-access-token" })
+    let original = try JSONSerialization.jsonObject(with: fixture("identity_mobile")) as! [String:Any]
+    for (key, value) in [("id", 0 as Any), ("osmId", "12345" as Any),
+                         ("displayName", NSNull() as Any), ("scope", "tasks:write" as Any)] {
+        var changed = original; changed[key] = value
+        await wire.set(HTTPResponse(status: 200, body: try JSONSerialization.data(withJSONObject: changed)))
+        try await errorKind(.protocolFailure) { _ = try await client.getCurrentUser() }
+    }
+    enum ProviderFailure: Error { case unavailable }
+    let failing = try MapRouletteClient(transport: wire, accessToken: { throw ProviderFailure.unavailable })
+    let count = await wire.requests.count
+    do { _ = try await failing.getCurrentUser(); Issue.record("Expected provider failure") }
+    catch ProviderFailure.unavailable { }
+    #expect(await wire.requests.count == count)
+}
+
+@Test func bearerProvidersRemainIsolatedAcrossClients() async throws {
+    let wire = try Fake("challenge_direct")
+    let credential = CredentialProbe("first-user-token")
+    let first = try MapRouletteClient(transport: wire, accessToken: { await credential.read() })
+    let second = try MapRouletteClient(transport: wire, accessToken: { "second-user-token" })
+    _ = try await first.getChallenge(ChallengeID(42))
+    _ = try await second.getChallenge(ChallengeID(42))
+    await credential.set(nil)
+    _ = try await first.getChallenge(ChallengeID(42))
+    _ = try await second.getChallenge(ChallengeID(42))
+    let requests = await wire.requests
+    #expect(requests.map { $0.headers["Authorization"] } ==
+        ["Bearer first-user-token", "Bearer second-user-token", nil, "Bearer second-user-token"])
+    #expect(requests.allSatisfy { $0.headers["apiKey"] == nil })
+}
