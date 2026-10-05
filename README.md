@@ -9,17 +9,38 @@ This is an unpublished development SDK. APIs may change. Kotlin/JVM supports
 integration into Android applications; Swift Package Manager targets iOS 15+
 and macOS 12+. Examples run on the host to exercise the same library clients.
 
+## Backend compatibility
+
+| Flow             | SDK                    | Android demo    | Backend                                 |
+| ---------------- | ---------------------- | --------------- | --------------------------------------- |
+| Anonymous reads  | Supported              | Supported       | Existing MapRoulette API                |
+| Personal API key | Per-user `apiKey`      | No entry screen | Existing MapRoulette API                |
+| Browser sign-in  | Per-user `accessToken` | AppAuth flow    | **Mobile OAuth patch deployed/enabled** |
+
+The Android sign-in example calls `/oauth/mobile/*`; configuring an OAuth app
+or supplying a client ID alone does not add those routes to an unpatched
+backend. The API-key option uses each person's own MapRoulette key, never a
+shared key bundled with an app.
+
+The tested implementation is in the
+[mobile backend fork](https://github.com/mvexel/maproulette-mobile-backend/tree/feat/mobile-oauth)
+and is configured separately for each deployment. The current test deployment
+at `https://mr-api.osm.lol` uses development OSM accounts and a separate
+MapRoulette database. See the [Android setup](android-example/README.md) and
+the [backend mobile OAuth guide](https://github.com/mvexel/maproulette-mobile-backend/blob/feat/mobile-oauth/docs/mobile-oauth.md)
+before enabling sign-in in an app.
+
 ## Read API
 
-| Operation | Behavior |
-| --- | --- |
-| Search challenges | ANY challenge-tag matching, optional name text, local-survey and archive filters |
-| Get challenge / challenge tags | Full supported metadata; tags are MapRoulette labels, not OSM key/value tags |
-| List challenge tasks | Explicit pages, including completed tasks |
-| Find tasks in bounds | All or selected challenges within task-location bounds, explicit status selection |
-| Find task markers | Capped, unordered map markers within bounds; no totals or pagination |
-| Get task | Full task geometry/properties and cooperative-work JSON |
-| Get current user | Minimal identity; raw identity credentials are discarded |
+| Operation                      | Behavior                                                                          |
+| ------------------------------ | --------------------------------------------------------------------------------- |
+| Search challenges              | ANY challenge-tag matching, optional name text, local-survey and archive filters  |
+| Get challenge / challenge tags | Full supported metadata; tags are MapRoulette labels, not OSM key/value tags      |
+| List challenge tasks           | Explicit pages, including completed tasks                                         |
+| Find tasks in bounds           | All or selected challenges within task-location bounds, explicit status selection |
+| Find task markers              | Capped, unordered map markers within bounds; no totals or pagination              |
+| Get task                       | Full task geometry/properties and cooperative-work JSON                           |
+| Get current user               | Minimal identity; raw identity credentials are discarded                          |
 
 Task and challenge IDs are distinct from OSM IDs. Tasks can contain multiple
 features. The SDK does not infer OSM element types from task names or geometry.
@@ -99,7 +120,9 @@ centering worked, and permission-denied fallback was checked on the emulator.
 Map conversion tests and both SDK contract suites pass. The opt-in Android
 sign-in flow was verified against a local synthetic OSM provider on the Pixel:
 browser consent, session restoration, refresh rotation and confirmed logout.
-Real OSM sign-in still requires development OAuth registration.
+Real development-OSM sign-in was subsequently verified on the Pixel 8 against
+the patched staging backend. This does not enable mobile sign-in on other
+MapRoulette deployments.
 
 ## Swift
 
@@ -144,6 +167,9 @@ The shared tests verify two users, anonymous access, key rotation and logout
 without leaking credentials between clients.
 
 Both SDKs accept either `apiKey: { ... }` or `accessToken: { ... }` providers.
+An app can therefore offer an old-style "enter your MapRoulette API key" screen
+without the mobile OAuth backend patch, although this Android demo does not
+implement that screen.
 Bearer credentials use `Authorization` and the same configured service origin;
 `getCurrentUser()` uses `/oauth/mobile/me` for bearer identity. Supplying both
 credential types fails before HTTP, and a rejected bearer never falls back to
@@ -151,8 +177,12 @@ an API key. Providers are evaluated per request so hosts can rotate credentials.
 
 The Android example owns a browser/PKCE sign-in prototype using AppAuth,
 Android Keystore storage, serialized refresh and local-first logout. It requires
-the opt-in backend implementation in the companion local backend checkout;
-the deployed MapRoulette service is not assumed to support these endpoints.
+the deployed, enabled mobile OAuth patch described above; the default
+MapRoulette API origin must not be assumed to support these endpoints.
+On one backend and OSM environment, browser and traditional web login resolve
+the same MapRoulette user by numeric OSM ID. The staging backend uses its own
+database and development OSM accounts, so a staging user is separate from a
+`maproulette.org` user.
 The native SDKs remain read clients: browser integration and credential storage
 belong to the host app, and Swift has no sign-in UI. OSM access tokens and
 server-side client secrets must never be supplied as MapRoulette credentials.

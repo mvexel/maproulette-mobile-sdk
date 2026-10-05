@@ -1,8 +1,23 @@
 # Android example
 
-The default build browses the deployed MapRoulette API anonymously. Sign-in is disabled until a debug build specifies an approved client and an OAuth-enabled backend. The example uses AppAuth's browser authorization-code flow with S256 PKCE; it does not embed a personal API key or client secret.
+The default build browses the deployed MapRoulette API anonymously. **The Sign
+in button requires the [patched MapRoulette backend](https://github.com/mvexel/maproulette-mobile-backend/tree/feat/mobile-oauth)
+with its mobile OAuth provider enabled.** A normal MapRoulette API deployment
+or an OSM OAuth application by itself cannot serve the `/oauth/mobile/*`
+endpoints used by this app. Sign-in is disabled until a debug build specifies
+an approved client ID and that backend's origin. The example uses AppAuth's
+browser authorization-code flow with S256 PKCE; it does not embed a personal
+API key or client secret.
 
 ## Configure a debug sign-in build
+
+Deploy the mobile backend patch and follow its
+[mobile OAuth configuration guide](https://github.com/mvexel/maproulette-mobile-backend/blob/feat/mobile-oauth/docs/mobile-oauth.md).
+Enable `mobileOAuth`, register `maproulette-android-example` as a public client,
+and configure the backend's OSM OAuth client credentials and callback. The
+Android app's client ID is a public identifier; the OSM client secret stays on
+the backend. The tested staging backend is `https://mr-api.osm.lol` and uses
+development OSM accounts with a separate MapRoulette database.
 
 Register this exact native callback with the backend's mobile OAuth configuration:
 
@@ -58,3 +73,8 @@ Pixel 8 acceptance also verified browser cancellation and refresh with a local
 confirming that the rotated refresh token was saved; logout then confirmed
 server revocation. The isolated database contains no public challenges, so the
 authenticated read correctly returned a missing-challenge response.
+
+The Pixel 8 also completed a real development-OSM browser sign-in against the
+patched staging backend on 2026-10-05, displayed its MapRoulette user ID, and
+read nearby tasks from the separate staging challenge. This verifies that
+deployment, not an unpatched MapRoulette instance.
