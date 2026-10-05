@@ -1,12 +1,17 @@
 import Foundation
 
+public enum HTTPMethod: String, Sendable { case get = "GET", put = "PUT" }
 public struct HTTPRequest: Sendable, CustomStringConvertible, CustomDebugStringConvertible {
-  public var description: String { "HTTPRequest(GET)" }
+  public var description: String { "HTTPRequest(\(method.rawValue))" }
   public var debugDescription: String { description }
   public let url: URL, headers: [String: String]
-  public init(url: URL, headers: [String: String]) {
+  public let method: HTTPMethod
+  public let body: Data?
+  public init(url: URL, headers: [String: String], method: HTTPMethod = .get, body: Data? = nil) {
     self.url = url
     self.headers = headers
+    self.method = method
+    self.body = body
   }
 }
 public struct HTTPResponse: Sendable, CustomStringConvertible, CustomDebugStringConvertible {
@@ -45,7 +50,8 @@ public final class URLSessionTransport: Transport {
   deinit { session.invalidateAndCancel() }
   public func execute(_ request: HTTPRequest) async throws -> HTTPResponse {
     var native = URLRequest(url: request.url)
-    native.httpMethod = "GET"
+    native.httpMethod = request.method.rawValue
+    native.httpBody = request.body
     native.allHTTPHeaderFields = request.headers
     let (data, response) = try await session.data(for: native)
     guard let response = response as? HTTPURLResponse else { throw MapRouletteError(.network) }

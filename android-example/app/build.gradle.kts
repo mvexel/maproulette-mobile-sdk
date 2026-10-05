@@ -19,6 +19,8 @@ android {
 }
 
 dependencies {
+    implementation("org.maplibre.gl:android-sdk:13.6.1")
     implementation("org.maproulette:maproulette-mobile-sdk:0.1.0-SNAPSHOT")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
+    testImplementation("junit:junit:4.13.2")
 }

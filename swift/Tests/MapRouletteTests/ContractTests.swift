@@ -77,12 +77,41 @@ private func errorKind(_ expected: ErrorKind, _ operation: () async throws -> Vo
     var filter = try TaskFilter(challengeIDs: [ChallengeID(42)], bounds: Bounds(west: 4, south: 52, east: 5, north: 53), statuses: nil)
     let first = try await client.findTasksInBounds(filter: filter, pageSize: 2)
     #expect(first.total == 12); #expect(first.items[1].status == nil); #expect(first.items[1].point == nil)
+    let point = try #require(first.items[0].point)
+    #expect(point == .object(["lat": .number(52.3), "lng": .number(4.9)]))
+    #expect(field(point, "lat") == .number(52.3))
+    #expect(field(point, "lng") == .number(4.9))
+    #expect(field(point, "coordinates") == nil)
     _ = try await client.findTasksInBounds(filter: filter, pageSize: 2, after: first.next)
     let request = await wire.last()
     #expect(query(request, "cid") == "42"); #expect(query(request, "cId") == nil)
     #expect(query(request, "tStatus") == "-1"); #expect(query(request, "page") == "1")
     filter.challengeIDs = [try ChallengeID(99)]
     try await errorKind(.protocolFailure) { _ = try await client.findTasksInBounds(filter: filter, pageSize: 2) }
+}
+
+@Test func spatialSearchAcrossAllChallengesOmitsChallengeFilter() async throws {
+    let wire = try Fake("task_summaries_multiple_challenges")
+    let client = try MapRouletteClient(transport: wire)
+    let filter = try TaskFilter(bounds: Bounds(west: 4, south: 52, east: 5, north: 53))
+    let first = try await client.findTasksInBounds(filter: filter, pageSize: 2)
+    #expect(first.items.map { $0.challengeID.value } == [42, 99])
+    #expect(first.total == 2)
+    _ = try await client.findTasksInBounds(filter: filter, pageSize: 2, after: first.next)
+    let request = await wire.last()
+    #expect(query(request, "cid") == nil)
+    #expect(query(request, "tStatus") == "0,3,6")
+    #expect(query(request, "ca") == "false")
+    #expect(query(request, "cLocal") == "1")
+    #expect(query(request, "page") == "1")
+    var selected = filter
+    selected.challengeIDs = [try ChallengeID(42)]
+    try await errorKind(.validation) {
+        _ = try await client.findTasksInBounds(filter: selected, pageSize: 2, after: first.next)
+    }
+    try await errorKind(.protocolFailure) {
+        _ = try await client.findTasksInBounds(filter: selected, pageSize: 2)
+    }
 }
 
 @Test func errorsAndCredentialRedaction() async throws {
@@ -166,4 +195,31 @@ private actor SuspendedTransport: Transport {
     try await errorKind(.protocolFailure) { _ = try await client.getCurrentUser() }
     let invalidCredential = try MapRouletteClient(transport: wire, apiKey: { "\nsecret" })
     try await errorKind(.validation) { _ = try await invalidCredential.getTask(TaskID(101)) }
+}
+
+@Test func boundedMarkersUseReadOnlyPutWithoutPagination() async throws {
+    let wire = try Fake("markers"); let client = try MapRouletteClient(transport: wire)
+    let filter = try TaskFilter(bounds: Bounds(west: 4, south: 52, east: 5, north: 53))
+    let markers = try await client.findTaskMarkers(filter: filter, limit: 2)
+    #expect(markers.map { $0.challengeID.value } == [42, 99])
+    let request = await wire.last()
+    #expect(request.method == .put); #expect(request.body == Data("{}".utf8))
+    #expect(request.headers["Content-Type"] == "application/json")
+    #expect(request.url.path.contains("/markers/box/"))
+    for absent in ["cid", "sort", "page", "includeTotal"] { #expect(query(request, absent) == nil) }
+    for enabled in ["ce", "pe", "excludeLocked"] { #expect(query(request, enabled) == "true") }
+    #expect(query(request, "cLocal") == "1"); #expect(query(request, "tStatus") == "0,3,6")
+    var selected = filter
+    selected.challengeIDs = [try ChallengeID(42), try ChallengeID(99)]
+    selected.statuses = nil
+    _ = try await client.findTaskMarkers(filter: selected)
+    let selectedRequest = await wire.last()
+    #expect(query(selectedRequest, "cid") == "42,99"); #expect(query(selectedRequest, "tStatus") == "-1")
+    #expect(query(selectedRequest, "ce") == nil); #expect(query(selectedRequest, "pe") == nil)
+    for invalid in [0, 1001] {
+        try await errorKind(.validation) { _ = try await client.findTaskMarkers(filter: filter, limit: invalid) }
+    }
+    try await errorKind(.protocolFailure) { _ = try await client.findTaskMarkers(filter: filter, limit: 1) }
+    selected.challengeIDs = [try ChallengeID(42)]
+    try await errorKind(.protocolFailure) { _ = try await client.findTaskMarkers(filter: selected) }
 }

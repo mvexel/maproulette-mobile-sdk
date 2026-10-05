@@ -47,14 +47,14 @@ class MapRouletteClient(
     }
 
     suspend fun getChallenge(id: ChallengeId): Challenge {
-        val body = get("challenge/${id.value}")
+        val body = request("challenge/${id.value}")
         return decode {
             challenge(body).also { require(it.id == id) }
         }
     }
 
     suspend fun getChallengeTags(id: ChallengeId): List<ChallengeTag> {
-        val body = get("challenge/${id.value}/tags")
+        val body = request("challenge/${id.value}/tags")
         return decode {
             body.jsonArray.map {
                 ChallengeTag(it.obj().long("id"), it.obj().str("name"))
@@ -78,7 +78,7 @@ class MapRouletteClient(
     }
 
     suspend fun getTask(id: TaskId): Task {
-        val body = get("task/${id.value}")
+        val body = request("task/${id.value}")
         return decode {
             task(body).also { require(it.id == id) }
         }
@@ -89,10 +89,8 @@ class MapRouletteClient(
         pageSize: Int = 50,
         after: Continuation? = null,
     ): Page<TaskSummary> {
-        require(filter.challengeIds.isNotEmpty())
         require(filter.statuses == null || (filter.statuses.isNotEmpty() && filter.statuses.all { it >= 0 }))
         val params = linkedMapOf(
-            "cid" to filter.challengeIds.joinToString(",") { it.value.toString() },
             "cLocal" to "1",
             "ca" to filter.includeArchived.toString(),
             "tStatus" to (filter.statuses?.joinToString(",") ?: "-1"),
@@ -100,18 +98,49 @@ class MapRouletteClient(
             "sort" to "id",
             "order" to "ASC",
         )
+        if (filter.challengeIds.isNotEmpty()) {
+            params["cid"] = filter.challengeIds.joinToString(",") { it.value.toString() }
+        }
         val result = page(
             "tasks/box/${filter.bounds.path()}", params, pageSize, after,
             offset = false, parse = ::summary, envelope = true,
         )
-        if (result.items.any { it.challengeId !in filter.challengeIds }) {
+        if (filter.challengeIds.isNotEmpty() && result.items.any { it.challengeId !in filter.challengeIds }) {
             throw MapRouletteException(ErrorKind.PROTOCOL)
         }
         return result
     }
 
+    /** Bounded, unordered map markers. A full result may be truncated; there is no pagination or total.
+     * This read-only backend operation uses PUT and includes tasks locked by other users.
+     * All-challenge discovery includes only enabled challenges/projects; selected IDs bypass that filter. */
+    suspend fun findTaskMarkers(filter: TaskFilter, limit: Int = 100): List<TaskSummary> {
+        require(limit in 1..1000)
+        require(filter.statuses == null || (filter.statuses.isNotEmpty() && filter.statuses.all { it >= 0 }))
+        val params = linkedMapOf(
+            "cLocal" to "1", "ca" to filter.includeArchived.toString(),
+            "tStatus" to (filter.statuses?.joinToString(",") ?: "-1"),
+            "excludeLocked" to "true", "limit" to limit.toString(),
+        )
+        if (filter.challengeIds.isNotEmpty()) {
+            params["cid"] = filter.challengeIds.joinToString(",") { it.value.toString() }
+        }
+        if (filter.challengeIds.isEmpty()) {
+            params["ce"] = "true"
+            params["pe"] = "true"
+        }
+        val response = request("markers/box/${filter.bounds.path()}", params, HttpMethod.PUT, "{}")
+        return decode {
+            val rows = response.jsonArray
+            require(rows.size <= limit)
+            val markers = rows.map(::summary)
+            require(filter.challengeIds.isEmpty() || markers.all { it.challengeId in filter.challengeIds })
+            markers
+        }
+    }
+
     suspend fun getCurrentUser(): UserIdentity {
-        val body = get("user/whoami")
+        val body = request("user/whoami")
         return decode {
             val value = body.obj()
             UserIdentity(value.long("id"), requireNotNull(value.bool("guest")))
@@ -146,7 +175,7 @@ class MapRouletteClient(
         params["limit"] = size.toString()
         params["page"] = position.toString()
 
-        val body = get(path, params)
+        val body = request(path, params)
         return decode {
             val rows = if (envelope) body.obj()["tasks"]!!.jsonArray else body.jsonArray
             val total = if (envelope) body.obj().optionalLong("total") else null
@@ -164,7 +193,8 @@ class MapRouletteClient(
         }
     }
 
-    private suspend fun get(path: String, params: Map<String, String> = emptyMap()): JsonElement {
+    private suspend fun request(path: String, params: Map<String, String> = emptyMap(),
+                            method: HttpMethod = HttpMethod.GET, body: String? = null): JsonElement {
         currentCoroutineContext().ensureActive()
         val url = base.newBuilder()
             .addPathSegments(path)
@@ -178,12 +208,13 @@ class MapRouletteClient(
             "Accept" to "application/json",
             "User-Agent" to "MapRoulette-Mobile-SDK/0.1",
         )
+        if (body != null) headers["Content-Type"] = "application/json"
         apiKey()?.let {
             require(it.isNotBlank() && '\r' !in it && '\n' !in it)
             headers["apiKey"] = it
         }
         val response = try {
-            transport.execute(HttpRequest(url.toString(), headers))
+            transport.execute(HttpRequest(url.toString(), headers, method, body))
         } catch (e: CancellationException) {
             throw e
         } catch (e: MapRouletteException) {

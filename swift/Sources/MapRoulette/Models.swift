@@ -97,14 +97,15 @@ public struct Bounds: Sendable {
     self.north = north
   }
 }
-/// Filters task locations. nil statuses means all statuses; an empty array is invalid.
+/// Filters task locations. Empty challengeIDs means all challenges visible to the caller.
+/// nil statuses means all statuses; an empty statuses array is invalid.
 public struct TaskFilter: Sendable {
   public var challengeIDs: [ChallengeID]
   public var bounds: Bounds
   public var statuses: [Int]?
   public var includeArchived: Bool
   public init(
-    challengeIDs: [ChallengeID], bounds: Bounds, statuses: [Int]? = [0, 3, 6],
+    challengeIDs: [ChallengeID] = [], bounds: Bounds, statuses: [Int]? = [0, 3, 6],
     includeArchived: Bool = false
   ) {
     self.challengeIDs = challengeIDs

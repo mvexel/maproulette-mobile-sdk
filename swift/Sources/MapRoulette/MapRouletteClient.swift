@@ -40,12 +40,12 @@ public final class MapRouletteClient: Sendable {
       parse: challenge)
   }
   public func getChallenge(_ id: ChallengeID) async throws -> Challenge {
-    let result = try challenge(await get("challenge/\(id.value)"))
+    let result = try challenge(await request("challenge/\(id.value)"))
     guard result.id == id else { throw MapRouletteError(.protocolFailure) }
     return result
   }
   public func getChallengeTags(_ id: ChallengeID) async throws -> [ChallengeTag] {
-    try await get("challenge/\(id.value)/tags").array().map { value in
+    try await request("challenge/\(id.value)/tags").array().map { value in
       let o = try value.object()
       return try ChallengeTag(id: o.required("id").integer(), name: o.required("name").string())
     }
@@ -62,35 +62,65 @@ public final class MapRouletteClient: Sendable {
     return result
   }
   public func getTask(_ id: TaskID) async throws -> MapRouletteTask {
-    let result = try task(await get("task/\(id.value)"))
+    let result = try task(await request("task/\(id.value)"))
     guard result.id == id else { throw MapRouletteError(.protocolFailure) }
     return result
   }
   public func getCurrentUser() async throws -> UserIdentity {
-    let o = try await get("user/whoami").object()
+    let o = try await request("user/whoami").object()
     return try UserIdentity(id: o.required("id").integer(), guest: o.required("guest").boolean())
   }
   public func findTasksInBounds(filter: TaskFilter, pageSize: Int = 50, after: Continuation? = nil)
     async throws -> Page<TaskSummary>
   {
-    guard !filter.challengeIDs.isEmpty,
-      filter.statuses.map({ !$0.isEmpty && $0.allSatisfy { $0 >= 0 && $0 <= Int32.max } }) ?? true
+    guard filter.statuses.map({ !$0.isEmpty && $0.allSatisfy { $0 >= 0 && $0 <= Int32.max } }) ?? true
     else { throw MapRouletteError(.validation) }
     let b = filter.bounds
-    let params = [
-      "cid": filter.challengeIDs.map { String($0.value) }.joined(separator: ","), "cLocal": "1",
+    var params = [
+      "cLocal": "1",
       "ca": String(filter.includeArchived),
       "tStatus": filter.statuses?.map(String.init).joined(separator: ",") ?? "-1",
       "includeTotal": "true", "sort": "id", "order": "ASC",
     ]
+    if !filter.challengeIDs.isEmpty {
+      params["cid"] = filter.challengeIDs.map { String($0.value) }.joined(separator: ",")
+    }
     let result = try await page(
       path: "tasks/box/\(b.west)/\(b.south)/\(b.east)/\(b.north)", params: params, size: pageSize,
       after: after, offset: false, envelope: true, parse: summary)
-    guard result.items.allSatisfy({ filter.challengeIDs.contains($0.challengeID) }) else {
+    guard filter.challengeIDs.isEmpty || result.items.allSatisfy({ filter.challengeIDs.contains($0.challengeID) }) else {
       throw MapRouletteError(.protocolFailure)
     }
     return result
   }
+  /// Bounded, unordered map markers. A full result may be truncated; no pagination or total.
+  /// This read-only backend operation uses PUT and includes tasks locked by other users.
+  /// All-challenge discovery filters to enabled challenges/projects; selected IDs bypass that filter.
+  public func findTaskMarkers(filter: TaskFilter, limit: Int = 100) async throws -> [TaskSummary] {
+    guard (1...1000).contains(limit),
+      filter.statuses.map({ !$0.isEmpty && $0.allSatisfy { $0 >= 0 && $0 <= Int32.max } }) ?? true
+    else { throw MapRouletteError(.validation) }
+    var params = ["cLocal": "1", "ca": String(filter.includeArchived),
+      "tStatus": filter.statuses?.map(String.init).joined(separator: ",") ?? "-1",
+      "excludeLocked": "true", "limit": String(limit)]
+    if !filter.challengeIDs.isEmpty {
+      params["cid"] = filter.challengeIDs.map { String($0.value) }.joined(separator: ",")
+    }
+    let b = filter.bounds
+    if filter.challengeIDs.isEmpty {
+      params["ce"] = "true"
+      params["pe"] = "true"
+    }
+    let response = try await request("markers/box/\(b.west)/\(b.south)/\(b.east)/\(b.north)",
+      params: params, method: .put, body: Data("{}".utf8))
+    let rows = try response.array()
+    guard rows.count <= limit else { throw MapRouletteError(.protocolFailure) }
+    let markers = try rows.map(summary)
+    guard filter.challengeIDs.isEmpty || markers.allSatisfy({ filter.challengeIDs.contains($0.challengeID) })
+    else { throw MapRouletteError(.protocolFailure) }
+    return markers
+  }
+
   private func page<T: Sendable>(
     path: String, params: [String: String], size: Int, after: Continuation?, offset: Bool,
     envelope: Bool = false, parse: (JSONValue) throws -> T
@@ -108,7 +138,7 @@ public final class MapRouletteClient: Sendable {
     var query = params
     query["limit"] = String(size)
     query["page"] = String(position)
-    let body = try await get(path, params: query)
+    let body = try await request(path, params: query)
     let rows: [JSONValue]
     let total: Int64?
     if envelope {
@@ -129,7 +159,8 @@ public final class MapRouletteClient: Sendable {
       ? Continuation(owner: owner, key: key, position: nextPosition.partialValue) : nil
     return try Page(items: rows.map(parse), next: next, total: total)
   }
-  private func get(_ path: String, params: [String: String] = [:]) async throws -> JSONValue {
+  private func request(_ path: String, params: [String: String] = [:], method: HTTPMethod = .get,
+    body: Data? = nil) async throws -> JSONValue {
     try Task.checkCancellation()
     guard
       var url = URLComponents(
@@ -141,6 +172,7 @@ public final class MapRouletteClient: Sendable {
     if !items.isEmpty { url.queryItems = items }
     guard let target = url.url else { throw MapRouletteError(.validation) }
     var headers = ["Accept": "application/json", "User-Agent": "MapRoulette-Mobile-SDK/0.1"]
+    if body != nil { headers["Content-Type"] = "application/json" }
     if let key = try await apiKey() {
       guard !key.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, !key.contains("\r"),
         !key.contains("\n")
@@ -149,7 +181,7 @@ public final class MapRouletteClient: Sendable {
     }
     let response: HTTPResponse
     do {
-      response = try await transport.execute(HTTPRequest(url: target, headers: headers))
+      response = try await transport.execute(HTTPRequest(url: target, headers: headers, method: method, body: body))
       try Task.checkCancellation()
     } catch is CancellationError { throw CancellationError() } catch let error as URLError
       where error.code == .cancelled

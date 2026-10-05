@@ -16,7 +16,8 @@ and macOS 12+. Examples run on the host to exercise the same library clients.
 | Search challenges | ANY challenge-tag matching, optional name text, local-survey and archive filters |
 | Get challenge / challenge tags | Full supported metadata; tags are MapRoulette labels, not OSM key/value tags |
 | List challenge tasks | Explicit pages, including completed tasks |
-| Find tasks in bounds | Selected challenge IDs and task-location bounds, explicit status selection |
+| Find tasks in bounds | All or selected challenges within task-location bounds, explicit status selection |
+| Find task markers | Capped, unordered map markers within bounds; no totals or pagination |
 | Get task | Full task geometry/properties and cooperative-work JSON |
 | Get current user | Minimal identity; raw identity credentials are discarded |
 
@@ -76,14 +77,26 @@ adb -d shell am start -n org.maproulette.example/.MainActivity
 
 Configure your Android SDK in Android Studio or through `ANDROID_HOME` first.
 The example requires SDK 36 and runs on Android 8.0 (API 26) or later.
-The app accepts a challenge ID, lists tasks and opens task details. It makes
+The app accepts a challenge ID, lists tasks and opens task details. Its nearby
+task map uses MapLibre Native with the
+[OpenFreeMap Liberty style](https://openfreemap.org/quick_start/). Pan/zoom and
+choose **Search this area** to load up to 100 task locations across challenges,
+or use **My location** to center the map. Location permission is optional. Tap a
+task marker to read its details and challenge instructions. Map rendering and
+location handling belong to this example, not the SDK. The map uses the SDK’s
+default statuses (Created, Skipped and TooHard), excluding archived challenges
+and requiring enabled projects/challenges;
+these statuses do not guarantee a task can be completed in a mobile app. It makes
 anonymous read calls only. No credentials are bundled, and sign-in will be
 added after the backend authentication contract is ready.
 
 Validated on a Pixel 8: live challenge 16441, its first 20 tasks, full task
 details, missing-challenge error, retry and recovery. `:app:assembleDebug` and
 `:app:lintDebug` pass; lint retains advisory warnings for localization, app icon,
-backup configuration and available dependency/SDK updates.
+backup configuration and available dependency/SDK updates. Nearby markers and
+a marker’s task/challenge instructions were verified on the Pixel 8; location
+centering worked, and permission-denied fallback was checked on the emulator.
+Map conversion tests and both SDK contract suites pass.
 
 ## Swift
 
@@ -148,7 +161,7 @@ Clearing local credentials is logout; it does not revoke a server-side key.
 - Local-survey challenges are included by default; archived challenges are
   excluded by default. A matching challenge label is not proof a task is
   executable by your application.
-- Pagination is explicit, capped at 100 items per request, and represented by
+- Paginated reads are explicit, capped at 100 items per request, and represented by
   an opaque continuation bound to the client, operation, filter, and page size.
   Never reuse a continuation after changing a filter. Tokens are in-memory,
   not durable resume checkpoints.
@@ -157,7 +170,13 @@ Clearing local credentials is logout; it does not revoke a server-side key.
   another request may be necessary. The server provides no snapshot guarantee;
   concurrent changes can produce skips or duplicates during enumeration.
 - Spatial results are summaries selected by **task location**, not exact
-  feature-geometry intersections. Fetch full task details explicitly.
+  feature-geometry intersections. Empty/default challenge IDs search across
+  challenges. Summary points use `{lat, lng}`; task detail geometry is GeoJSON.
+  Fetch full task details explicitly. Map marker reads use a separate capped,
+  unordered response; reaching the limit means more may exist. They exclude
+  archived challenges by default and, when searching across challenges, require
+  enabled challenges and projects. Markers can include locked tasks; visibility
+  does not imply a task is available to edit. Paginated task reads remain available for enumeration.
 - Missing task status is distinct from Created. Unknown numeric statuses are
   preserved; applications should not assume they are actionable.
 - No automatic retries: callers choose when to retry a failed read. Errors
@@ -178,10 +197,12 @@ pagination expectations. Both platform test suites consume them. Fake
 transports exercise errors without production mutations. Run both suites with
 `scripts/check.sh` (JDK 17+ and Swift 6 required).
 
-There are no locks, task completion writes, comments, offline task packs, edit
-queues, OSM uploads, map UI or campaign question definitions yet. Some deployed
+The SDK does not provide locks, task completion writes, comments, offline task
+packs, edit queues, OSM uploads, map UI or campaign question definitions. The
+Android example supplies its own map UI. Some deployed
 MapRoulette GET routes mutate state; the client deliberately exposes only the
-verified read routes. Writes require a separately designed lifecycle and
+verified read routes (including the marker-search PUT, which retrieves data).
+Writes require a separately designed lifecycle and
 controlled integration tests.
 
 The [read-only probe record](docs/api-probes.json) records API quirks verified

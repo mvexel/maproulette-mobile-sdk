@@ -65,12 +65,73 @@ class ContractTest {
         val filter = TaskFilter(listOf(ChallengeId(42)), Bounds(4.0, 52.0, 5.0, 53.0), statuses = null)
         val first = client.findTasksInBounds(filter, 2)
         assertEquals(12L, first.total); assertNull(first.items[1].status); assertNull(first.items[1].point)
+        val point = assertNotNull(first.items[0].point)
+        assertEquals(fixtures.getValue("task_summaries").jsonObject.getValue("tasks").jsonArray[0].jsonObject["point"], point)
+        assertEquals(52.3, point.getValue("lat").jsonPrimitive.double)
+        assertEquals(4.9, point.getValue("lng").jsonPrimitive.double)
+        assertFalse("coordinates" in point)
         client.findTasksInBounds(filter, 2, first.next)
         val url = wire.requests.last().url.toHttpUrl()
         assertEquals("42", url.queryParameter("cid")); assertNull(url.queryParameter("cId"))
         assertEquals("-1", url.queryParameter("tStatus")); assertEquals("1", url.queryParameter("page"))
         val error = assertFailsWith<MapRouletteException> { client.findTasksInBounds(filter.copy(challengeIds = listOf(ChallengeId(99))), 2) }
         assertEquals(ErrorKind.PROTOCOL, error.kind)
+    }
+
+    @Test fun spatialSearchAcrossAllChallengesOmitsChallengeFilter() = runBlocking<Unit> {
+        val wire = fake("task_summaries_multiple_challenges")
+        val client = MapRouletteClient(transport = wire)
+        val filter = TaskFilter(bounds = Bounds(4.0, 52.0, 5.0, 53.0))
+        val first = client.findTasksInBounds(filter, 2)
+        assertEquals(listOf(ChallengeId(42), ChallengeId(99)), first.items.map { it.challengeId })
+        assertEquals(2L, first.total)
+        client.findTasksInBounds(filter, 2, first.next)
+        val url = wire.requests.last().url.toHttpUrl()
+        assertFalse("cid" in url.queryParameterNames)
+        assertEquals("0,3,6", url.queryParameter("tStatus"))
+        assertEquals("false", url.queryParameter("ca"))
+        assertEquals("1", url.queryParameter("cLocal"))
+        assertEquals("1", url.queryParameter("page"))
+        assertFailsWith<IllegalArgumentException> {
+            client.findTasksInBounds(filter.copy(challengeIds = listOf(ChallengeId(42))), 2, first.next)
+        }
+        assertEquals(ErrorKind.PROTOCOL, assertFailsWith<MapRouletteException> {
+            client.findTasksInBounds(filter.copy(challengeIds = listOf(ChallengeId(42))), 2)
+        }.kind)
+    }
+
+    @Test fun boundedMarkersUseReadOnlyPutWithoutPagination() = runBlocking<Unit> {
+        val wire = fake("markers"); val client = MapRouletteClient(transport = wire)
+        val filter = TaskFilter(bounds = Bounds(4.0, 52.0, 5.0, 53.0))
+        assertEquals(listOf(42L, 99L), client.findTaskMarkers(filter, 2).map { it.challengeId.value })
+        val request = wire.requests.last(); val url = request.url.toHttpUrl()
+        assertEquals(HttpMethod.PUT, request.method); assertEquals("{}", request.body)
+        assertEquals("application/json", request.headers["Content-Type"])
+        assertTrue(url.encodedPath.contains("/markers/box/"))
+        for (absent in listOf("cid", "sort", "page", "includeTotal")) assertNull(url.queryParameter(absent))
+        for (enabled in listOf("ce", "pe", "excludeLocked")) assertEquals("true", url.queryParameter(enabled))
+        assertEquals("1", url.queryParameter("cLocal")); assertEquals("0,3,6", url.queryParameter("tStatus"))
+        val selected = filter.copy(challengeIds = listOf(ChallengeId(42), ChallengeId(99)), statuses = null)
+        client.findTaskMarkers(selected)
+        val selectedUrl = wire.requests.last().url.toHttpUrl()
+        assertEquals("42,99", selectedUrl.queryParameter("cid")); assertEquals("-1", selectedUrl.queryParameter("tStatus"))
+        assertNull(selectedUrl.queryParameter("ce")); assertNull(selectedUrl.queryParameter("pe"))
+        for (invalid in listOf(0, 1001)) assertFailsWith<IllegalArgumentException> { client.findTaskMarkers(filter, invalid) }
+        assertEquals(ErrorKind.PROTOCOL, assertFailsWith<MapRouletteException> { client.findTaskMarkers(filter, 1) }.kind)
+        assertEquals(ErrorKind.PROTOCOL, assertFailsWith<MapRouletteException> {
+            client.findTaskMarkers(filter.copy(challengeIds = listOf(ChallengeId(42))))
+        }.kind)
+    }
+
+    @Test fun markerPutReachesRealTransportWithJsonBody() = runBlocking<Unit> {
+        MockWebServer().use { server -> OkHttpTransport().use { transport ->
+            server.start(); server.enqueue(MockResponse().setBody(body("markers")))
+            val client = MapRouletteClient(serviceUrl = server.url("/api/v2/").toString(), transport = transport)
+            client.findTaskMarkers(TaskFilter(bounds = Bounds(4.0, 52.0, 5.0, 53.0)))
+            val received = assertNotNull(server.takeRequest(2, TimeUnit.SECONDS))
+            assertEquals("PUT", received.method); assertEquals("{}", received.body.readUtf8())
+            assertEquals("application/json", received.getHeader("Content-Type"))
+        } }
     }
 
     @Test fun errorsAndCredentialRedaction() = runBlocking<Unit> {
@@ -122,6 +183,17 @@ class ContractTest {
         started.await(); request.cancel()
         assertFailsWith<CancellationException> { request.await() }
         withTimeout(2000) { stopped.await() }
+    }
+
+    @Test fun realTransportAllowsResponseBeyondOkHttpDefaultReadTimeout() = runBlocking<Unit> {
+        MockWebServer().use { server -> OkHttpTransport().use { transport ->
+            server.start()
+            // Reproduces slow spatial-query headers exceeding OkHttp's default ten seconds.
+            server.enqueue(MockResponse().setHeadersDelay(11, TimeUnit.SECONDS).setBody("[]"))
+            val response = transport.execute(HttpRequest(server.url("/slow-headers").toString(), emptyMap()))
+            assertEquals(200, response.status)
+            assertEquals("[]", response.body)
+        } }
     }
 
     @Test fun realTransportDoesNotFollowRedirectAndCancels() = runBlocking<Unit> {

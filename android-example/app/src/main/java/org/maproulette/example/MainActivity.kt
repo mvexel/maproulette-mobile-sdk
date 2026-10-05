@@ -2,6 +2,7 @@ package org.maproulette.example
 
 import android.app.Activity
 import android.app.AlertDialog
+import android.content.Intent
 import android.os.Bundle
 import android.text.InputType
 import android.view.View
@@ -65,6 +66,10 @@ class MainActivity : Activity() {
         content.addView(label("MapRoulette", 28f))
         content.addView(label("Browse a challenge and inspect its tasks.", 16f))
         content.addView(label("Public access · Read only", 14f))
+        content.addView(Button(this).apply {
+            text = "Nearby task map"
+            setOnClickListener { startActivity(Intent(this@MainActivity, MapActivity::class.java)) }
+        })
         content.addView(label("Challenge ID", 16f))
         challengeInput = EditText(this).apply {
             inputType = InputType.TYPE_CLASS_NUMBER

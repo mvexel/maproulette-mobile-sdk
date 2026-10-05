@@ -55,9 +55,10 @@ data class Bounds(
     internal fun path() = "$west/$south/$east/$north"
 }
 
-/** Filters task locations. null statuses means all statuses; empty is invalid. */
+/** Filters task locations. Empty challengeIds means all challenges visible to the caller.
+ * null statuses means all statuses; empty statuses is invalid. */
 data class TaskFilter(
-    val challengeIds: List<ChallengeId>,
+    val challengeIds: List<ChallengeId> = emptyList(),
     val bounds: Bounds,
     val statuses: List<Int>? = listOf(0, 3, 6),
     val includeArchived: Boolean = false,
