@@ -10,6 +10,7 @@ import okhttp3.Response
 import java.io.Closeable
 import java.io.IOException
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 
 /** A transport implementation must honor cancellation and must not forward headers across redirects. */
 fun interface Transport {
@@ -32,6 +33,7 @@ class HttpResponse(
 /** Reuse one transport per application. Requests have a 30-second overall deadline, including
  * waiting for the server response. close() cancels outstanding calls and releases its resources. */
 class OkHttpTransport : Transport, Closeable {
+    private val closed = AtomicBoolean(false)
     private val client = OkHttpClient.Builder()
         .followRedirects(false)
         .followSslRedirects(false)
@@ -77,8 +79,12 @@ class OkHttpTransport : Transport, Closeable {
         }
 
     override fun close() {
+        if (!closed.compareAndSet(false, true)) return
         client.dispatcher.cancelAll()
-        client.dispatcher.executorService.shutdown()
-        client.connectionPool.evictAll()
+        // Evicting pooled sockets can perform network I/O. Android callers may close a
+        // session from the main thread (for example during sign-out or Activity teardown).
+        val executor = client.dispatcher.executorService
+        executor.execute { client.connectionPool.evictAll() }
+        executor.shutdown()
     }
 }

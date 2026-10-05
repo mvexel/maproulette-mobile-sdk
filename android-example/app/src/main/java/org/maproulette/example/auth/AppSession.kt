@@ -3,6 +3,7 @@ package org.maproulette.example.auth
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
@@ -153,20 +154,26 @@ class AppSession private constructor(context: Context) {
         }
         pendingState = null
         persist()
+        var stage = "token exchange"
         try {
             tokenMutex.withLock {
                 // AppAuth token calls cannot be canceled. Finish this exchange, but never save it after logout.
                 withContext(NonCancellable) {
                     val token = requestToken(response.createTokenExchangeRequest())
                     checkGeneration(expected)
+                    stage = "token validation"
                     validateToken(token)
                     val next = AuthState(response, null).apply { update(token, null) }
-                    val identity = OkHttpTransport().use { transport ->
-                        MapRouletteClient(serviceUrl = endpoints.api, transport = transport,
-                            accessToken = { token.accessToken }).getCurrentUser()
+                    stage = "account lookup"
+                    val identity = withContext(Dispatchers.IO) {
+                        OkHttpTransport().use { transport ->
+                            MapRouletteClient(serviceUrl = endpoints.api, transport = transport,
+                                accessToken = { token.accessToken }).getCurrentUser()
+                        }
                     }
                     checkGeneration(expected)
                     check(!identity.guest && identity.id > 0)
+                    stage = "secure storage"
                     authState = next
                     userId = identity.id
                     persist()
@@ -177,8 +184,9 @@ class AppSession private constructor(context: Context) {
             }
         } catch (cancelled: CancellationException) {
             throw cancelled
-        } catch (_: Exception) {
-            if (generation == expected) invalidate("Sign-in could not complete. Please try again.")
+        } catch (failure: Exception) {
+            if (BuildConfig.DEBUG) Log.w("MapRouletteAuth", "Sign-in failed during $stage: ${failure.javaClass.simpleName}")
+            if (generation == expected) invalidate("Sign-in failed during $stage. Please try again.")
         }
     }
 
