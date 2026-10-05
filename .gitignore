@@ -9,3 +9,6 @@ build/
 .swiftpm/
 .idea/
 local.properties
+/docs/design.md
+/tmp/
+/kotlin/gradle/gradle-daemon-jvm.properties

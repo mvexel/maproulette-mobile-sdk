@@ -33,6 +33,15 @@ Build against an HTTPS test backend:
   -PmaprouletteOAuthClientId=maproulette-android-example
 ```
 
+For the tested staging deployment, replace `https://backend.example` with
+`https://mr-api.osm.lol`. Install the resulting debug APK, tap **Sign in**, and
+authorize with a development OSM account. The staging database contains a Salt
+Lake City bench challenge (ID `1`) with 168 tasks. Open the map around Salt Lake
+City and tap **Search this area** to inspect nearby tasks. The app currently
+reads tasks only; tapping a task cannot complete it. A plain debug build without
+these Gradle properties uses anonymous `maproulette.org` reads and disables
+sign-in.
+
 The base URL must be an origin, without a path, query, fragment or credentials. The SDK's API URL and all authentication endpoints use that origin. Configuration properties are public identifiers and URLs, not credentials.
 
 For local testing with an explicitly selected device and `adb reverse`, the debug build alone can enable cleartext traffic to exact loopback hosts:

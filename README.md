@@ -106,9 +106,10 @@ or use **My location** to center the map. Location permission is optional. Tap a
 task marker to read its details and challenge instructions. Map rendering and
 location handling belong to this example, not the SDK. The map uses the SDK’s
 default statuses (Created, Skipped and TooHard), excluding archived challenges
-and requiring enabled projects/challenges;
-these statuses do not guarantee a task can be completed in a mobile app. It uses anonymous access by default. An opt-in browser sign-in prototype can
-connect to a backend with the mobile OAuth endpoints enabled; see the
+and requiring enabled projects/challenges. These statuses do not guarantee a
+task can be completed in a mobile app. The default build uses anonymous access.
+An opt-in browser sign-in prototype connects to a backend with the mobile OAuth
+endpoints enabled; see the
 [Android setup](android-example/README.md). No credentials are bundled.
 
 Validated on a Pixel 8: live challenge 16441, its first 20 tasks, full task
@@ -242,6 +243,11 @@ MapRoulette GET routes mutate state; the client deliberately exposes only the
 verified read routes (including the marker-search PUT, which retrieves data).
 Writes require a separately designed lifecycle and
 controlled integration tests.
+
+**Next implementation slice: mobile task completion.** This includes the
+per-user write grant, task lifecycle and conflict handling, and an Android
+completion action tested on a disposable staging task. See the
+[handoff](docs/handoff.md) for the current state and acceptance steps.
 
 The [read-only probe record](docs/api-probes.json) records API quirks verified
 against the backend source and deployed service. The design discussion is
