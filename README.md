@@ -45,8 +45,8 @@ val tasks = client.listTasks(ChallengeId(16441), pageSize = 25)
 Import `org.maproulette.sdk.*`. Public methods are suspending. HTTP uses OkHttp;
 cancelling the calling coroutine cancels the request. The JVM artifact needs no
 Android SDK to build. Android applications need the `INTERNET` permission and a
-modern Android Gradle Plugin capable of consuming Java 17 bytecode. No Android
-device validation is claimed for this first host-tested slice.
+modern Android Gradle Plugin capable of consuming Java 17 bytecode. The Android
+example has been smoke-tested on a physical Pixel 8.
 
 For local Android development, add `includeBuild("/path/to/maproulette-mobile-sdk/kotlin")`
 to your application's Gradle settings, then depend on
@@ -60,6 +60,30 @@ cd kotlin
 ./gradlew test jar
 ./gradlew run --args='16441'
 ```
+
+## Android test app
+
+`android-example/` is a separate, minimal Android application consuming the
+Kotlin SDK through a Gradle composite build. Open that directory in Android
+Studio, or build and install it on a connected device:
+
+```sh
+cd android-example
+./gradlew :app:assembleDebug
+adb -d install -r app/build/outputs/apk/debug/app-debug.apk
+adb -d shell am start -n org.maproulette.example/.MainActivity
+```
+
+Configure your Android SDK in Android Studio or through `ANDROID_HOME` first.
+The example requires SDK 36 and runs on Android 8.0 (API 26) or later.
+The app accepts a challenge ID, lists tasks and opens task details. It makes
+anonymous read calls only. No credentials are bundled, and sign-in will be
+added after the backend authentication contract is ready.
+
+Validated on a Pixel 8: live challenge 16441, its first 20 tasks, full task
+details, missing-challenge error, retry and recovery. `:app:assembleDebug` and
+`:app:lintDebug` pass; lint retains advisory warnings for localization, app icon,
+backup configuration and available dependency/SDK updates.
 
 ## Swift
 
