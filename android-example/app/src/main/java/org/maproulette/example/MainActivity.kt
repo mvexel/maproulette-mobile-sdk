@@ -196,7 +196,7 @@ class MainActivity : Activity() {
                 results.addView(Button(this).apply {
                     isAllCaps = false
                     text = "${task.name}\nTask ${task.id.value} · ${statusLabel(task)}"
-                    setOnClickListener { showTask(task.id) }
+                    setOnClickListener { showTask(task.id, shown.map { it.id }) }
                 })
             }
             val hidden = page.items.size - shown.size
@@ -209,9 +209,9 @@ class MainActivity : Activity() {
         }
     }
 
-    private fun showTask(id: TaskId) {
+    private fun showTask(id: TaskId, order: List<TaskId>) {
         @Suppress("DEPRECATION") // Plain Activity result API, as for AppAuth.
-        startActivityForResult(TaskActivity.intent(this, id), TaskActivity.REQUEST)
+        startActivityForResult(TaskActivity.intent(this, id, order), TaskActivity.REQUEST)
     }
 
     private fun signInText(view: org.maproulette.example.auth.SessionView) = when {

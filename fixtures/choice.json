@@ -6915,6 +6915,26 @@
    }
   },
   {
+   "name": "osm_edits_unavailable",
+   "status": 503,
+   "body": {
+    "error": "osm_edits_unavailable"
+   },
+   "error": {
+    "kind": "server",
+    "problem": "osmUnavailable"
+   }
+  },
+  {
+   "name": "unavailable_other",
+   "status": 503,
+   "body": null,
+   "error": {
+    "kind": "server",
+    "problem": null
+   }
+  },
+  {
    "name": "bad_gateway_other",
    "status": 502,
    "body": null,

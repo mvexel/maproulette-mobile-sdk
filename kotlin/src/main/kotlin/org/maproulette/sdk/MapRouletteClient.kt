@@ -320,12 +320,12 @@ class MapRouletteClient(
 
     /** Fresh server-side OSM eligibility check (`GET task/{id}/choice/check`, `tasks:read`). It changes
      * nothing the caller owns; the server may record a system ineligible flag that hides the task from
-     * mobile discovery. A 502 carries [ChoiceProblem.OsmUnavailable]. */
+     * mobile discovery. A 502 osm_unavailable or 503 osm_edits_unavailable carries [ChoiceProblem.OsmUnavailable]. */
     suspend fun checkChoice(id: TaskId): ChoiceEligibility {
         val response = send("task/${id.value}/choice/check")
         if (response.status != 200) {
             throw failure(response, ChoiceProblem.OsmUnavailable.takeIf {
-                response.status == 502 && errorBody(response)?.text("error") == "osm_unavailable"
+                osmUnavailable(response.status, errorBody(response)?.text("error"))
             })
         }
         return decode {
@@ -453,9 +453,8 @@ class MapRouletteClient(
             500 -> if (error == "status_pending") {
                 ChoiceProblem.StatusPending(runCatching { body?.optionalLong("changesetId") }.getOrNull())
             } else WriteProblem.OutcomeUnknown
-            502 -> if (error == "osm_unavailable") ChoiceProblem.OsmUnavailable else WriteProblem.OutcomeUnknown
-            // The server cannot use stored OSM tokens; refused before any lock check or upload.
-            503 -> if (error == "osm_edits_unavailable") ChoiceProblem.OsmUnavailable else WriteProblem.OutcomeUnknown
+            // 503 osm_edits_unavailable is refused before any lock check or upload.
+            502, 503 -> if (osmUnavailable(status, error)) ChoiceProblem.OsmUnavailable else WriteProblem.OutcomeUnknown
             in 500..599 -> WriteProblem.OutcomeUnknown
             else -> null
         }
@@ -624,6 +623,10 @@ private fun WriteProblem?.provesNotApplied() = when (this) {
     ChoiceProblem.UnsupportedTask, WriteProblem.InsufficientScope -> true
     else -> false
 }
+
+// 502 osm_unavailable: OSM unreachable. 503 osm_edits_unavailable: stored OSM tokens unusable.
+private fun osmUnavailable(status: Int, error: String?) =
+    (status == 502 && error == "osm_unavailable") || (status == 503 && error == "osm_edits_unavailable")
 
 private val choiceOnlyParams = mapOf("cct" to "3", "excludeStale" to "true")
 

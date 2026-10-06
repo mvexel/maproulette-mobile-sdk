@@ -53,6 +53,8 @@ class MapActivity : Activity() {
     private var map: MapLibreMap? = null
     private var source: GeoJsonSource? = null
     private var request: Job? = null
+    /** Task ids of the shown markers, in result order, for "Next task". */
+    private var shownIds: List<TaskId> = emptyList()
     private var locationTimeout: Job? = null
     private var locationListener: LocationListener? = null
     private val locations by lazy { getSystemService(LocationManager::class.java) }
@@ -127,6 +129,7 @@ class MapActivity : Activity() {
                     sessionClient.close()
                     sessionClient = session.newClient()
                     source?.setGeoJson(FeatureCollection.fromFeatures(emptyArray()))
+                    shownIds = emptyList()
                     status.text = "Session changed. Tap Search this area."
                     observedGeneration = view.generation
                 }
@@ -149,6 +152,7 @@ class MapActivity : Activity() {
         }
         request?.cancel()
         source?.setGeoJson(FeatureCollection.fromFeatures(emptyArray()))
+        shownIds = emptyList()
         status.text = "Loading tasks…"
         request = scope.launch {
             try {
@@ -160,6 +164,7 @@ class MapActivity : Activity() {
                     Feature.fromGeometry(point).apply { addStringProperty("taskId", task.id.value.toString()) }
                 }
                 source?.setGeoJson(FeatureCollection.fromFeatures(features))
+                shownIds = tasks.filter { it.point?.let(::taskPoint) != null }.map { it.id }
                 val extra = if (tasks.size == 100) " Showing up to 100 tasks; more may exist. Zoom in." else ""
                 val missing = if (features.size < tasks.size) " Some tasks have no usable point." else ""
                 status.text = if (tasks.isEmpty()) "No multiple-choice tasks here. Try another area."
@@ -182,7 +187,7 @@ class MapActivity : Activity() {
         ).firstOrNull() ?: return false
         val id = hit.getStringProperty("taskId")?.toLongOrNull()?.let(::TaskId) ?: return false
         @Suppress("DEPRECATION") // Plain Activity result API, as for AppAuth.
-        startActivityForResult(TaskActivity.intent(this, id), TaskActivity.REQUEST)
+        startActivityForResult(TaskActivity.intent(this, id, shownIds), TaskActivity.REQUEST)
         return true
     }
 

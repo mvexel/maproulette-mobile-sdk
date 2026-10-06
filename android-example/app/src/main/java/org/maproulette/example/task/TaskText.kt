@@ -126,6 +126,12 @@ object TaskText {
         else -> "Completed by MapRoulette user $completedBy, not you (you are user $me)."
     }
 
+    /** Tasks to offer as "Next task": those after [current] in the list order, then those before it. */
+    fun nextTasks(ids: List<Long>, current: Long): List<Long> {
+        val at = ids.indexOf(current)
+        return if (at < 0) ids.filter { it != current } else ids.drop(at + 1) + ids.take(at)
+    }
+
     const val DEV_OSM = "https://master.apis.dev.openstreetmap.org"
 
     private fun host(url: String) = runCatching { URI(url).host }.getOrNull() ?: url

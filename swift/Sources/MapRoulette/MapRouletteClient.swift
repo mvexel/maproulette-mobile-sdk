@@ -310,11 +310,12 @@ public final class MapRouletteClient: Sendable {
 
   /// Fresh server-side OSM eligibility check (`GET task/{id}/choice/check`, `tasks:read`). It
   /// changes nothing the caller owns; the server may record a system ineligible flag that hides
-  /// the task from mobile discovery. A 502 carries `.choice(.osmUnavailable)`.
+  /// the task from mobile discovery. A 502 osm_unavailable or 503 osm_edits_unavailable carries
+  /// `.choice(.osmUnavailable)`.
   public func checkChoice(_ id: TaskID) async throws -> ChoiceEligibility {
     let response = try await send("task/\(id.value)/choice/check")
     guard response.status == 200 else {
-      let unavailable = response.status == 502 && errorField(response, "error") == "osm_unavailable"
+      let unavailable = osmUnavailable(response.status, errorField(response, "error"))
       throw failure(response, problem: unavailable ? .choice(.osmUnavailable) : nil)
     }
     do {
@@ -476,9 +477,8 @@ public final class MapRouletteClient: Sendable {
     case 500:
       guard error == "status_pending" else { return .outcomeUnknown }
       return .choice(.statusPending(changesetID: try? body?.optional("changesetId")?.integer()))
-    case 502: return error == "osm_unavailable" ? .choice(.osmUnavailable) : .outcomeUnknown
-    // The server cannot use stored OSM tokens; refused before any lock check or upload.
-    case 503: return error == "osm_edits_unavailable" ? .choice(.osmUnavailable) : .outcomeUnknown
+    // 503 osm_edits_unavailable is refused before any lock check or upload.
+    case 502, 503: return osmUnavailable(status, error) ? .choice(.osmUnavailable) : .outcomeUnknown
     case 500...599: return .outcomeUnknown
     default: return nil
     }
@@ -746,4 +746,9 @@ private func summary(_ value: JSONValue) throws -> TaskSummary {
   return try TaskSummary(
     id: TaskID(id), challengeID: ChallengeID(parent), title: o.required("title").string(),
     status: o.status(), point: o.optionalObject("point"))
+}
+
+// 502 osm_unavailable: OSM unreachable. 503 osm_edits_unavailable: stored OSM tokens unusable.
+private func osmUnavailable(_ status: Int, _ error: String?) -> Bool {
+  (status == 502 && error == "osm_unavailable") || (status == 503 && error == "osm_edits_unavailable")
 }

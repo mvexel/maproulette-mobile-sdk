@@ -55,7 +55,8 @@ grant less. A session whose grant lacks `tasks:write` or `osm:tagfix` (for
 example one from before choice support) shows **Sign in again to enable
 editing**. Opening a task never locks it. For a write-enabled session the app
 calls `checkChoice`; if the task is ineligible or the check fails, it says
-**This one no longer needs answering** and offers no actions. Otherwise each
+**This one no longer needs answering** and offers no actions, only **Next
+task** (the next one from the list or map) and Back. Otherwise each
 question is a card: every option shows its exact tag change (`backrest=yes`)
 under the label, and **Can't tell** leaves the question out. **Submit answers**
 is enabled once one question is answered and confirms the exact tag changes,

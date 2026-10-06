@@ -59,6 +59,8 @@ class TaskActivity : Activity() {
     private lateinit var sessionClient: AppSession.SessionClient
     private lateinit var controller: TaskWorkController
     private var taskId = TaskId(1)
+    /** Tasks from the list or map to offer as "Next task", in order; never includes [taskId]. */
+    private var upcoming = ArrayDeque<Long>()
 
     private lateinit var title: TextView
     private lateinit var meta: TextView
@@ -73,7 +75,10 @@ class TaskActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        taskId = TaskId(intent.getLongExtra(EXTRA_TASK_ID, 0L).takeIf { it > 0 } ?: run { finish(); return })
+        taskId = TaskId((savedInstanceState?.getLong(EXTRA_TASK_ID) ?: intent.getLongExtra(EXTRA_TASK_ID, 0L)).takeIf { it > 0 }
+            ?: run { finish(); return })
+        upcoming = ArrayDeque(savedInstanceState?.getLongArray(KEY_UPCOMING)?.toList()
+            ?: TaskText.nextTasks(intent.getLongArrayExtra(EXTRA_TASK_IDS)?.toList().orEmpty(), taskId.value))
         session = AppSession.get(this)
         signIn = SignInLauncher(this, session, scope).apply { restore(savedInstanceState) }
         val content = LinearLayout(this).apply {
@@ -194,6 +199,7 @@ class TaskActivity : Activity() {
             is TaskScreen.NoLongerNeeded -> {
                 showTask(state.task, state.challenge)
                 notice.text = TaskText.NO_LONGER_NEEDED
+                upcoming.firstOrNull()?.let { body.addView(button("Next task") { openNext() }) }
                 body.addView(button("Back to tasks") { finish() })
             }
             is TaskScreen.Answering -> {
@@ -287,6 +293,17 @@ class TaskActivity : Activity() {
                 body.addView(button("Back to tasks") { finish() })
             }
         }
+    }
+
+    /** Opens the next task from the list or map in this screen; [controller.changed] carries over. */
+    private fun openNext() {
+        if (controller.busy) return
+        val next = upcoming.removeFirstOrNull() ?: return
+        taskId = TaskId(next)
+        title.text = "Task $next"
+        meta.text = ""
+        instructions.text = ""
+        controller.load(taskId)
     }
 
     private fun showTask(task: Task, challenge: Challenge) {
@@ -518,6 +535,8 @@ class TaskActivity : Activity() {
     private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
 
     override fun onSaveInstanceState(outState: Bundle) {
+        outState.putLong(EXTRA_TASK_ID, taskId.value)
+        outState.putLongArray(KEY_UPCOMING, upcoming.toLongArray())
         signIn.save(outState)
         super.onSaveInstanceState(outState)
     }
@@ -542,9 +561,13 @@ class TaskActivity : Activity() {
     companion object {
         const val EXTRA_TASK_ID = "taskId"
         const val EXTRA_CHANGED = "changed"
+        private const val EXTRA_TASK_IDS = "taskIds"
+        private const val KEY_UPCOMING = "upcoming"
         const val REQUEST = 200
 
-        fun intent(context: Context, id: TaskId): Intent =
+        /** [order] is the list or map order, used for "Next task". */
+        fun intent(context: Context, id: TaskId, order: List<TaskId> = emptyList()): Intent =
             Intent(context, TaskActivity::class.java).putExtra(EXTRA_TASK_ID, id.value)
+                .putExtra(EXTRA_TASK_IDS, order.map { it.value }.toLongArray())
     }
 }

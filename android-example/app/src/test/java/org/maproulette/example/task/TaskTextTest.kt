@@ -66,6 +66,14 @@ class TaskTextTest {
     }
 
     @Test
+    fun nextTasksFollowTheListThenWrap() {
+        assertEquals(listOf(3L, 4L, 1L), TaskText.nextTasks(listOf(1L, 2L, 3L, 4L), 2L))
+        assertEquals(listOf(1L, 2L), TaskText.nextTasks(listOf(1L, 2L), 9L))
+        assertEquals(emptyList<Long>(), TaskText.nextTasks(listOf(5L), 5L))
+        assertEquals(emptyList<Long>(), TaskText.nextTasks(emptyList(), 5L))
+    }
+
+    @Test
     fun unavailableReasons() {
         assertTrue(TaskText.unavailableReason(task(cooperativeWork = null)).contains("multiple-choice"))
         assertTrue(TaskText.unavailableReason(task(bundleId = 3)).contains("bundle"))
