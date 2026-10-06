@@ -1,0 +1,8 @@
+// Build-time backend configuration (public identifiers and URLs, not credentials).
+// Override on the xcodebuild command line, for example:
+//   xcodebuild ... MAPROULETTE_BASE_URL=https://mr-api.osm.lol MAPROULETTE_OAUTH_CLIENT_ID=maproulette-ios-example
+// Only Debug builds read these values; Release builds use anonymous maproulette.org reads.
+// `$()` keeps `//` from starting a comment.
+MAPROULETTE_BASE_URL = https:/$()/maproulette.org
+MAPROULETTE_OAUTH_CLIENT_ID =
+MAPROULETTE_ALLOW_LOOPBACK = NO

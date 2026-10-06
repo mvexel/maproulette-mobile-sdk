@@ -41,6 +41,11 @@ public enum ChoiceSubmission: Sendable, Equatable {
 /// edit.
 public struct ChoiceResult: Sendable, Equatable {
   public let status: TaskStatus, changesetID: Int64?
+  /// Public for app-side fakes, like Kotlin's data class.
+  public init(status: TaskStatus, changesetID: Int64?) {
+    self.status = status
+    self.changesetID = changesetID
+  }
 }
 /// Why a choice task went stale: the element is gone or invisible, its `match` tags changed, or a
 /// guarded key no longer has its expected value. `.unknown` covers reasons added later.
@@ -52,6 +57,12 @@ public enum IneligibleReason: Sendable, Equatable {
 /// `reason` is set only when not. The server's diagnostic `detail` is not modelled.
 public struct ChoiceEligibility: Sendable, Equatable {
   public let eligible: Bool, deleteAllowed: Bool, reason: IneligibleReason?
+  /// Public for app-side fakes, like Kotlin's data class.
+  public init(eligible: Bool, deleteAllowed: Bool, reason: IneligibleReason?) {
+    self.eligible = eligible
+    self.deleteAllowed = deleteAllowed
+    self.reason = reason
+  }
 }
 /// Failures specific to choice submission and checks (`POST task/{id}/choice`, `choice/check`).
 public enum ChoiceProblem: Sendable, Equatable {

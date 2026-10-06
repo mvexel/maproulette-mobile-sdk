@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyLists-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>MRBaseURL</key>
+	<string>$(MAPROULETTE_BASE_URL)</string>
+	<key>MROAuthClientID</key>
+	<string>$(MAPROULETTE_OAUTH_CLIENT_ID)</string>
+	<key>MRAllowLoopback</key>
+	<string>$(MAPROULETTE_ALLOW_LOOPBACK)</string>
+</dict>
+</plist>
