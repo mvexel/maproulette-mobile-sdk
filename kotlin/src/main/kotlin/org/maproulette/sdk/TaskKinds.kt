@@ -59,9 +59,10 @@ data class Instruction(val markdown: String, val formFields: List<FormField>) {
 
 enum class MobileSupport { FULL, RESOLVE_WITHOUT_FIX, UNSUPPORTED }
 
-// Same expressions as the MapRoulette web UI templating.
-private val propertyTag = Regex("""(^|[^{])\{\{([^{][^}]*)}}""")
-private val shortCode = Regex("""\{\{\{[^}]+}}}|\[[^\]]+](?=[^(]|$)""")
+// Same expressions as the MapRoulette web UI templating. Braces and brackets are escaped
+// everywhere: Android's ICU regex engine rejects an unescaped `}` that the JVM accepts.
+private val propertyTag = Regex("""(^|[^\{])\{\{([^\{][^\}]*)\}\}""")
+private val shortCode = Regex("""\{\{\{[^\}]+\}\}\}|\[[^\]]+\](?=[^(]|$)""")
 private val checkbox = Regex("""checkbox[/ ]?"([^"]+)"\s+name="([^"]+)"""")
 private val select = Regex("""select[/ ]?"([^"]+)"\s+name="([^"]+)"\s+values="([^"]+)"""")
 private val elementId = Regex("""(node|way|relation)/(\d+)""")
