@@ -123,7 +123,8 @@ The payload is stored as the task's `cooperativeWork`.
   - Each option is one tag change, and it may touch only those guarded
     keys.
   - "Can't tell" is not listed in the payload. The client always offers
-    it, and it means the question is left out of the submission.
+    it, and it means the question is left out of the submission. A
+    partial submission still closes the task (see §10).
 - **`outcomes`** are task-level results that are not edits.
   - A plain outcome has a `status` of 2 or 6.
   - A `delete: true` outcome is "the element is gone". It never has a
@@ -733,3 +734,17 @@ The SDKs follow this section, with these differences:
 3. **Android demo:** a choice UI with "Can't tell" and the tag preview,
    and with the other task kinds hidden.
 4. **Live:** the §8 steps, then device acceptance on dev OSM.
+
+## 10. Known limitations (TODO)
+
+- **Partial answers close the task.** "Can't tell" leaves a question out
+  of the submission. If at least one question is answered, the answered
+  tags are uploaded and the task becomes Fixed (1), which closes it. The
+  questions the user skipped are never offered again, and their keys stay
+  missing in OSM. MapRoulette has no "partly done" status. Possible fixes,
+  not yet decided:
+  - Keep the task open after a partial submission, which needs a
+    non-final status or a fork-side record of the answered questions.
+  - Regenerate a narrower task for the unanswered questions. The SLC
+    generator already includes only keys that are absent, so re-running
+    it would pick them up.
