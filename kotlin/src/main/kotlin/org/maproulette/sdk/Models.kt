@@ -223,7 +223,8 @@ sealed interface ChoiceProblem : WriteProblem {
     /** 403 insufficient_scope for `osm:tagfix`: the grant cannot edit OSM. Sign in again to grant it. */
     data object OsmScopeRequired : ChoiceProblem
 
-    /** 502 osm_unavailable: OSM could not be reached; nothing was applied. Try again later. */
+    /** 502 osm_unavailable (OSM could not be reached) or 503 osm_edits_unavailable (the server cannot
+     * use stored OSM tokens): nothing was applied. Try again later. */
     data object OsmUnavailable : ChoiceProblem
 
     /** 409 submission_pending: another submission for this task is unfinished. */

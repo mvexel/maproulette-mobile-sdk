@@ -651,6 +651,8 @@ The SDKs follow this section, with these differences:
   `UnsupportedTask` (422). `lock_required` maps to `LockLost` and
   `invalid_transition` to `InvalidTransition`. `StatusPending.changesetId`
   and `InvalidSubmission.detail` are nullable.
+- The backend's `503 osm_edits_unavailable` (the server cannot use stored OSM
+  tokens; refused before any lock check or upload) maps to `OsmUnavailable`.
 - Retries are narrower than above:
   - After an unknown outcome, only a **non-editing** outcome is resent, and
     only when a fresh read shows the caller still holds the lock. Answers and

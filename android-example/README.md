@@ -35,43 +35,56 @@ Build against an HTTPS test backend:
 
 For the tested staging deployment, replace `https://backend.example` with
 `https://mr-api.osm.lol`. Install the resulting debug APK, tap **Sign in**, and
-authorize with a development OSM account. The staging database contains a Salt
-Lake City bench challenge (ID `1`) with 168 tasks. Open the map around Salt Lake
+authorize with a development OSM account. The staging pilot is choice challenge
+`3` (the older bench challenge `1` is not a choice challenge and is hidden on
+mobile). Open the map around Salt Lake
 City and tap **Search this area** to inspect nearby tasks. A plain debug build without
 these Gradle properties uses anonymous `maproulette.org` reads and disables
 sign-in.
 
-## Task completion
+## Task completion (multiple-choice tasks)
 
-A sign-in build requests `tasks:read tasks:write`; the backend grants write only
-to clients configured for it. Tapping a task (map dot or list entry) opens the
-task screen with the substituted instructions and, for a write-enabled session,
-the actions this task kind allows (docs/challenge-types.md): **I fixed this in
-OSM** (Fixed, standard tasks only), **Not an issue**, **Already fixed** (someone
-else had fixed it in OSM before you saw the task), **Too hard** and **Skip**.
-Every action asks for confirmation. Bundled and unrecognized task kinds are
-read-only with an explanation, and a banner shows when another user holds the
-task's lock.
+Mobile shows only multiple-choice tasks (docs/mobile-choice-challenges.md). The
+map and the challenge list read with `cct=3&excludeStale=true`; the list also
+drops every task that is not `IN_PLACE` on the client. A non-choice task opened
+by id says **Not available on mobile**. The staging pilot is challenge `3`
+(8 disposable benches on development OSM around Library Square, Salt Lake City).
 
-Viewing never locks. A confirmed resolution runs the SDK's late-locking
-`commitResolution` (start, status, release on failure); Skip uses `POST skip`.
-The write finishes even if the screen is closed, and Back is blocked while it
-runs. Afterwards the app re-reads the task and shows its status and who
-completed it compared with the signed-in user. When the outcome is unknown
-(connection lost, server error) the app re-reads and applies the SDK's
-`verifyResolution`; it never resends a write automatically. A 401 triggers one
-token refresh; nothing is resent and the user chooses again. A read-only grant
-(for example a session from before write support) gets **Sign in again to enable
-task actions**. The map and list refresh after a write.
+A sign-in build requests `tasks:read tasks:write osm:tagfix`; the backend may
+grant less. A session whose grant lacks `tasks:write` or `osm:tagfix` (for
+example one from before choice support) shows **Sign in again to enable
+editing**. Opening a task never locks it. For a write-enabled session the app
+calls `checkChoice`; if the task is ineligible or the check fails, it says
+**This one no longer needs answering** and offers no actions. Otherwise each
+question is a card: every option shows its exact tag change (`backrest=yes`)
+under the label, and **Can't tell** leaves the question out. **Submit answers**
+is enabled once one question is answered and confirms the exact tag changes,
+noting that the staging build edits development OSM. Task-level outcomes (for
+the pilot: Not a bench, Bench is gone, Too hard) and Skip are separate buttons.
+
+**Allow deleting OSM elements** on the main screen is a demo setting, default
+off. Off, "Bench is gone" is recorded as Not an issue. On, it deletes the node
+and is offered only when the check reports `deleteAllowed`; if OSM still refuses
+(`element_in_use`), the app offers the same outcome without deletion after a
+confirmation.
+
+Submission runs the SDK's late-locking `submitChoice` off the main thread; the
+write finishes even if the screen closes and Back is blocked meanwhile. On
+success the app re-reads the task and shows its status, who completed it and the
+changeset, with a link to it on development OSM. An unknown outcome, a pending
+submission or a pending status shows **Check again**, which only re-reads; an
+edit is never resent automatically. OSM re-consent or a missing scope asks to
+sign in again; OSM being unavailable keeps the answers. Lock conflicts ask to
+pick another task. The map and list refresh after a submission.
 
 Writes are possible only against an allowlisted disposable backend: exactly
 `https://mr-api.osm.lol`, or loopback in a debug build with
 `-PmaprouletteAllowLoopback=true` (`AppSession.WRITE_ORIGINS`). For any other
 origin, including `maproulette.org`, the app requests only `tasks:read` and
 shows no actions. The session transport also refuses every lifecycle write URL
-(`task/{id}/start|refreshLock|release|skip|{status}`) before sending unless the
-origin is allowlisted and the current grant includes `tasks:write`, so a UI bug
-cannot send one. The default build shows no task actions.
+(`task/{id}/start|refreshLock|release|skip|choice|{status}`) before sending
+unless the origin is allowlisted and the current grant includes `tasks:write`,
+so a UI bug cannot send one. The default build shows no task actions.
 
 **Choosing an OpenStreetMap account.** OSM keeps you signed in in the browser,
 so a normal browser tab silently reuses that OSM account. Sign-in therefore
@@ -112,7 +125,7 @@ This is an app-owned first integration, not a reusable authentication package. I
 ./gradlew :app:assembleDebug :app:lintDebug :app:testDebugUnitTest
 ```
 
-The unit tests cover task-point mapping, origin, loopback and callback validation, and the task screen's state machine (fake SDK operations; no network). Browser callbacks, Keystore persistence, refresh and logout additionally require device testing with a configured backend.
+The unit tests cover task-point mapping, origin, loopback and callback validation, scope selection, the confirmation text, and the choice task screen's state machine including the deletion setting (fake SDK operations; no network). Browser callbacks, Keystore persistence, refresh and logout additionally require device testing with a configured backend.
 
 On 2026-10-05, a physical Pixel 8 completed browser authorization and consent against a local backend with a **synthetic OSM provider**, displayed the authenticated user, restored the encrypted session after force-stop/relaunch, and signed out with server revocation confirmed. This verifies that integration path; it is not a real OSM login result.
 

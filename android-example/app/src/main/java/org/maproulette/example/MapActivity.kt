@@ -152,7 +152,9 @@ class MapActivity : Activity() {
         status.text = "Loading tasks…"
         request = scope.launch {
             try {
-                val tasks = client.findTaskMarkers(TaskFilter(emptyList(), bounds), limit = 100)
+                // Choice tasks only, without ones found stale (cct=3&excludeStale=true). Markers carry no
+                // payload, so the task screen re-checks and says "Not available on mobile" otherwise.
+                val tasks = client.findTaskMarkers(TaskFilter(emptyList(), bounds, choiceOnly = true), limit = 100)
                 val features = tasks.mapNotNull { task ->
                     val point = task.point?.let(::taskPoint) ?: return@mapNotNull null
                     Feature.fromGeometry(point).apply { addStringProperty("taskId", task.id.value.toString()) }
@@ -160,7 +162,7 @@ class MapActivity : Activity() {
                 source?.setGeoJson(FeatureCollection.fromFeatures(features))
                 val extra = if (tasks.size == 100) " Showing up to 100 tasks; more may exist. Zoom in." else ""
                 val missing = if (features.size < tasks.size) " Some tasks have no usable point." else ""
-                status.text = if (tasks.isEmpty()) "No available tasks here. Try another area."
+                status.text = if (tasks.isEmpty()) "No multiple-choice tasks here. Try another area."
                     else "${features.size} tasks shown. Tap a dot.$extra$missing"
             } catch (cancelled: CancellationException) {
                 throw cancelled

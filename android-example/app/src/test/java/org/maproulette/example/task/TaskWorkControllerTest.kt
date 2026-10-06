@@ -14,12 +14,17 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
-import org.junit.Ignore
 import org.junit.Test
 import org.maproulette.sdk.Challenge
 import org.maproulette.sdk.ChallengeId
+import org.maproulette.sdk.ChoiceEligibility
+import org.maproulette.sdk.ChoiceProblem
+import org.maproulette.sdk.ChoiceResult
+import org.maproulette.sdk.ChoiceSubmission
 import org.maproulette.sdk.ErrorKind
+import org.maproulette.sdk.IneligibleReason
 import org.maproulette.sdk.MapRouletteException
 import org.maproulette.sdk.ProjectId
 import org.maproulette.sdk.Task
@@ -27,16 +32,33 @@ import org.maproulette.sdk.TaskId
 import org.maproulette.sdk.TaskResolution
 import org.maproulette.sdk.TaskStatus
 import org.maproulette.sdk.WriteProblem
+import org.maproulette.sdk.HttpMethod
+import org.maproulette.sdk.HttpResponse
+import org.maproulette.sdk.MapRouletteClient
+import org.maproulette.sdk.Transport
+import org.maproulette.sdk.choiceOutcomes
 
 private const val ME = 7L
 private const val OTHER = 8L
 private val ID = TaskId(42)
 
-internal fun task(status: Int = 0, lockedBy: Long? = null, completedBy: Long? = null, cooperativeWork: JsonObject? = null,
-                  bundleId: Long? = null, instruction: String? = null) = Task(
+/** The pilot bench payload (docs/mobile-choice-challenges.md §3), shortened to two questions. */
+internal val BENCH: JsonObject = Json.parseToJsonElement("""
+    {"meta":{"version":2,"type":3,"choiceVersion":1},"element":"node/123","match":{"amenity":"bench"},
+     "questions":[
+      {"id":"backrest","prompt":"Does the bench have a backrest?","expect":{"backrest":null},
+       "options":[{"id":"yes","label":"Yes","setTags":{"backrest":"yes"}},{"id":"no","label":"No","setTags":{"backrest":"no"}}]},
+      {"id":"material","prompt":"What is the seat mainly made of?","expect":{"material":null},
+       "options":[{"id":"wood","label":"Wood","setTags":{"material":"wood"}},{"id":"metal","label":"Metal","setTags":{"material":"metal"}}]}],
+     "outcomes":[{"id":"not-a-bench","label":"Not a bench","status":2},{"id":"gone","label":"Bench is gone","delete":true}]}
+""").jsonObject
+
+internal fun task(status: Int = 0, lockedBy: Long? = null, completedBy: Long? = null, cooperativeWork: JsonObject? = BENCH,
+                  bundleId: Long? = null, instruction: String? = null, changesetId: Long? = null) = Task(
     id = ID, challengeId = ChallengeId(1), name = "Bench", instruction = instruction, status = TaskStatus(status),
     geometry = Json.parseToJsonElement("""{"type":"FeatureCollection","features":[]}""").jsonObject,
     location = null, cooperativeWork = cooperativeWork, lockedBy = lockedBy, completedBy = completedBy, bundleId = bundleId,
+    changesetId = changesetId,
 )
 
 internal val CHALLENGE = Challenge(ChallengeId(1), ProjectId(2), "Benches", "Add backrest", null, null, true, false, false)
@@ -44,12 +66,13 @@ internal val CHALLENGE = Challenge(ChallengeId(1), ProjectId(2), "Benches", "Add
 private fun failure(kind: ErrorKind, problem: WriteProblem? = null) = MapRouletteException(kind, problem = problem)
 
 /** Records every call; each operation's behavior is replaceable per test. No network. */
-private class FakeOps : TaskOps {
+private class FakeOps(override val allowElementDeletion: Boolean = false) : TaskOps {
     val calls = mutableListOf<String>()
+    val submissions = mutableListOf<ChoiceSubmission>()
     var reads = ArrayDeque<() -> Task>()
-    var commit: suspend (TaskResolution) -> Unit = {}
+    var check: suspend () -> ChoiceEligibility = { ChoiceEligibility(eligible = true, deleteAllowed = true, reason = null) }
+    var submit: suspend (ChoiceSubmission) -> ChoiceResult = { ChoiceResult(TaskStatus(1), 99) }
     var skip: suspend () -> Unit = {}
-    var release: suspend () -> Unit = {}
 
     fun thenRead(vararg next: () -> Task) = apply { reads.addAll(next) }
 
@@ -59,306 +82,399 @@ private class FakeOps : TaskOps {
     }
 
     override suspend fun getChallenge(task: Task) = CHALLENGE.also { calls += "challenge" }
-    override suspend fun commitResolution(id: TaskId, resolution: TaskResolution) {
-        calls += "commit:${resolution.code}"
-        commit(resolution)
+    override suspend fun checkChoice(id: TaskId): ChoiceEligibility {
+        calls += "check"
+        return check()
+    }
+
+    override suspend fun submitChoice(task: Task, submission: ChoiceSubmission): ChoiceResult {
+        calls += "submit"
+        submissions += submission
+        return submit(submission)
     }
 
     override suspend fun skipTask(id: TaskId) {
         calls += "skip"
         skip()
     }
-
-    override suspend fun releaseTask(id: TaskId) {
-        calls += "release"
-        release()
-    }
 }
-
-private const val CHOICE_PHASE =
-    "SDK choice phase: standard tasks are UNSUPPORTED and allowedResolutions() is empty; the demo needs the choice UI"
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class TaskWorkControllerTest {
-    private fun TestScope.controller(ops: FakeOps, writer: Writer? = Writer(ME)): TaskWorkController =
-        TaskWorkController(ops, writer, this).also {
+    private fun TestScope.controller(ops: FakeOps, writer: Writer? = Writer(ME, canEditOsm = true)): TaskWorkController =
+        TaskWorkController(ops, writer, this, StandardTestDispatcher(testScheduler)).also {
             it.load(ID)
             advanceUntilIdle()
         }
 
-    private val notAnIssue = TaskAction.Resolve(TaskResolution.NOT_AN_ISSUE)
+    private val TaskWorkController.answering get() = state.value as TaskScreen.Answering
+
+    private fun TaskWorkController.outcome(id: String) = answering.form.outcomes.single { it.id == id }
+
+    private fun TestScope.answered(ops: FakeOps): TaskWorkController = controller(ops).also {
+        it.select("backrest", "yes")
+        it.perform(ChoiceAction.Answers(mapOf("backrest" to "yes")))
+        advanceUntilIdle()
+    }
 
     @Test
-    fun viewingNeverWrites() = runTest {
-        val ops = FakeOps().thenRead({ task(lockedBy = OTHER) })
-        val c = controller(ops)
-        val state = c.state.value as TaskScreen.Viewing
-        assertEquals(OTHER, state.task.lockedBy)
+    fun nonChoiceTasksAreNotAvailableAndNeverChecked() = runTest {
+        val tagFix = Json.parseToJsonElement("""{"meta":{"version":2,"type":1},"operations":[]}""").jsonObject
+        listOf(task(cooperativeWork = null), task(cooperativeWork = tagFix), task(bundleId = 3), task(status = 1)).forEach { t ->
+            val ops = FakeOps().thenRead({ t })
+            val state = controller(ops).state.value as TaskScreen.NotAvailable
+            assertTrue(state.reason, state.reason.isNotBlank())
+            assertEquals(listOf("get", "challenge"), ops.calls)
+        }
+    }
+
+    @Test
+    fun withoutWriterPreviewHasNoCheckAndNoWrites() = runTest {
+        val ops = FakeOps().thenRead({ task() })
+        val c = controller(ops, writer = null)
+        assertTrue(c.state.value is TaskScreen.Preview)
+        c.perform(ChoiceAction.Skip)
+        advanceUntilIdle()
         assertEquals(listOf("get", "challenge"), ops.calls)
+    }
+
+    @Test
+    fun ineligibleAtOpenNoLongerNeedsAnswering() = runTest {
+        val ops = FakeOps().thenRead({ task() })
+        ops.check = { ChoiceEligibility(false, false, IneligibleReason.KEY_CHANGED) }
+        val c = controller(ops)
+        assertTrue(c.state.value is TaskScreen.NoLongerNeeded)
+        assertTrue("the server now hides it: refresh the map", c.changed)
+        assertEquals(listOf("get", "challenge", "check"), ops.calls)
+    }
+
+    @Test
+    fun failedCheckIsNotOffered() = runTest {
+        val ops = FakeOps().thenRead({ task() })
+        ops.check = { throw failure(ErrorKind.SERVER, ChoiceProblem.OsmUnavailable) }
+        val c = controller(ops)
+        assertTrue(c.state.value is TaskScreen.NoLongerNeeded)
         assertFalse(c.changed)
     }
 
     @Test
-    fun withoutWriterNothingIsOfferedOrSent() = runTest {
-        val ops = FakeOps().thenRead({ task() })
-        val c = controller(ops, writer = null)
-        assertFalse(c.offers(task(), notAnIssue))
-        assertFalse(c.offers(task(), TaskAction.Skip))
-        c.perform(notAnIssue)
-        c.perform(TaskAction.Skip)
-        advanceUntilIdle()
-        assertTrue(c.state.value is TaskScreen.Viewing)
-        assertEquals(listOf("get", "challenge"), ops.calls)
+    fun deletionOffShowsGoneAsNotAnIssue() = runTest {
+        val c = controller(FakeOps(allowElementDeletion = false).thenRead({ task() }))
+        assertEquals(listOf("not-a-bench", "gone", "too-hard"), c.answering.form.outcomes.map { it.id })
+        val gone = c.outcome("gone")
+        assertFalse(gone.deletesElement)
+        assertEquals(TaskResolution.NOT_AN_ISSUE, gone.resolution)
     }
 
-    @Ignore(CHOICE_PHASE)
-
     @Test
-    fun disallowedResolutionsAreNotSent() = runTest {
-        val tagFix = Json.parseToJsonElement("""{"meta":{"version":2,"type":1},"operations":[]}""").jsonObject
-        val ops = FakeOps().thenRead({ task(cooperativeWork = tagFix) })
-        val c = controller(ops)
-        c.perform(TaskAction.Resolve(TaskResolution.FIXED))
-        advanceUntilIdle()
-        assertEquals(listOf("get", "challenge"), ops.calls)
-        assertTrue(c.offers(task(cooperativeWork = tagFix), notAnIssue))
+    fun deletionOnShowsDeletingGoneOnlyWhenTheCheckAllowsIt() = runTest {
+        val allowed = controller(FakeOps(allowElementDeletion = true).thenRead({ task() }))
+        assertTrue(allowed.outcome("gone").deletesElement)
+        assertEquals(TaskResolution.FIXED, allowed.outcome("gone").resolution)
+
+        val inWay = FakeOps(allowElementDeletion = true).thenRead({ task() })
+        inWay.check = { ChoiceEligibility(eligible = true, deleteAllowed = false, reason = null) }
+        assertEquals(listOf("not-a-bench", "too-hard"), controller(inWay).answering.form.outcomes.map { it.id })
     }
 
-    @Ignore(CHOICE_PHASE)
+    @Test
+    fun answersAndCantTell() = runTest {
+        val c = controller(FakeOps().thenRead({ task() }))
+        assertFalse("nothing answered", c.offers(c.answering.task, c.answering.form, ChoiceAction.Answers(emptyMap())))
+        c.select("backrest", "yes")
+        c.select("material", "wood")
+        c.select("material", null) // Can't tell
+        c.select("material", "granite") // Not an option: ignored
+        c.select("color", "red") // Not a question: ignored
+        assertEquals(mapOf("backrest" to "yes"), c.answering.form.answers)
+        assertTrue(c.offers(c.answering.task, c.answering.form, ChoiceAction.Answers(c.answering.form.answers)))
+        assertFalse(c.offers(c.answering.task, c.answering.form, ChoiceAction.Answers(mapOf("backrest" to "maybe"))))
+    }
 
     @Test
-    fun resolvedRereadsAndReportsCompletedBy() = runTest {
-        val ops = FakeOps().thenRead({ task() }, { task(status = 2, completedBy = ME) })
+    fun withoutOsmScopeEditsAreNotSentButPlainOutcomesAre() = runTest {
+        val ops = FakeOps(allowElementDeletion = true).thenRead({ task() }, { task(status = 2, completedBy = ME) })
+        val c = controller(ops, Writer(ME, canEditOsm = false))
+        c.perform(ChoiceAction.Answers(mapOf("backrest" to "yes")))
+        c.perform(ChoiceAction.Outcome(c.outcome("gone")))
+        advanceUntilIdle()
+        assertTrue(ops.submissions.isEmpty())
+        c.perform(ChoiceAction.Outcome(c.outcome("not-a-bench")))
+        advanceUntilIdle()
+        assertEquals(1, ops.submissions.size)
+        assertTrue(c.state.value is TaskScreen.Done)
+    }
+
+    @Test
+    fun submittedAnswersRereadAndReportTheChangeset() = runTest {
+        val ops = FakeOps().thenRead({ task() }, { task(status = 1, completedBy = ME) })
         val c = controller(ops)
-        c.perform(notAnIssue)
-        assertTrue(c.state.value is TaskScreen.Committing)
+        c.select("backrest", "yes")
+        c.perform(ChoiceAction.Answers(c.answering.form.answers))
+        assertTrue(c.state.value is TaskScreen.Submitting)
         assertTrue(c.busy)
         advanceUntilIdle()
-        val state = c.state.value as TaskScreen.Resolved
-        assertEquals(2, state.task.status?.code)
-        assertEquals(ME, state.task.completedBy)
-        assertFalse(state.readFailed)
-        assertEquals(listOf("get", "challenge", "commit:2", "get"), ops.calls)
+        val done = c.state.value as TaskScreen.Done
+        assertEquals(1, done.task.status?.code)
+        assertEquals(ME, done.task.completedBy)
+        assertEquals(99L, done.changesetId)
+        assertEquals(listOf(ChoiceSubmission.Answers(mapOf("backrest" to "yes"))), ops.submissions)
+        assertEquals(listOf("get", "challenge", "check", "submit", "get"), ops.calls)
         assertTrue(c.changed)
     }
 
-    @Ignore(CHOICE_PHASE)
-
     @Test
     fun failedRereadAfterSuccessCanBeRecheckedWithoutResending() = runTest {
-        val ops = FakeOps().thenRead({ task() }, { throw failure(ErrorKind.NETWORK) }, { task(status = 2, completedBy = ME) })
-        val c = controller(ops)
-        c.perform(notAnIssue)
-        advanceUntilIdle()
-        assertTrue((c.state.value as TaskScreen.Resolved).readFailed)
+        val ops = FakeOps().thenRead({ task() }, { throw failure(ErrorKind.NETWORK) }, { task(status = 1, completedBy = ME) })
+        val c = answered(ops)
+        assertTrue((c.state.value as TaskScreen.Done).readFailed)
         c.recheck()
+        assertTrue("shows progress", (c.state.value as TaskScreen.Done).checking)
+        c.recheck() // Ignored while checking.
         advanceUntilIdle()
-        assertFalse((c.state.value as TaskScreen.Resolved).readFailed)
-        assertEquals(1, ops.calls.count { it.startsWith("commit") })
+        val done = c.state.value as TaskScreen.Done
+        assertFalse(done.readFailed)
+        assertEquals(99L, done.changesetId)
+        assertEquals(1, ops.calls.count { it == "submit" })
     }
 
-    @Ignore(CHOICE_PHASE)
+    @Test
+    fun ineligibleAtSubmitNoLongerNeedsAnswering() = runTest {
+        val ops = FakeOps().thenRead({ task() })
+        ops.submit = { throw failure(ErrorKind.CONFLICT, ChoiceProblem.TaskIneligible(IneligibleReason.KEY_CHANGED)) }
+        assertTrue(answered(ops).state.value is TaskScreen.NoLongerNeeded)
+    }
+
+    @Test
+    fun uncertainResultsWaitForManualCheckAndAreNeverResent() = runTest {
+        listOf(
+            failure(ErrorKind.NETWORK, WriteProblem.OutcomeUnknown),
+            failure(ErrorKind.CONFLICT, ChoiceProblem.SubmissionPending),
+            failure(ErrorKind.SERVER, ChoiceProblem.StatusPending(55)),
+        ).forEach { error ->
+            val ops = FakeOps().thenRead({ task() }, { task(status = 1, completedBy = ME, changesetId = 55) })
+            ops.submit = { throw error }
+            val c = answered(ops)
+            val pending = c.state.value as TaskScreen.CheckAgain
+            assertFalse(pending.checking)
+            assertFalse(c.busy)
+            assertEquals(listOf("get", "challenge", "check", "submit"), ops.calls)
+            c.perform(ChoiceAction.Answers(mapOf("backrest" to "yes"))) // Not allowed from this state.
+            c.recheck()
+            advanceUntilIdle()
+            assertEquals(55L, (c.state.value as TaskScreen.Done).changesetId)
+            assertEquals(1, ops.calls.count { it == "submit" })
+        }
+    }
+
+    @Test
+    fun uncertainEditIsOnlyResentManuallyAndIdentically() = runTest {
+        val ops = FakeOps().thenRead({ task() }, { task(lockedBy = ME) }, { task() }, { task(status = 1, completedBy = ME) })
+        var attempts = 0
+        ops.submit = { if (attempts++ == 0) throw failure(ErrorKind.NETWORK, WriteProblem.OutcomeUnknown) else ChoiceResult(TaskStatus(1), 77) }
+        val c = answered(ops)
+        assertFalse("no resend before a check", (c.state.value as TaskScreen.CheckAgain).canResend)
+        c.recheck()
+        advanceUntilIdle()
+        val held = c.state.value as TaskScreen.CheckAgain
+        assertTrue(held.message, held.message.contains("still locked to you") && held.canResend)
+        c.recheck()
+        advanceUntilIdle()
+        val unlocked = c.state.value as TaskScreen.CheckAgain
+        assertTrue("an edit never falls back to editable answers", unlocked.canResend)
+        assertEquals(1, ops.calls.count { it == "submit" })
+        c.resendSame()
+        advanceUntilIdle()
+        assertEquals(77L, (c.state.value as TaskScreen.Done).changesetId)
+        assertEquals(List(2) { ChoiceSubmission.Answers(mapOf("backrest" to "yes")) }, ops.submissions)
+    }
+
+    @Test
+    fun uncertainPlainOutcomeNotAppliedReturnsToAnswering() = runTest {
+        val ops = FakeOps().thenRead({ task() }, { task() })
+        ops.submit = { throw failure(ErrorKind.NETWORK, WriteProblem.OutcomeUnknown) }
+        val c = controller(ops)
+        c.perform(ChoiceAction.Outcome(c.outcome("not-a-bench")))
+        advanceUntilIdle()
+        c.recheck()
+        advanceUntilIdle()
+        assertTrue(c.answering.notice!!.contains("not recorded"))
+    }
+
+    @Test
+    fun submissionPendingNeverInvitesAnotherSubmission() = runTest {
+        val ops = FakeOps().thenRead({ task() }, { task() })
+        ops.submit = { throw failure(ErrorKind.CONFLICT, ChoiceProblem.SubmissionPending) }
+        val c = answered(ops)
+        c.recheck()
+        advanceUntilIdle()
+        val state = c.state.value as TaskScreen.CheckAgain
+        assertFalse(state.canResend)
+        assertTrue(state.message, state.message.contains("Pick another task"))
+        c.resendSame()
+        advanceUntilIdle()
+        assertEquals(1, ops.calls.count { it == "submit" })
+    }
+
+    @Test
+    fun statusPendingKeepsTheChangesetAndOffersTheSameSubmission() = runTest {
+        val ops = FakeOps().thenRead({ task() }, { task() }, { task(status = 1, completedBy = ME) })
+        var attempts = 0
+        ops.submit = { if (attempts++ == 0) throw failure(ErrorKind.SERVER, ChoiceProblem.StatusPending(55)) else ChoiceResult(TaskStatus(1), 55) }
+        val c = answered(ops)
+        assertTrue((c.state.value as TaskScreen.CheckAgain).canResend)
+        c.recheck()
+        advanceUntilIdle()
+        val pending = c.state.value as TaskScreen.CheckAgain
+        assertTrue(pending.message, pending.message.contains("changeset 55") && !pending.message.contains("Not recorded"))
+        assertEquals(55L, pending.changesetId)
+        c.resendSame()
+        advanceUntilIdle()
+        assertEquals(55L, (c.state.value as TaskScreen.Done).changesetId)
+    }
+
+    @Test
+    fun differentStatusWithoutAnotherCompleterIsNotByOther() = runTest {
+        val ops = FakeOps().thenRead({ task() }, { task(status = 2, completedBy = ME) })
+        ops.submit = { throw failure(ErrorKind.NETWORK, WriteProblem.OutcomeUnknown) }
+        val c = answered(ops)
+        c.recheck()
+        advanceUntilIdle()
+        assertFalse((c.state.value as TaskScreen.Done).byOther)
+    }
+
+    @Test
+    fun clientOpsSendDeletesOnlyThroughTheDeletionClient() = runTest {
+        val bodies = mutableListOf<String?>()
+        val start = """{"id":42,"parent":1,"name":"node/123","instruction":"","status":0,
+            "geometries":{"type":"FeatureCollection","features":[]},"lockPrimaryTaskId":42,"lockBundledTasks":[]}"""
+        val transport = Transport { request ->
+            if (request.method == HttpMethod.POST) {
+                bodies += request.body
+                HttpResponse(200, body = """{"status":2,"changesetId":null}""")
+            } else HttpResponse(200, body = start)
+        }
+        fun client(deletion: Boolean) = MapRouletteClient(serviceUrl = "https://mr.example/api/v2/", transport = transport,
+            accessToken = { "token" }, allowElementDeletion = deletion)
+        val ops = ClientTaskOps(client(true), client(false))
+        val t = task()
+        val gone = t.choiceOutcomes(true).single { it.id == "gone" }
+        ops.submitChoice(t, ChoiceSubmission.Outcome(t.choiceOutcomes(true).single { it.id == "not-a-bench" }))
+        ops.submitChoice(t, ChoiceSubmission.Outcome(TaskWorkController.withoutDeletion(t, gone)!!))
+        ops.submitChoice(t, ChoiceSubmission.Outcome(gone))
+        ops.submitChoice(t, ChoiceSubmission.Answers(mapOf("backrest" to "no")))
+        assertEquals(listOf("""{"outcome":"not-a-bench"}""", """{"outcome":"gone"}""", """{"outcome":"gone","delete":true}""",
+            """{"answers":{"backrest":"no"}}"""), bodies)
+    }
+
+    @Test
+    fun failedCheckAgainReadStaysPending() = runTest {
+        val ops = FakeOps().thenRead({ task() }, { throw failure(ErrorKind.NETWORK) })
+        ops.submit = { throw failure(ErrorKind.NETWORK, WriteProblem.OutcomeUnknown) }
+        val c = answered(ops)
+        c.recheck()
+        advanceUntilIdle()
+        assertTrue((c.state.value as TaskScreen.CheckAgain).message.contains("could not be re-read"))
+    }
+
+    @Test
+    fun osmPermissionProblemsAskToSignInAgain() = runTest {
+        listOf(ChoiceProblem.OsmReauthRequired to ErrorKind.AUTHENTICATION, ChoiceProblem.OsmScopeRequired to ErrorKind.PERMISSION,
+            WriteProblem.InsufficientScope to ErrorKind.PERMISSION).forEach { (problem, kind) ->
+            val ops = FakeOps().thenRead({ task() })
+            ops.submit = { throw failure(kind, problem) }
+            val state = answered(ops).state.value as TaskScreen.SignInRequired
+            assertTrue(state.reason, state.reason.contains("Sign in again"))
+        }
+    }
+
+    @Test
+    fun osmUnavailableExplainsAndKeepsTheAnswers() = runTest {
+        val ops = FakeOps().thenRead({ task() })
+        ops.submit = { throw failure(ErrorKind.SERVER, ChoiceProblem.OsmUnavailable) }
+        val c = answered(ops)
+        assertEquals(mapOf("backrest" to "yes"), c.answering.form.answers)
+        assertTrue(c.answering.notice!!.contains("nothing was changed"))
+    }
+
+    @Test
+    fun elementInUseOffersTheSameOutcomeWithoutDeletion() = runTest {
+        val ops = FakeOps(allowElementDeletion = true).thenRead({ task() }, { task(status = 2, completedBy = ME) })
+        ops.submit = { if ((it as ChoiceSubmission.Outcome).outcome.deletesElement) throw failure(ErrorKind.CONFLICT, ChoiceProblem.ElementInUse)
+            else ChoiceResult(TaskStatus(2), null) }
+        val c = controller(ops)
+        c.perform(ChoiceAction.Outcome(c.outcome("gone")))
+        advanceUntilIdle()
+        val inUse = c.state.value as TaskScreen.ElementInUse
+        assertEquals("gone", inUse.outcome.id)
+        c.sendWithoutDeletion()
+        advanceUntilIdle()
+        val plain = (ops.submissions.last() as ChoiceSubmission.Outcome).outcome
+        assertEquals("gone", plain.id)
+        assertFalse(plain.deletesElement)
+        assertEquals(TaskResolution.NOT_AN_ISSUE, plain.resolution)
+        val done = c.state.value as TaskScreen.Done
+        assertNull(done.changesetId)
+        assertEquals(2, ops.submissions.size)
+    }
 
     @Test
     fun lockedByOtherAtStartIsTakenByOther() = runTest {
         val ops = FakeOps().thenRead({ task() })
-        ops.commit = { throw failure(ErrorKind.PERMISSION, WriteProblem.LockedByOtherUser("locked")) }
-        val c = controller(ops)
-        c.perform(notAnIssue)
-        advanceUntilIdle()
-        assertTrue(c.state.value is TaskScreen.TakenByOther)
+        ops.submit = { throw failure(ErrorKind.PERMISSION, WriteProblem.LockedByOtherUser("locked")) }
+        assertTrue(answered(ops).state.value is TaskScreen.TakenByOther)
     }
-
-    @Ignore(CHOICE_PHASE)
 
     @Test
     fun staleOwnLockOffersUserRetry() = runTest {
-        val ops = FakeOps().thenRead({ task() }, { task(status = 2, completedBy = ME) })
+        val ops = FakeOps().thenRead({ task() }, { task(status = 1, completedBy = ME) })
         var attempts = 0
-        ops.commit = {
+        ops.submit = {
             if (attempts++ == 0) throw failure(ErrorKind.CONFLICT, WriteProblem.AlreadyHoldingTask(TaskId(9), null, null, null))
+            ChoiceResult(TaskStatus(1), 99)
         }
-        val c = controller(ops)
-        c.perform(notAnIssue)
+        val c = answered(ops)
+        val stale = c.state.value as TaskScreen.StaleOwnLock
+        assertEquals(TaskId(9), stale.lockedTaskId)
+        c.perform(stale.action)
         advanceUntilIdle()
-        assertEquals(TaskId(9), (c.state.value as TaskScreen.StaleOwnLock).lockedTaskId)
-        c.perform(notAnIssue)
-        advanceUntilIdle()
-        assertTrue(c.state.value is TaskScreen.Resolved)
-        assertEquals(2, ops.calls.count { it.startsWith("commit") })
+        assertTrue(c.state.value is TaskScreen.Done)
     }
 
-    @Ignore(CHOICE_PHASE)
-
     @Test
-    fun unknownOutcomeIsVerifiedNotResent() = runTest {
-        val ops = FakeOps().thenRead({ task() }, { task(status = 2, completedBy = ME) })
-        ops.commit = { throw failure(ErrorKind.SERVER, WriteProblem.OutcomeUnknown) }
-        val c = controller(ops)
-        c.perform(notAnIssue)
-        advanceUntilIdle()
-        assertTrue(c.state.value is TaskScreen.Resolved)
-        assertEquals(listOf("get", "challenge", "commit:2", "get"), ops.calls)
+    fun definiteFailuresReturnToAnsweringWithANotice() = runTest {
+        listOf(failure(ErrorKind.CONFLICT, WriteProblem.LockLost), failure(ErrorKind.AUTHENTICATION),
+            failure(ErrorKind.RATE_LIMIT), failure(ErrorKind.HTTP, ChoiceProblem.InvalidSubmission(null))).forEach { error ->
+            val ops = FakeOps().thenRead({ task() })
+            ops.submit = { throw error }
+            val c = answered(ops)
+            assertTrue(c.answering.notice!!.lowercase().contains("nothing was recorded"))
+            assertEquals(mapOf("backrest" to "yes"), c.answering.form.answers)
+        }
     }
 
-    @Ignore(CHOICE_PHASE)
-
     @Test
-    fun unknownOutcomeWithFailedCheckWaitsForManualRecheck() = runTest {
-        val ops = FakeOps().thenRead({ task() }, { throw failure(ErrorKind.NETWORK) }, { task(status = 2, completedBy = ME) })
-        ops.commit = { throw failure(ErrorKind.NETWORK, WriteProblem.OutcomeUnknown) }
-        val c = controller(ops)
-        c.perform(notAnIssue)
-        advanceUntilIdle()
-        val unknown = c.state.value as TaskScreen.OutcomeUnknown
-        assertFalse(unknown.checking)
-        assertFalse(c.busy)
-        c.perform(notAnIssue) // Not allowed from this state: no resend.
-        c.recheck()
-        advanceUntilIdle()
-        assertTrue(c.state.value is TaskScreen.Resolved)
-        assertEquals(1, ops.calls.count { it.startsWith("commit") })
-    }
-
-    @Ignore(CHOICE_PHASE)
-
-    @Test
-    fun unknownOutcomeNotAppliedWithOwnLockReleasesAndReturnsToViewing() = runTest {
-        val ops = FakeOps().thenRead({ task() }, { task(lockedBy = ME) })
-        ops.commit = { throw failure(ErrorKind.SERVER, WriteProblem.OutcomeUnknown) }
-        val c = controller(ops)
-        c.perform(notAnIssue)
-        advanceUntilIdle()
-        assertTrue((c.state.value as TaskScreen.Viewing).notice!!.contains("not recorded"))
-        assertEquals(listOf("get", "challenge", "commit:2", "get", "release"), ops.calls)
-    }
-
-    @Ignore(CHOICE_PHASE)
-
-    @Test
-    fun unknownOutcomeLockedByOtherIsTakenByOther() = runTest {
-        val ops = FakeOps().thenRead({ task() }, { task(lockedBy = OTHER) })
-        ops.commit = { throw failure(ErrorKind.SERVER, WriteProblem.OutcomeUnknown) }
-        val c = controller(ops)
-        c.perform(notAnIssue)
-        advanceUntilIdle()
-        assertTrue(c.state.value is TaskScreen.TakenByOther)
-    }
-
-    @Ignore(CHOICE_PHASE)
-
-    @Test
-    fun unknownOutcomeResolvedByOtherShowsTheOtherUser() = runTest {
-        val ops = FakeOps().thenRead({ task() }, { task(status = 2, completedBy = OTHER) })
-        ops.commit = { throw failure(ErrorKind.SERVER, WriteProblem.OutcomeUnknown) }
-        val c = controller(ops)
-        c.perform(notAnIssue)
-        advanceUntilIdle()
-        val state = c.state.value as TaskScreen.Resolved
-        assertEquals(OTHER, state.task.completedBy)
-        assertTrue("not presented as this user's result", state.byOther)
-    }
-
-    @Ignore(CHOICE_PHASE)
-
-    @Test
-    fun appliedVerificationIsNotByOther() = runTest {
-        val ops = FakeOps().thenRead({ task() }, { task(status = 2, completedBy = ME) })
-        ops.commit = { throw failure(ErrorKind.SERVER, WriteProblem.OutcomeUnknown) }
-        val c = controller(ops)
-        c.perform(notAnIssue)
-        advanceUntilIdle()
-        assertFalse((c.state.value as TaskScreen.Resolved).byOther)
-    }
-
-    @Ignore(CHOICE_PHASE)
-
-    @Test
-    fun failedReleaseOfOwnLockIsReported() = runTest {
-        val ops = FakeOps().thenRead({ task() }, { task(lockedBy = ME) })
-        ops.commit = { throw failure(ErrorKind.SERVER, WriteProblem.OutcomeUnknown) }
-        ops.release = { throw failure(ErrorKind.NETWORK) }
-        val c = controller(ops)
-        c.perform(notAnIssue)
-        advanceUntilIdle()
-        assertTrue((c.state.value as TaskScreen.Viewing).notice!!.contains("still locked to you"))
-    }
-
-    @Ignore(CHOICE_PHASE)
-
-    @Test
-    fun authenticationFailureIsSessionExpiredAndUserMayRetry() = runTest {
-        val ops = FakeOps().thenRead({ task() }, { task(status = 2, completedBy = ME) })
-        var attempts = 0
-        ops.commit = { if (attempts++ == 0) throw failure(ErrorKind.AUTHENTICATION) }
-        val c = controller(ops)
-        c.perform(notAnIssue)
-        advanceUntilIdle()
-        assertTrue(c.state.value is TaskScreen.SessionExpired)
-        assertEquals(1, ops.calls.count { it.startsWith("commit") })
-        c.perform(notAnIssue)
-        advanceUntilIdle()
-        assertTrue(c.state.value is TaskScreen.Resolved)
-    }
-
-    @Ignore(CHOICE_PHASE)
-
-    @Test
-    fun insufficientScopeBlocksFurtherWrites() = runTest {
-        val ops = FakeOps().thenRead({ task() })
-        ops.commit = { throw failure(ErrorKind.PERMISSION, WriteProblem.InsufficientScope) }
-        val c = controller(ops)
-        c.perform(notAnIssue)
-        advanceUntilIdle()
-        assertTrue(c.state.value is TaskScreen.InsufficientScope)
-        c.perform(notAnIssue)
-        advanceUntilIdle()
-        assertEquals(1, ops.calls.count { it.startsWith("commit") })
-    }
-
-    @Ignore(CHOICE_PHASE)
-
-    @Test
-    fun invalidTransitionRereadsAndExplains() = runTest {
+    fun invalidTransitionRereadsAndIsNotAvailable() = runTest {
         val ops = FakeOps().thenRead({ task() }, { task(status = 1, completedBy = OTHER) })
-        ops.commit = { throw failure(ErrorKind.HTTP, WriteProblem.InvalidTransition) }
-        val c = controller(ops)
-        c.perform(notAnIssue)
-        advanceUntilIdle()
-        val state = c.state.value as TaskScreen.Viewing
+        ops.submit = { throw failure(ErrorKind.CONFLICT, WriteProblem.InvalidTransition) }
+        val state = answered(ops).state.value as TaskScreen.NotAvailable
         assertEquals(1, state.task.status?.code)
-        assertTrue(state.notice!!.contains("did not accept"))
+        assertTrue(state.reason.contains("did not accept"))
     }
 
-    @Ignore(CHOICE_PHASE)
-
     @Test
-    fun networkErrorIsFailedAndRetryable() = runTest {
-        val ops = FakeOps().thenRead({ task() })
-        ops.commit = { throw failure(ErrorKind.RATE_LIMIT) }
-        val c = controller(ops)
-        c.perform(notAnIssue)
-        advanceUntilIdle()
-        assertTrue(c.state.value is TaskScreen.Failed)
-    }
-
-    @Ignore(CHOICE_PHASE)
-
-    @Test
-    fun skipAndUnknownSkipAreNeverResent() = runTest {
+    fun unknownSkipIsNeverResent() = runTest {
         val ops = FakeOps().thenRead({ task() })
         ops.skip = { throw failure(ErrorKind.NETWORK, WriteProblem.OutcomeUnknown) }
         val c = controller(ops)
-        c.perform(TaskAction.Skip)
+        c.perform(ChoiceAction.Skip)
         advanceUntilIdle()
         assertTrue((c.state.value as TaskScreen.Skipped).uncertain)
-        c.perform(TaskAction.Skip)
+        c.perform(ChoiceAction.Skip)
         advanceUntilIdle()
         assertEquals(1, ops.calls.count { it == "skip" })
         assertTrue(c.changed)
     }
-
-    @Ignore(CHOICE_PHASE)
 
     @Test
     fun cancelledScopeLetsTheWriteFinishButDiscardsItsResult() = runTest {
@@ -367,24 +483,26 @@ class TaskWorkControllerTest {
         val ops = FakeOps().thenRead({ task() })
         val gate = CompletableDeferred<Unit>()
         var finished = false
-        ops.commit = {
+        ops.submit = {
             gate.await()
             finished = true
+            ChoiceResult(TaskStatus(1), 99)
         }
-        val c = TaskWorkController(ops, Writer(ME), screen)
+        val c = TaskWorkController(ops, Writer(ME, canEditOsm = true), screen, dispatcher)
         c.load(ID)
         advanceUntilIdle()
-        c.perform(notAnIssue)
+        c.select("backrest", "no")
+        c.perform(ChoiceAction.Answers(mapOf("backrest" to "no")))
         advanceUntilIdle()
         var idle = false
-        screen.cancel() // Activity destroyed or account switched while the commit is in flight.
+        screen.cancel() // Activity destroyed or account switched while the submission is in flight.
         c.whenIdle { idle = true }
         assertFalse(idle)
         gate.complete(Unit)
         advanceUntilIdle()
         assertTrue(finished)
         assertTrue(idle)
-        assertTrue("late result is discarded", c.state.value is TaskScreen.Committing)
-        assertEquals(listOf("get", "challenge", "commit:2"), ops.calls)
+        assertTrue("late result is discarded", c.state.value is TaskScreen.Submitting)
+        assertEquals(listOf("get", "challenge", "check", "submit"), ops.calls)
     }
 }

@@ -477,6 +477,8 @@ public final class MapRouletteClient: Sendable {
       guard error == "status_pending" else { return .outcomeUnknown }
       return .choice(.statusPending(changesetID: try? body?.optional("changesetId")?.integer()))
     case 502: return error == "osm_unavailable" ? .choice(.osmUnavailable) : .outcomeUnknown
+    // The server cannot use stored OSM tokens; refused before any lock check or upload.
+    case 503: return error == "osm_edits_unavailable" ? .choice(.osmUnavailable) : .outcomeUnknown
     case 500...599: return .outcomeUnknown
     default: return nil
     }

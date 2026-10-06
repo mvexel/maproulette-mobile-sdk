@@ -27,6 +27,9 @@ import net.openid.appauth.ResponseTypeValues
 import net.openid.appauth.TokenRequest
 import net.openid.appauth.TokenResponse
 import org.json.JSONObject
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.jsonObject
 import org.maproulette.example.BuildConfig
 import org.maproulette.sdk.ErrorKind
 import org.maproulette.sdk.MapRouletteClient
@@ -48,6 +51,8 @@ data class SessionView(
     val message: String,
     /** The grant includes `tasks:write`. False for read-only grants and signed-out sessions. */
     val canWriteTasks: Boolean = false,
+    /** The grant includes `osm:tagfix` (with `tasks:write`): choice answers and deletes may edit OSM. */
+    val canEditOsm: Boolean = false,
 )
 class SessionFailure(message: String) : Exception(message)
 
@@ -56,9 +61,19 @@ class AppSession private constructor(context: Context) {
     val endpoints = AuthEndpoints(BuildConfig.MAPROULETTE_BASE_URL, BuildConfig.MAPROULETTE_OAUTH_CLIENT_ID,
         BuildConfig.DEBUG && BuildConfig.MAPROULETTE_ALLOW_LOOPBACK)
     private val store = runCatching { EncryptedAuthStore(context, endpoints.storageBinding) }.getOrNull()
+    private val settings = context.getSharedPreferences("demo-settings", Context.MODE_PRIVATE)
     val signInAvailable: Boolean get() = endpoints.enabled && store != null
     /** Task writes need sign-in and never target the production MapRoulette deployment. */
     val writesConfigured: Boolean get() = signInAvailable && writesAllowedFor(endpoints.origin, endpoints.loopbackAllowed)
+    /** Demo setting (default off): choice "gone" outcomes delete the OSM element. Off, they resolve
+     * as Not an issue. Applies to clients created afterwards; only writable builds can turn it on. */
+    var allowElementDeletion: Boolean
+        get() = writesConfigured && settings.getBoolean(KEY_ALLOW_DELETION, false)
+        set(value) {
+            settings.edit().putBoolean(KEY_ALLOW_DELETION, value && writesConfigured).apply()
+        }
+    /** The OSM server this build's backend edits, for confirmations and changeset links; null if unknown. */
+    val osmServer: String? get() = OSM_SERVERS[endpoints.origin]
     private val tokenMutex = Mutex()
     private var generation = 0L
     private var authState: AuthState? = null
@@ -112,13 +127,20 @@ class AppSession private constructor(context: Context) {
     }
 
     private fun signedInMessage(): String {
-        val readOnly = writesConfigured && authState?.scopeSet?.contains(WRITE_SCOPE) != true
-        return "Signed in as MapRoulette user $userId" + if (readOnly) " · read-only sign-in" else ""
+        val scopes = authState?.scopeSet.orEmpty()
+        val limit = when {
+            !writesConfigured -> ""
+            WRITE_SCOPE !in scopes -> " · read-only sign-in"
+            TAGFIX_SCOPE !in scopes -> " · cannot edit OpenStreetMap"
+            else -> ""
+        }
+        return "Signed in as MapRoulette user $userId$limit"
     }
 
     private fun publish(message: String) {
-        val writable = authState?.scopeSet?.contains(WRITE_SCOPE) == true
-        mutableView.value = SessionView(generation, authState != null, userId, message, writable)
+        val scopes = authState?.scopeSet.orEmpty()
+        val writable = WRITE_SCOPE in scopes
+        mutableView.value = SessionView(generation, authState != null, userId, message, writable, writable && TAGFIX_SCOPE in scopes)
     }
 
     private fun persist(refreshPending: Boolean = false) {
@@ -157,7 +179,7 @@ class AppSession private constructor(context: Context) {
         return authorizationService.getAuthorizationRequestIntent(request, tabs)
     }
 
-    private val requestedScope get() = if (writesConfigured) "$READ_SCOPE $WRITE_SCOPE" else READ_SCOPE
+    private val requestedScope get() = requestedScope(writesConfigured)
 
     fun cancelSignIn(message: String = "Sign-in canceled. Public browsing is available.") {
         invalidate(message)
@@ -227,16 +249,15 @@ class AppSession private constructor(context: Context) {
     private fun validateToken(token: TokenResponse) {
         require(token.tokenType.equals("Bearer", true) && !token.accessToken.isNullOrBlank()) { "token type or access token" }
         require(!token.refreshToken.isNullOrBlank()) { "missing refresh token" }
-        // A refresh must keep the grant's scope; a new grant may be read-only if the client is.
+        // A refresh must keep the grant's scope; a new grant may be narrower if the client is.
         val granted = scopes(token.scope)
         val expected = authState?.scopeSet
-        require(if (expected != null) granted == expected else granted == scopes(READ_SCOPE) || granted == scopes(requestedScope)) {
+        require(if (expected != null) granted == expected else acceptableGrant(granted, requestedScope)) {
             "unexpected scope"
         }
         require((token.accessTokenExpirationTime ?: 0L) > System.currentTimeMillis()) { "expired token" }
     }
 
-    private fun scopes(value: String?): Set<String> = value?.split(' ')?.filter { it.isNotEmpty() }?.toSet().orEmpty()
 
     private suspend fun requestToken(request: TokenRequest): TokenResponse = suspendCancellableCoroutine { continuation ->
         authorizationService.performTokenRequest(request) { response, exception ->
@@ -265,7 +286,7 @@ class AppSession private constructor(context: Context) {
                     throw cancelled
                 } catch (failure: Exception) {
                     // Class and validation reason only; never token content.
-                    if (BuildConfig.DEBUG) Log.w("MapRouletteAuth", "Refresh failed: ${failure.javaClass.simpleName} ${failure.message.orEmpty()}")
+                    if (BuildConfig.DEBUG) Log.w("MapRouletteAuth", "Refresh failed: ${failure.javaClass.simpleName}")
                     if (generation == expected) invalidate("Refresh could not complete safely. Sign in again.")
                     throw SessionFailure("Sign in again before retrying")
                 }
@@ -327,6 +348,7 @@ class AppSession private constructor(context: Context) {
 
     fun newClient(): SessionClient {
         val expected = generation
+        val allowDeletion = allowElementDeletion
         val transport = OkHttpTransport()
         val boundTransport = Transport { request ->
             withContext(Dispatchers.Main.immediate) {
@@ -342,15 +364,24 @@ class AppSession private constructor(context: Context) {
                 checkGeneration(expected)
             }
             // The rejected request is never resent: the SDK reports authentication to the caller.
-            if (response.status == 401) request.headers["Authorization"]?.let { renewAfterRejection(expected, it) }
+            // osm_reauth_required concerns the server's OSM token, not this MapRoulette token: no refresh.
+            if (response.status == 401 && !isOsmReauth(response.body)) {
+                request.headers["Authorization"]?.let { renewAfterRejection(expected, it) }
+            }
             response
         }
-        val client = MapRouletteClient(serviceUrl = endpoints.api, transport = boundTransport,
-            accessToken = { accessToken(expected) })
-        return SessionClient(client, transport).also { clients.add(it) }
+        fun client(deletion: Boolean) = MapRouletteClient(serviceUrl = endpoints.api, transport = boundTransport,
+            accessToken = { accessToken(expected) }, allowElementDeletion = deletion)
+        val client = client(allowDeletion)
+        return SessionClient(client, if (allowDeletion) client(false) else client, transport).also { clients.add(it) }
     }
 
-    inner class SessionClient internal constructor(val client: MapRouletteClient, private val transport: OkHttpTransport) : Closeable {
+    /** [client] uses the deletion setting at creation; [noDeletionClient] always has deletion off. */
+    inner class SessionClient internal constructor(
+        val client: MapRouletteClient,
+        val noDeletionClient: MapRouletteClient,
+        private val transport: OkHttpTransport,
+    ) : Closeable {
         override fun close() {
             clients.remove(this)
             transport.close()
@@ -360,8 +391,26 @@ class AppSession private constructor(context: Context) {
     companion object {
         const val READ_SCOPE = "tasks:read"
         const val WRITE_SCOPE = "tasks:write"
+        const val TAGFIX_SCOPE = "osm:tagfix"
+        private const val KEY_ALLOW_DELETION = "allowElementDeletion"
 
-        /** Development writes may target only a disposable deployment, never maproulette.org. */
+        /** Backends with a known OSM server. Staging edits development OSM, never the real map. */
+        val OSM_SERVERS = mapOf("https://mr-api.osm.lol" to "https://master.apis.dev.openstreetmap.org")
+
+        /** Writes and OSM edits are requested only for an allowlisted backend ([writesAllowedFor]). */
+        fun requestedScope(writesConfigured: Boolean): String =
+            if (writesConfigured) "$READ_SCOPE $WRITE_SCOPE $TAGFIX_SCOPE" else READ_SCOPE
+
+        /** A new grant: read plus a subset of what was requested; `osm:tagfix` only with `tasks:write`. */
+        fun acceptableGrant(granted: Set<String>, requested: String): Boolean =
+            READ_SCOPE in granted && scopes(requested).containsAll(granted) && (TAGFIX_SCOPE !in granted || WRITE_SCOPE in granted)
+
+        /** A writable build whose current grant lacks task writes or OSM editing: "Sign in again to enable editing". */
+        fun needsReconsent(writesConfigured: Boolean, granted: Set<String>): Boolean =
+            writesConfigured && !(WRITE_SCOPE in granted && TAGFIX_SCOPE in granted)
+
+        private fun scopes(value: String?): Set<String> = value?.split(' ')?.filter { it.isNotEmpty() }?.toSet().orEmpty()
+
         /** Disposable deployments that may receive task writes (AGENTS.md). Never maproulette.org. */
         val WRITE_ORIGINS = setOf("https://mr-api.osm.lol")
 
@@ -373,11 +422,18 @@ class AppSession private constructor(context: Context) {
             return loopbackAllowed && uri.scheme == "http" && (uri.host == "127.0.0.1" || uri.host == "localhost")
         }
 
-        private val taskWrite = Regex("""/task/\d+/(start|refreshLock|release|skip|\d+)/?$""")
+        private val taskWrite = Regex("""/task/\d+/(start|refreshLock|release|skip|choice|\d+)/?$""")
 
-        /** Any task lifecycle write (start, refreshLock, release, skip or status), whatever the method. */
+        /** Any task lifecycle write (start, refreshLock, release, skip, choice or status), whatever the
+         * method. The read-only `choice/check` is not one. */
         fun isTaskWrite(url: String): Boolean =
             runCatching { java.net.URI(url).rawPath }.getOrNull()?.let { taskWrite.containsMatchIn(it) } ?: true
+
+        /** A 401 from the choice route that asks for OSM re-consent; the MapRoulette grant is still valid. */
+        fun isOsmReauth(body: String): Boolean =
+            runCatching {
+                (Json.parseToJsonElement(body).jsonObject["error"] as? JsonPrimitive)?.takeIf { it.isString }?.content
+            }.getOrNull() == "osm_reauth_required"
 
         @Volatile private var instance: AppSession? = null
         fun get(context: Context): AppSession = instance ?: synchronized(this) {

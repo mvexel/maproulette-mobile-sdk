@@ -65,7 +65,8 @@ public enum ChoiceProblem: Sendable, Equatable {
   case osmReauthRequired
   /// 403 insufficient_scope for `osm:tagfix`: the grant cannot edit OSM.
   case osmScopeRequired
-  /// 502 osm_unavailable: OSM could not be reached; nothing was applied.
+  /// 502 osm_unavailable (OSM unreachable) or 503 osm_edits_unavailable (the server cannot use
+  /// stored OSM tokens): nothing was applied.
   case osmUnavailable
   /// 409 submission_pending: another submission for this task is unfinished.
   case submissionPending

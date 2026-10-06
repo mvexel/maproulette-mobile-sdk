@@ -10,6 +10,7 @@ import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.ScrollView
+import android.widget.Switch
 import android.widget.TextView
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -24,8 +25,10 @@ import org.maproulette.example.auth.AppSession
 import org.maproulette.example.auth.SignInLauncher
 import org.maproulette.example.task.TaskText
 import org.maproulette.sdk.MapRouletteException
+import org.maproulette.sdk.MobileSupport
 import org.maproulette.sdk.Task
 import org.maproulette.sdk.TaskId
+import org.maproulette.sdk.mobileSupport
 
 /** A deliberately small SDK consumer. Task completion lives in [TaskActivity]. */
 class MainActivity : Activity() {
@@ -75,7 +78,7 @@ class MainActivity : Activity() {
         scroll.requestApplyInsets()
 
         content.addView(label("MapRoulette", 28f))
-        content.addView(label("Browse a challenge and inspect its tasks.", 16f))
+        content.addView(label("Answer multiple-choice tasks about nearby features.", 16f))
         authStatus = label(session.view.value.message, 14f)
         content.addView(authStatus)
         signInButton = Button(this).apply {
@@ -83,7 +86,7 @@ class MainActivity : Activity() {
             isEnabled = session.signInAvailable
             setOnClickListener {
                 val view = session.view.value
-                if (view.signedIn && (view.canWriteTasks || !session.writesConfigured)) {
+                if (view.signedIn && !needsReconsent(view)) {
                     isEnabled = false
                     scope.launch {
                         try { session.signOut() } finally { isEnabled = session.signInAvailable }
@@ -98,6 +101,17 @@ class MainActivity : Activity() {
             visibility = if (session.signInAvailable) View.VISIBLE else View.GONE
         }
         content.addView(accountHint)
+        if (session.writesConfigured) {
+            // Demo setting (default off): "gone" answers delete the OSM element instead of marking Not an issue.
+            content.addView(Switch(this).apply {
+                text = "Allow deleting OSM elements"
+                isChecked = session.allowElementDeletion
+                setPadding(0, dp(8), 0, 0)
+                setOnCheckedChangeListener { _, checked -> session.allowElementDeletion = checked }
+            })
+            val server = session.osmServer?.let(::hostOf) ?: "the backend's OpenStreetMap server"
+            content.addView(label("Demo setting. On: a “gone” outcome deletes the element on $server. Off (default): it is recorded as Not an issue.", 13f))
+        }
         content.addView(Button(this).apply {
             text = "Nearby task map"
             setOnClickListener { startActivity(Intent(this@MainActivity, MapActivity::class.java)) }
@@ -107,7 +121,7 @@ class MainActivity : Activity() {
             inputType = InputType.TYPE_CLASS_NUMBER
             setSingleLine(true)
             contentDescription = "Challenge ID"
-            setText(savedInstanceState?.getString("challengeId") ?: "16441")
+            setText(savedInstanceState?.getString("challengeId") ?: if (session.writesConfigured) "3" else "16441")
             selectAll()
         }
         content.addView(challengeInput)
@@ -164,7 +178,9 @@ class MainActivity : Activity() {
         runRequest("Loading challenge…", ::loadChallenge) {
             val currentClient = client
             val challenge = currentClient.getChallenge(id)
-            val page = currentClient.listTasks(id, pageSize = 20)
+            val page = currentClient.listTasks(id, pageSize = 50)
+            // Mobile shows only tasks it can complete in place: valid, open choice tasks.
+            val shown = page.items.filter { it.mobileSupport() == MobileSupport.IN_PLACE }
             results.addView(label(challenge.name, 23f))
             results.addView(label("Challenge ${challenge.id.value}", 14f))
             challenge.description?.takeIf { it.isNotBlank() }?.let {
@@ -173,20 +189,22 @@ class MainActivity : Activity() {
             results.addView(label("Instructions", 19f))
             results.addView(label(challenge.instruction?.takeIf { it.isNotBlank() } ?: "No challenge instructions.", 16f))
             results.addView(label("Tasks", 21f))
-            if (page.items.isEmpty()) {
-                results.addView(label("No tasks returned for this challenge.", 16f))
+            if (shown.isEmpty()) {
+                results.addView(label("No open multiple-choice tasks in this challenge.", 16f))
             }
-            page.items.forEach { task ->
+            shown.forEach { task ->
                 results.addView(Button(this).apply {
                     isAllCaps = false
                     text = "${task.name}\nTask ${task.id.value} · ${statusLabel(task)}"
                     setOnClickListener { showTask(task.id) }
                 })
             }
+            val hidden = page.items.size - shown.size
+            val hiddenText = if (hidden > 0) " $hidden other tasks are hidden: they cannot be completed on mobile." else ""
             status.text = if (page.next != null) {
-                "Showing the first ${page.items.size} tasks. This example loads one page."
+                "Showing ${shown.size} tasks from the first ${page.items.size}. This example loads one page.$hiddenText"
             } else {
-                "Loaded ${page.items.size} tasks. Tap a task for details."
+                "Loaded ${shown.size} tasks. Tap a task to answer it.$hiddenText"
             }
         }
     }
@@ -198,9 +216,16 @@ class MainActivity : Activity() {
 
     private fun signInText(view: org.maproulette.example.auth.SessionView) = when {
         !view.signedIn -> "Sign in"
-        session.writesConfigured && !view.canWriteTasks -> "Sign in again to enable task actions"
+        needsReconsent(view) -> "Sign in again to enable editing"
         else -> "Sign out"
     }
+
+    private fun needsReconsent(view: org.maproulette.example.auth.SessionView) = AppSession.needsReconsent(
+        session.writesConfigured,
+        setOfNotNull(AppSession.WRITE_SCOPE.takeIf { view.canWriteTasks }, AppSession.TAGFIX_SCOPE.takeIf { view.canEditOsm }),
+    )
+
+    private fun hostOf(url: String) = runCatching { java.net.URI(url).host }.getOrNull() ?: url
 
     private fun runRequest(message: String, retry: () -> Unit, block: suspend () -> Unit) {
         busy = true

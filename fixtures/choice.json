@@ -5449,6 +5449,16 @@
    "release": true
   },
   {
+   "name": "osm_edits_unavailable",
+   "status": 503,
+   "body": {
+    "error": "osm_edits_unavailable"
+   },
+   "kind": "server",
+   "problem": "osmUnavailable",
+   "release": true
+  },
+  {
    "name": "rate_limited",
    "status": 429,
    "body": null,

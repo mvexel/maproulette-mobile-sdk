@@ -454,6 +454,8 @@ class MapRouletteClient(
                 ChoiceProblem.StatusPending(runCatching { body?.optionalLong("changesetId") }.getOrNull())
             } else WriteProblem.OutcomeUnknown
             502 -> if (error == "osm_unavailable") ChoiceProblem.OsmUnavailable else WriteProblem.OutcomeUnknown
+            // The server cannot use stored OSM tokens; refused before any lock check or upload.
+            503 -> if (error == "osm_edits_unavailable") ChoiceProblem.OsmUnavailable else WriteProblem.OutcomeUnknown
             in 500..599 -> WriteProblem.OutcomeUnknown
             else -> null
         }
