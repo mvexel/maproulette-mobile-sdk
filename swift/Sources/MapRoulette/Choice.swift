@@ -254,7 +254,8 @@ private func question(_ o: [String: JSONValue]) throws -> ChoiceQuestion {
   let options = try list.map { item -> ChoiceOption in
     let option = try object(item)
     var set: [String: String] = [:]
-    for (key, value) in try present(option["setTags"]).map(object) ?? [:] {
+    let setTags: [String: JSONValue] = try present(option["setTags"]).map { try object($0) } ?? [:]
+    for (key, value) in setTags {
       set[try tagText(key)] = try tagText(text(value))
     }
     let unset = try (present(option["unsetTags"]).map(array) ?? []).map { try tagText(text($0)) }
@@ -277,7 +278,9 @@ private func question(_ o: [String: JSONValue]) throws -> ChoiceQuestion {
       label: length(text(required(option["label"])), 1, 60),
       description: optionalText(option["description"], 300), setTags: set, unsetTags: unset)
   }
-  guard Set(options.map(\.id)).count == options.count else { throw Invalid() }
+  guard Set(options.map { (option: ChoiceOption) in option.id }).count == options.count else {
+    throw Invalid()
+  }
   return try ChoiceQuestion(
     id: id, prompt: length(text(required(o["prompt"])), 1, 200),
     description: optionalText(o["description"], 500), expect: expect, options: options)
