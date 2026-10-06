@@ -293,4 +293,33 @@ class LifecycleTest {
             assertEquals(row.text("osmType"), identified["#osmType"], row.toString())
         }
     }
+
+    @Test fun integerFieldsWrittenAsFloatsDecodeAsWholeNumbers() = runBlocking<Unit> {
+        val fixture = fixtures.getValue("float_numbers").jsonObject
+        val raw = fixture.getValue("task").toString() // kotlinx keeps the 1.0/1e5 literals
+        assertTrue("1.01e2" in raw)
+        val expect = fixture.getValue("expect").jsonObject
+        val task = client(Script(HttpResponse(200, body = raw))).getTask(id)
+        assertEquals(expect["challengeId"]!!.jsonPrimitive.long, task.challengeId.value)
+        assertEquals(expect["status"]!!.jsonPrimitive.int, task.status?.code)
+        assertEquals(expect["lockedBy"]!!.jsonPrimitive.long, task.lockedBy)
+        assertEquals(expect["completedBy"]!!.jsonPrimitive.long, task.completedBy)
+        assertEquals(expect["reviewStatus"]!!.jsonPrimitive.int, task.reviewStatus)
+        assertEquals(expect.text("mappedOn"), task.mappedOn)
+        assertEquals(expect["workVersion"]!!.jsonPrimitive.int, assertIs<TaskWork.TagFix>(task.work()).version)
+        assertEquals(expect.getValue("properties").jsonObject.mapValues { it.value.jsonPrimitive.content }, task.templateProperties())
+        val lock = client(Script(HttpResponse(200, body = fixture.getValue("start").toString()))).startTask(id)
+        assertEquals(TaskId(101), lock.primaryTaskId); assertEquals(listOf(TaskId(100), TaskId(102)), lock.bundledTaskIds)
+        val conflict = assertFailsWith<MapRouletteException> {
+            client(Script(HttpResponse(409, body = fixture.getValue("conflict").toString()))).startTask(id)
+        }
+        assertEquals(WriteProblem.AlreadyHoldingTask(TaskId(555), ChallengeId(43), null, null), conflict.problem)
+        for (row in fixture.getValue("rejected").jsonArray.map { it.jsonObject }) {
+            val changed = Regex("\"${row.text("field")}\":\\s*[^,]+,").replaceFirst(raw, "\"${row.text("field")}\": ${row.text("value")},")
+            val error = assertFailsWith<MapRouletteException>(row.toString()) { client(Script(HttpResponse(200, body = changed))).getTask(id) }
+            assertEquals(ErrorKind.PROTOCOL, error.kind)
+        }
+        val unknown = decode(JsonObject(fixtures.getValue("task").jsonObject + ("cooperativeWork" to fixture.getValue("unknown_work"))))
+        assertIs<TaskWork.Unknown>(unknown.work())
+    }
 }

@@ -4,6 +4,8 @@
 `task-completion.json` holds the lifecycle write routes, error bodies and expected
 mappings, `commitResolution` responses, and table-driven task-kind, instruction,
 `allowedResolutions` and `verifyResolution` cases.
+Its `float_numbers` case keeps raw `1.0`/`1e5` literals: integer fields written as
+floats decode as whole numbers on both platforms and fractions are rejected.
 Both native suites load the same file directly; no generated or copied fixture variants.
 IDs and API key text here are invented. These fixtures complement, rather than replace,
 the read-only live probes documented in `docs/api-probes.json` and backend-source evidence.

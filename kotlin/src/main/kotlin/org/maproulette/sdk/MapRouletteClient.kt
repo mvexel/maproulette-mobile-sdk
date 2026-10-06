@@ -244,7 +244,7 @@ class MapRouletteClient(
                 task,
                 TaskId(o.long("lockPrimaryTaskId")),
                 o["lockBundledTasks"]?.takeUnless { it == JsonNull }?.jsonArray
-                    ?.map { TaskId(it.jsonPrimitive.also { p -> require(!p.isString) }.long) }
+                    ?.map { TaskId(it.jsonPrimitive.wholeNumber()) }
                     ?: emptyList(),
             )
         } catch (e: CancellationException) {
@@ -463,16 +463,21 @@ private fun JsonObject.str(key: String): String = getValue(key).jsonPrimitive.le
     it.content
 }
 
-private fun JsonObject.long(key: String): Long = getValue(key).jsonPrimitive.let {
-    require(!it.isString)
-    it.long
+private fun JsonObject.long(key: String): Long = getValue(key).jsonPrimitive.wholeNumber()
+
+/** A JSON number with an exact integer value, also when written as 1.0 or 1e5 (as Swift's
+ * JSONDecoder accepts). Strings, booleans, fractions and out-of-range values are rejected. */
+internal fun JsonPrimitive.wholeNumber(): Long {
+    require(!isString && this != JsonNull && booleanOrNull == null)
+    return longOrNull ?: java.math.BigDecimal(content).longValueExact()
 }
 
+internal fun JsonPrimitive.wholeNumberOrNull(): Long? =
+    if (isString || this == JsonNull || booleanOrNull != null) null
+    else longOrNull ?: runCatching { java.math.BigDecimal(content).longValueExact() }.getOrNull()
+
 private fun JsonObject.optionalLong(key: String): Long? =
-    get(key)?.takeUnless { it == JsonNull }?.let {
-        require(!it.jsonPrimitive.isString)
-        it.jsonPrimitive.long
-    }
+    get(key)?.takeUnless { it == JsonNull }?.jsonPrimitive?.wholeNumber()
 
 private fun JsonObject.text(key: String): String? =
     get(key)?.takeUnless { it == JsonNull }?.let { str(key) }
@@ -532,7 +537,9 @@ private fun task(value: JsonElement): Task {
         lockedBy = o.optionalLong("lockedBy"),
         completedBy = o.optionalLong("completedBy"),
         // Serialized as an ISO string; tolerate an epoch number without failing the whole read.
-        mappedOn = (o["mappedOn"] as? JsonPrimitive)?.takeUnless { it == JsonNull }?.content,
+        mappedOn = (o["mappedOn"] as? JsonPrimitive)?.let {
+            if (it.isString) it.content else it.wholeNumberOrNull()?.toString()
+        },
         reviewStatus = o.optionalLong("reviewStatus")?.let {
             require(it in Int.MIN_VALUE..Int.MAX_VALUE)
             it.toInt()

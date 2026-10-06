@@ -313,3 +313,51 @@ private func kindName(_ kind: ElementTagEdit.Kind) -> String {
         #expect(identified["#osmType"] == row["osmType"] as? String, "\(row)")
     }
 }
+
+/// Raw text of an object under "float_numbers"; JSONSerialization would normalize 1.0/1e5 literals.
+private func floatFixture(_ key: String) -> String {
+    let text = try! String(contentsOf: lifecycleURL, encoding: .utf8)
+    let section = text.range(of: "\"float_numbers\"")!
+    let start = text.range(of: "\"\(key)\": {", range: section.upperBound..<text.endIndex)!.upperBound
+    var depth = 0
+    var index = text.index(before: start)
+    repeat {
+        if text[index] == "{" { depth += 1 } else if text[index] == "}" { depth -= 1 }
+        index = text.index(after: index)
+    } while depth > 0
+    return String(text[text.index(before: start)..<index])
+}
+
+@Test func integerFieldsWrittenAsFloatsDecodeAsWholeNumbers() async throws {
+    let fixture = root["float_numbers"] as! [String: Any]
+    let raw = floatFixture("task")
+    #expect(raw.contains("1.01e2"))
+    let expect = fixture["expect"] as! [String: Any]
+    let task = try await client(Script(HTTPResponse(status: 200, body: Data(raw.utf8)))).getTask(taskID)
+    #expect(task.challengeID.value == expect["challengeId"] as! Int64)
+    #expect(task.status?.code == expect["status"] as? Int)
+    #expect(task.lockedBy == expect["lockedBy"] as? Int64)
+    #expect(task.completedBy == expect["completedBy"] as? Int64)
+    #expect(task.reviewStatus == expect["reviewStatus"] as? Int)
+    #expect(task.mappedOn == expect["mappedOn"] as? String)
+    guard case .tagFix(let version, _) = task.work() else { Issue.record("Expected tagFix"); return }
+    #expect(version == expect["workVersion"] as! Int)
+    #expect(task.templateProperties() == expect["properties"] as! [String: String])
+    let lock = try await client(Script(HTTPResponse(status: 200, body: Data(floatFixture("start").utf8)))).startTask(taskID)
+    #expect(lock.primaryTaskID == taskID); #expect(lock.bundledTaskIDs == [try TaskID(100), try TaskID(102)])
+    let conflict = await failure {
+        _ = try await client(Script(HTTPResponse(status: 409, body: Data(floatFixture("conflict").utf8)))).startTask(taskID)
+    }
+    #expect(conflict?.problem == .alreadyHoldingTask(lockedTaskID: try TaskID(555), challengeID: try ChallengeID(43), challengeName: nil, startedAt: nil))
+    for row in fixture["rejected"] as! [[String: String]] {
+        let field = row["field"]!
+        let changed = raw.replacingOccurrences(of: "\"\(field)\":\\s*[^,]+,", with: "\"\(field)\": \(row["value"]!),",
+            options: .regularExpression, range: raw.range(of: "\"\(field)\":\\s*[^,]+,", options: .regularExpression))
+        let reader = try client(Script(HTTPResponse(status: 200, body: Data(changed.utf8))))
+        let error = await failure { _ = try await reader.getTask(taskID) }
+        #expect(error?.kind == .protocolFailure, "\(row)")
+    }
+    var unknownRaw = root["task"] as! [String: Any]
+    unknownRaw["cooperativeWork"] = fixture["unknown_work"]
+    guard case .unknown = try await decode(unknownRaw).work() else { Issue.record("Expected unknown"); return }
+}

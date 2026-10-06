@@ -151,7 +151,7 @@ fun Task.templateProperties(): Map<String, String> {
     }
     features.forEach { feature ->
         (feature["properties"] as? JsonObject)?.forEach { (key, value) ->
-            if (value is JsonPrimitive && value != JsonNull) result[key] = value.content
+            (value as? JsonPrimitive)?.text()?.let { result[key] = it }
         }
     }
     return result
@@ -203,7 +203,9 @@ private fun JsonObject.int(key: String): Int? {
     val value = get(key)?.takeUnless { it == JsonNull } ?: return null
     val primitive = value as? JsonPrimitive ?: throw IllegalArgumentException()
     require(!primitive.isString)
-    return primitive.intOrNull ?: throw IllegalArgumentException()
+    val number = primitive.wholeNumberOrNull() ?: throw IllegalArgumentException()
+    require(number in Int.MIN_VALUE..Int.MAX_VALUE)
+    return number.toInt()
 }
 
 private fun JsonObject.string(key: String): String? = (get(key) as? JsonPrimitive)
@@ -214,5 +216,11 @@ private fun JsonElement.stringValue(): String =
 
 // Valid feature ids are numeric or prefixed (node/1, n1); [any] accepts any primitive (type fields).
 private fun JsonObject.primitive(key: String, any: Boolean = false): String? =
-    (get(key) as? JsonPrimitive)?.takeIf { it != JsonNull }?.content
-        ?.takeIf { any || featureId.matches(it) }
+    (get(key) as? JsonPrimitive)?.text()?.takeIf { any || featureId.matches(it) }
+
+// Primitive text matching Swift: whole numbers (1.0, 1e5) as integers, other numbers as Double.
+private fun JsonPrimitive.text(): String? = when {
+    this == JsonNull -> null
+    isString || booleanOrNull != null -> content
+    else -> wholeNumberOrNull()?.toString() ?: doubleOrNull?.toString()
+}

@@ -1055,5 +1055,17 @@
    "osmId": null,
    "osmType": null
   }
- ]
+ ],
+ "float_numbers": {
+  "_comment": "Integer fields written as floats (1.0, 1e5) decode as whole numbers on both platforms; fractions are rejected.",
+  "task": {"id": 1.01e2, "parent": 42.0, "name": "Bench", "status": 6.0, "lockedBy": 9.01E2, "completedBy": 900.0, "reviewStatus": 0.0, "bundleId": null, "mappedOn": 1.7e12,
+   "geometries": {"type": "FeatureCollection", "features": [{"type": "Feature", "id": 77.0, "geometry": null, "properties": {"count": 1e5, "whole": 1.0, "ratio": 2.50, "type": "way"}}]},
+   "cooperativeWork": {"meta": {"version": 2.0, "type": 1e0}, "operations": []}},
+  "expect": {"id": 101, "challengeId": 42, "status": 6, "lockedBy": 901, "completedBy": 900, "reviewStatus": 0, "mappedOn": "1700000000000", "workVersion": 2,
+   "properties": {"#mrTaskId": "101", "#osmId": "77", "#osmType": "way", "count": "100000", "whole": "1", "ratio": "2.5", "type": "way"}},
+  "start": {"id": 101, "parent": 42, "name": "Bench", "status": 0, "geometries": {"type": "FeatureCollection", "features": []}, "lockPrimaryTaskId": 1.01e2, "lockBundledTasks": [1e2, 102.0]},
+  "conflict": {"status": "Conflict", "lockedTaskId": 5.55e2, "parentId": 43.0},
+  "rejected": [{"field": "status", "value": "1.5"}, {"field": "id", "value": "101.5"}, {"field": "parent", "value": "4.25e1"}],
+  "unknown_work": {"meta": {"version": 1.5}, "operations": []}
+ }
 }
