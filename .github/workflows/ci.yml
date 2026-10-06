@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sdk:
+    name: Kotlin and Swift SDK tests
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: jdx/mise-action@v2
+      - name: Kotlin tests, Swift tests
+        run: scripts/check.sh
+      - name: Kotlin publication builds (sources and javadoc JARs)
+        run: mise exec -- ./kotlin/gradlew -p kotlin publishToMavenLocal --console=plain
+
+  android-example:
+    name: Android example build, unit tests and lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: jdx/mise-action@v2
+      - name: Assemble, unit tests, lint
+        working-directory: android-example
+        run: mise exec -- ./gradlew assembleDebug testDebugUnitTest lintDebug --console=plain
+
+  ios-example:
+    name: iOS example build and unit tests
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and unit-test on a simulator
+        run: scripts/ios-test.sh
