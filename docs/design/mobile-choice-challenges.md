@@ -1,14 +1,18 @@
 # Multiple-choice challenges: v1 spec
 
-Status: implementable spec (2026-10-06). It builds on
+> Status: design record; implemented in 0.1.0. The consumer docs are [docs/guide/](../guide/getting-started.md).
+
+v1 spec (2026-10-06). It builds on
 [challenge-types.md](challenge-types.md) and
 [task-completion.md §12](task-completion.md#12-future-osm-upload-design-only-kept-separate-from-resolution).
 
 Sources:
 
-- Backend fork `~/dev/maproulette-mobile-backend-public`,
+- Backend fork
+  [mvexel/maproulette-mobile-backend-public](https://github.com/mvexel/maproulette-mobile-backend-public/tree/feat/mobile-oauth),
   `feat/mobile-oauth` at `15bc9f8`. Backend paths below are relative to it.
-- Web frontend `~/dev/maproulette3` at `f6241e50`.
+- Web frontend [maproulette/maproulette3](https://github.com/maproulette/maproulette3)
+  at `f6241e50`.
 
 ## 0. Decisions (user, 2026-10-06)
 

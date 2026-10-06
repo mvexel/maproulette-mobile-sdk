@@ -1,357 +1,129 @@
 # MapRoulette mobile SDK
 
-Inspectable, native Kotlin and Swift clients for the deployed MapRoulette API.
-They discover challenges, retrieve tasks and task locations, retrieve the
-current user identity, and record a user's MapRoulette task resolution through
-a small set of bare lifecycle writes. No Rust, FFI, OSM database, or area
-initialization is required. Nothing in the SDK writes to OpenStreetMap.
+Native Kotlin and Swift clients for the [MapRoulette](https://maproulette.org) API,
+for Android and iOS apps.
 
-This is an unpublished development SDK. APIs may change. Kotlin/JVM supports
-integration into Android applications; Swift Package Manager targets iOS 15+
-and macOS 12+. Examples run on the host to exercise the same library clients.
+What it does:
 
-## Backend compatibility
+- Finds challenges and tasks: search, task lists, bounding-box search and map markers.
+- Reads tasks, their kind and instructions, and the current user.
+- Completes multiple-choice tasks with late locking: the lock lives only for the
+  seconds of a submission.
 
-| Flow             | SDK                                          | Android demo    | Backend                                      |
-| ---------------- | -------------------------------------------- | --------------- | -------------------------------------------- |
-| Anonymous reads  | Supported                                    | Supported       | Existing MapRoulette API                     |
-| Personal API key | Per-user `apiKey`                            | No entry screen | Existing MapRoulette API                     |
-| Browser sign-in  | Per-user `accessToken`                       | AppAuth flow    | **Mobile OAuth patch deployed/enabled**      |
-| Task writes      | `apiKey` or `accessToken` with `tasks:write` | Not yet         | Existing API (key); patched backend (bearer) |
+What it does not do:
 
-The Android sign-in example calls `/oauth/mobile/*`; configuring an OAuth app
-or supplying a client ID alone does not add those routes to an unpatched
-backend. The API-key option uses each person's own MapRoulette key, never a
-shared key bundled with an app.
+- It does not write to OpenStreetMap itself. For choice tasks the server applies the edit.
+- It has no map UI, no sign-in UI and no offline support. Those belong to your app.
 
-The tested implementation is in the
-[mobile backend fork](https://github.com/mvexel/maproulette-mobile-backend/tree/feat/mobile-oauth)
-and is configured separately for each deployment. The current test deployment
-at `https://mr-api.osm.lol` uses development OSM accounts and a separate
-MapRoulette database. See the [Android setup](android-example/README.md) and
-the [backend mobile OAuth guide](https://github.com/mvexel/maproulette-mobile-backend/blob/feat/mobile-oauth/docs/mobile-oauth.md)
-before enabling sign-in in an app.
+## Staging vs production
 
-## Read API
+Reads work against any MapRoulette deployment, including production
+(`https://maproulette.org`).
 
-| Operation                      | Behavior                                                                          |
-| ------------------------------ | --------------------------------------------------------------------------------- |
-| Search challenges              | ANY challenge-tag matching, optional name text, local-survey and archive filters  |
-| Get challenge / challenge tags | Full supported metadata; tags are MapRoulette labels, not OSM key/value tags      |
-| List challenge tasks           | Explicit pages, including completed tasks                                         |
-| Find tasks in bounds           | All or selected challenges within task-location bounds, explicit status selection |
-| Find task markers              | Capped, unordered map markers within bounds; no totals or pagination              |
-| Get task                       | Full task geometry/properties and cooperative-work JSON                           |
-| Get current user               | Minimal identity; raw identity credentials are discarded                          |
+Before 1.0, the SDK sends task writes (skip, choice submission, locks and
+status writes) only to the disposable staging deployment `https://mr-api.osm.lol`
+or to a loopback server. On any other environment it refuses the write before
+sending anything. Staging runs the
+[fork backend](https://github.com/mvexel/maproulette-mobile-backend-public/tree/feat/mobile-oauth)
+against the development OSM server, with its own database. Browser sign-in
+(`/oauth/mobile/*`) and the choice routes exist only on that fork, so production
+cannot serve them anyway.
 
-`Task` also reports `lockedBy` (single-task read only), `completedBy`,
-`mappedOn`, `reviewStatus` and `bundleId`. Task and challenge IDs are distinct from OSM IDs. Tasks can contain multiple
-features. The SDK does not infer OSM element types from task names or geometry.
+| Environment | Kotlin | Swift | Writes |
+| --- | --- | --- | --- |
+| Production | `MapRouletteEnvironment.PRODUCTION` | `.production` | Refused |
+| Staging | `MapRouletteEnvironment.STAGING` | `.staging` | Allowed |
+| Custom | `MapRouletteEnvironment("https://…/api/v2/")` | `try MapRouletteEnvironment(serviceURL:)` | Loopback only |
 
-## Task completion
+## Requirements
 
-Design and backend evidence: [task completion](docs/task-completion.md) and
-[challenge and task kinds](docs/challenge-types.md). Mobile locks late: viewing
-a task takes no lock; the lock exists only for the seconds of a commit.
+| | Minimum |
+| --- | --- |
+| JDK (to build) | 17. The library is JDK 17 bytecode. |
+| Android | Test your own minimum. The demo uses `minSdk 26`. Needs AGP 8+ and the `INTERNET` permission. |
+| iOS / macOS | iOS 15 / macOS 12 |
+| Swift / Xcode | Swift 6 tools, Xcode 16+ |
 
-| Operation (Kotlin / Swift)         | Request                     | Notes                                               |
-| ---------------------------------- | --------------------------- | --------------------------------------------------- |
-| `startTask` / `startTask(_:)`      | `GET task/{id}/start`       | Returns `TaskLock`; a repeat by the owner refreshes |
-| `refreshTaskLock`                  | `GET task/{id}/refreshLock` | Long edit flows only                                |
-| `releaseTask`                      | `GET task/{id}/release`     | Server returns success even without ownership       |
-| `skipTask`                         | `POST task/{id}/skip`       | Status unchanged; **not idempotent**                |
-| `resolveTask(id, resolution)`      | `PUT task/{id}/{1,2,5,6}`   | Server releases the lock                            |
-| `commitResolution(id, resolution)` | start → status write        | Late-locking helper (below)                         |
+## Install
 
-All writes are bare (no query string, no body) and carry the client's single
-per-user credential. `TaskResolution` is `FIXED`/`fixed` (1, the user fixed it in
-OSM), `NOT_AN_ISSUE` (2), `ALREADY_FIXED` (5, someone else already fixed it) and
-`TOO_HARD` (6). Deleted, Disabled and status-based Skip are not expressible.
-
-`commitResolution` starts the task, then writes the status. If the status write
-fails it releases once (best effort) and rethrows. If start returns 409 because
-the caller still holds a lock from an interrupted commit, it re-reads that task,
-releases it when still locked, and retries start once. A 403 at start means
-another user is working on the task: pick another one.
-
-Write failures keep the usual `kind` and add a `problem`:
-`LockedByOtherUser`, `AlreadyHoldingTask` (409 details), `LockLost`,
-`InvalidTransition` (400 on status write), `InsufficientScope` (bearer grant
-lacks `tasks:write`: sign in again to grant write permission) and
-`OutcomeUnknown` (network failure, 5xx or unreadable success). After
-`OutcomeUnknown`, re-read the task and apply `verifyResolution(target, me)`;
-never resend a skip or status write blindly. A 401 is `authentication`: refresh
-the token in the host's provider (the SDK evaluates it per request) or sign in
-again. Cancellation propagates and leaves the outcome unknown; the server
-expires stale locks after 1–2 hours.
-
-Task kinds (`work()`), decoded from the task's `cooperativeWork`: `Standard`,
-`TagFix`, `ChangeFile`, `Choice` (multiple-choice, type 3, validated strictly) or
-`Unknown` with the raw payload. Since choice challenges, mobile offers **only**
-tasks completed in place: `mobileSupport()` is `IN_PLACE`/`inPlace` for a valid,
-unbundled choice task with status Created, Skipped or Too hard, and
-`UNSUPPORTED` for everything else, including standard, tag-fix and change-file
-tasks. `canSkip()` follows `mobileSupport()`. `allowedResolutions()` is now always
-empty: choice tasks resolve through `submitChoice`, not a bare status write.
-`resolvedInstruction(challenge)` picks the task or challenge instruction and lists
-its `select`/`checkbox` form fields (display only; answers are not submitted).
-`render(templateProperties())` performs the web UI's `{{property}}`
-substitution; markdown rendering and `#map…` properties belong to the app.
-
-### Multiple-choice tasks
-
-Spec: [mobile choice challenges](docs/mobile-choice-challenges.md). A choice task
-asks questions about one OSM element. The server applies the answers as one OSM
-changeset, writes the status and releases the lock.
-
-| Operation (Kotlin / Swift)       | Request                         | Notes                                                         |
-| -------------------------------- | ------------------------------- | ------------------------------------------------------------- |
-| `checkChoice(id)`                | `GET task/{id}/choice/check`    | Call it when a task opens. Ineligible (or 502): skip the task |
-| `submitChoice(task, submission)` | start → `POST task/{id}/choice` | Late locking; the SDK builds the JSON body                    |
-
-- `choiceOutcomes()` returns the declared outcomes plus the built-in Too hard.
-  "Can't tell" means leaving a question out of `Answers`.
-- `allowElementDeletion` (client option, default false) controls the "gone"
-  outcome. When it is false, "gone" resolves to Not an issue and `delete` is
-  never sent. Decode outcomes with the same setting as the client
-  (`work(allowElementDeletion)` / `choiceOutcomes(allowElementDeletion)`);
-  a mismatch fails validation before any request.
-- Failures carry a `ChoiceProblem` (Swift: `WriteProblem.choice`).
-  `TaskIneligible` means the element changed in OSM: say "This one no longer
-  needs answering" and move on. There is no conflict choice. The other problems
-  are `ElementInUse`, `OsmReauthRequired`, `OsmScopeRequired`,
-  `OsmUnavailable`, `SubmissionPending`, `StatusPending`, `InvalidSubmission`
-  and `UnsupportedTask`. A lock or status conflict reuses `LockLost` and
-  `InvalidTransition`.
-- The lock is released (best effort) after every failure except
-  `StatusPending` and `OutcomeUnknown`. The identical submission is resent at
-  most once, only where server idempotency makes it safe:
-    - after `StatusPending`;
-    - after an unknown outcome, when a fresh read (`getCurrentUser`, `getTask`
-      and `verifyResolution`) shows it did not land and the caller still holds
-      the lock. If the read shows it landed, the result comes from that read.
-- `TaskFilter.choiceOnly` adds `cct=3&excludeStale=true` to the marker and box
-  reads. Servers without the filter ignore it, so still check
-  `mobileSupport()`.
-- `UserIdentity.canEditOsm` reports the `osm:tagfix` scope, which answers and
-  deletes need.
-
-Bearer identities report `scopes`; `UserIdentity.canWriteTasks` is false for a
-read-only grant. Writes must target a disposable development deployment such as
-staging, never production MapRoulette, while this SDK is in development.
-
-## Kotlin
-
-Requires JDK 17 for building. If Java is managed by mise or another version
-manager, activate it first or set `JAVA_HOME` to the JDK installation.
+### Gradle (JitPack)
 
 ```kotlin
-val transport = OkHttpTransport() // Own and close this at application/service lifetime.
-val client = MapRouletteClient(
-    transport = transport,
-    apiKey = { credentialStore.mapRouletteApiKey() }, // Optional; public reads work without it.
-)
-val filter = ChallengeFilter(tags = listOf("your-campaign-tag"))
-val first = client.searchChallenges(filter, pageSize = 25)
-val second = first.next?.let {
-    client.searchChallenges(filter, pageSize = 25, after = it)
+// settings.gradle.kts
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+        maven("https://jitpack.io")
+    }
 }
-val tasks = client.listTasks(ChallengeId(16441), pageSize = 25)
+
+// app/build.gradle.kts
+dependencies {
+    implementation("com.github.mvexel:maproulette-mobile-sdk:0.1.0")
+}
 ```
 
-Import `org.maproulette.sdk.*`. Public methods are suspending. HTTP uses OkHttp;
-cancelling the calling coroutine cancels the request. The JVM artifact needs no
-Android SDK to build. Android applications need the `INTERNET` permission and a
-modern Android Gradle Plugin capable of consuming Java 17 bytecode. The Android
-example has been smoke-tested on a physical Pixel 8.
+The version in the coordinate is the git release tag. The package is
+`org.maproulette.sdk`. It brings in OkHttp 4.12, kotlinx-coroutines 1.10 and
+kotlinx-serialization-json 1.7.3 (an API dependency: `Task.geometry` is a `JsonObject`).
 
-For local Android development, add `includeBuild("/path/to/maproulette-mobile-sdk/kotlin")`
-to your application's Gradle settings, then depend on
-`org.maproulette:maproulette-mobile-sdk:0.1.0-SNAPSHOT`. This is a local composite
-build, not a published Maven coordinate.
+### Swift Package Manager
 
-Build the library JAR and run the example:
-
-```sh
-cd kotlin
-./gradlew test jar
-./gradlew run --args='16441'
+```swift
+.package(url: "https://github.com/mvexel/maproulette-mobile-sdk", from: "0.1.0")
 ```
 
-## Android test app
+Then add the `MapRoulette` product to your target. In Xcode: File > Add Package
+Dependencies, paste the URL, and pick the `MapRoulette` library.
 
-`android-example/` is a separate, minimal Android application consuming the
-Kotlin SDK through a Gradle composite build. Open that directory in Android
-Studio, or build and install it on a connected device:
+## Quick start
 
-```sh
-cd android-example
-./gradlew :app:assembleDebug
-adb -d install -r app/build/outputs/apk/debug/app-debug.apk
-adb -d shell am start -n org.maproulette.example/.MainActivity
+An anonymous read against production. Kotlin:
+
+```kotlin
+import kotlinx.coroutines.runBlocking
+import org.maproulette.sdk.*
+
+fun main() = runBlocking {
+    OkHttpTransport().use { transport ->
+        val client = MapRouletteClient(transport = transport)
+        val page = client.searchChallenges(ChallengeFilter(text = "bench"), pageSize = 5)
+        page.items.forEach { println("${it.id.value}: ${it.name}") }
+        val tasks = client.listTasks(ChallengeId(16441), pageSize = 2)
+        tasks.items.forEach { println("Task ${it.id.value}: ${it.status?.knownName}") }
+    }
+}
 ```
 
-Configure your Android SDK in Android Studio or through `ANDROID_HOME` first.
-The example requires SDK 36 and runs on Android 8.0 (API 26) or later.
-The app accepts a challenge ID, lists tasks and opens task details. Its nearby
-task map uses MapLibre Native with the
-[OpenFreeMap Liberty style](https://openfreemap.org/quick_start/). Pan/zoom and
-choose **Search this area** to load up to 100 task locations across challenges,
-or use **My location** to center the map. Location permission is optional. Tap a
-task marker to read its details and challenge instructions. Map rendering and
-location handling belong to this example, not the SDK. The map uses the SDK’s
-default statuses (Created, Skipped and TooHard), excluding archived challenges
-and requiring enabled projects/challenges. These statuses do not guarantee a
-task can be completed in a mobile app. The default build uses anonymous access.
-An opt-in browser sign-in prototype connects to a backend with the mobile OAuth
-endpoints enabled; see the
-[Android setup](android-example/README.md). No credentials are bundled.
-
-Validated on a Pixel 8: live challenge 16441, its first 20 tasks, full task
-details, missing-challenge error, retry and recovery. `:app:assembleDebug` and
-`:app:lintDebug` pass; lint retains advisory warnings for localization, app icon,
-backup configuration and available dependency/SDK updates. Nearby markers and
-a marker’s task/challenge instructions were verified on the Pixel 8; location
-centering worked, and permission-denied fallback was checked on the emulator.
-Map conversion tests and both SDK contract suites pass. The opt-in Android
-sign-in flow was verified against a local synthetic OSM provider on the Pixel:
-browser consent, session restoration, refresh rotation and confirmed logout.
-Real development-OSM sign-in was subsequently verified on the Pixel 8 against
-the patched staging backend. This does not enable mobile sign-in on other
-MapRoulette deployments.
-
-## Swift
-
-The package is in `swift/`. Add it as a local Swift package dependency and use
-the `MapRoulette` product. See [the Swift example](swift/Sources/Example) for a
-complete runnable call sequence.
+Swift:
 
 ```swift
 import MapRoulette
 
-let client = try MapRouletteClient()
-let filter = ChallengeFilter(tags: ["your-campaign-tag"])
-let first = try await client.searchChallenges(filter: filter, pageSize: 25)
-if let continuation = first.next {
-    let second = try await client.searchChallenges(
-        filter: filter, pageSize: 25, after: continuation
-    )
-    print(second.items.count)
-}
+let client = MapRouletteClient()
+let page = try await client.searchChallenges(filter: ChallengeFilter(text: "bench"), pageSize: 5)
+for challenge in page.items { print("\(challenge.id): \(challenge.name)") }
+let tasks = try await client.listTasks(try ChallengeID(16441), pageSize: 2)
+for task in tasks.items { print("Task \(task.id): \(task.status?.knownName ?? "?")") }
 ```
 
-Inject credentials with `MapRouletteClient(apiKey: { ... })` when needed.
+In an app, keep one transport for the app's lifetime, and close it when done.
 
-```sh
-cd swift
-swift test
-swift run maproulette-example 16441
-```
+## Documentation
 
-Both examples optionally read `MAPROULETTE_API_KEY` from their environment.
-The libraries themselves do not read `.env` files or acquire credentials.
-Inject a user key obtained from MapRoulette and store it using your platform's
-credential store. This is separate from OSM OAuth authentication. No key is
-included in this repository.
-
-## Per-user authentication
-
-Each client obtains credentials from its own provider. There is no global key
-or bundled application credential. The CLI environment variable is a developer
-convenience for running a single-user example, not an end-user sign-in design.
-The shared tests verify two users, anonymous access, key rotation and logout
-without leaking credentials between clients.
-
-Both SDKs accept either `apiKey: { ... }` or `accessToken: { ... }` providers.
-An app can therefore offer an old-style "enter your MapRoulette API key" screen
-without the mobile OAuth backend patch, although this Android demo does not
-implement that screen.
-Bearer credentials use `Authorization` and the same configured service origin;
-`getCurrentUser()` uses `/oauth/mobile/me` for bearer identity. Supplying both
-credential types fails before HTTP, and a rejected bearer never falls back to
-an API key. Providers are evaluated per request so hosts can rotate credentials.
-
-The Android example owns a browser/PKCE sign-in prototype using AppAuth,
-Android Keystore storage, serialized refresh and local-first logout. It requires
-the deployed, enabled mobile OAuth patch described above; the default
-MapRoulette API origin must not be assumed to support these endpoints.
-On one backend and OSM environment, browser and traditional web login resolve
-the same MapRoulette user by numeric OSM ID. The staging backend uses its own
-database and development OSM accounts, so a staging user is separate from a
-`maproulette.org` user.
-Browser integration and credential storage belong to the host app, and Swift
-has no sign-in UI. OSM access tokens and
-server-side client secrets must never be supplied as MapRoulette credentials.
-
-For an application that already has a user's MapRoulette key, supply it through
-that user's provider, validate it with `getCurrentUser()`, and store it securely
-under the service origin and user identity. On account switch, cancel requests
-from the old account and discard its client/continuations before creating a new
-client. Future pending work must remain bound to the user who created it.
-Clearing local credentials is logout; it does not revoke a server-side key.
-
-## Behavioral contract
-
-- Local-survey challenges are included by default; archived challenges are
-  excluded by default. A matching challenge label is not proof a task is
-  executable by your application.
-- Paginated reads are explicit, capped at 100 items per request, and represented by
-  an opaque continuation bound to the client, operation, filter, and page size.
-  Never reuse a continuation after changing a filter. Tokens are in-memory,
-  not durable resume checkpoints.
-- The client hides the deployed API's offset/page mismatch: challenge search
-  advances by rows, task pages advance by page number. A full page means
-  another request may be necessary. The server provides no snapshot guarantee;
-  concurrent changes can produce skips or duplicates during enumeration.
-- Spatial results are summaries selected by **task location**, not exact
-  feature-geometry intersections. Empty/default challenge IDs search across
-  challenges. Summary points use `{lat, lng}`; task detail geometry is GeoJSON.
-  Fetch full task details explicitly. Map marker reads use a separate capped,
-  unordered response; reaching the limit means more may exist. They exclude
-  archived challenges by default and, when searching across challenges, require
-  enabled challenges and projects. Markers can include locked tasks; visibility
-  does not imply a task is available to edit. Paginated task reads remain available for enumeration.
-- Missing task status is distinct from Created. Unknown numeric statuses are
-  preserved; applications should not assume they are actionable.
-- No automatic retries: callers choose when to retry a failed read, and writes
-  are never resent by the SDK (iOS URLSession may still retry a PUT on a dropped
-  connection; see the task-completion design). Errors
-  distinguish authentication, permission, missing objects, conflict, rate
-  limits, server/HTTP/network failures, and invalid server responses. Rate-limit
-  errors preserve the `Retry-After` value. Native cancellation propagates.
-- Redirects are disabled in the supplied transports. Request headers and raw
-  response bodies are not included in their descriptions or SDK error text.
-  Custom transports must preserve those protections and cancellation behavior.
-- Transport failures are distinct from malformed response data. Invalid caller
-  arguments are rejected before requests; credential-provider errors propagate
-  to the caller instead of being mislabeled as server protocol failures.
-
-## Validation and scope
-
-Shared synthetic JSON fixtures in `fixtures/` define decoding, request and
-pagination expectations. Both platform test suites consume them. Fake
-transports exercise errors without production mutations. Run both suites with
-`scripts/check.sh` (JDK 17+ and Swift 6 required).
-
-The SDK does not provide comments, review actions, tags, completion responses,
-bundles, offline task packs, edit queues, OSM uploads, map UI or campaign
-question definitions. The Android example supplies its own map UI. Some deployed
-MapRoulette GET routes mutate state (`start`, `release`, `refreshLock` among
-them); the client exposes only the verified read routes (including the
-marker-search PUT, which retrieves data) and the lifecycle writes above.
-
-**In progress: mobile task completion.** The SDK lifecycle, kind model and
-shared contract tests are in place. Remaining: the Android completion action
-tested on a disposable staging task. See the [handoff](docs/handoff.md).
-
-The [read-only probe record](docs/api-probes.json) records API quirks verified
-against the backend source and deployed service. The design discussion is
-local and deliberately excluded from Git. This project originated in the
-Cantino experiment. Native source here is new;
-Cantino supplied design experience and the Gradle wrapper bootstrap. Plans and
-work log are kept in `~/obsidian/agent/maproulette-mobile-sdk/TASKS.md`.
+- [Getting started](docs/guide/getting-started.md): environments, sign-in,
+  discovery, choice tasks, errors and testing.
+- Examples: the [Android demo](android-example/README.md), the
+  [iOS demo](ios-example/README.md), and the command-line examples
+  (`./kotlin/gradlew -p kotlin runExample --args='16441'`, `swift run Example 16441`).
+- [Changelog](CHANGELOG.md). Before 1.0, minor versions may break the API; patch
+  versions do not.
+- [Contributing](CONTRIBUTING.md).
+- Design records: [docs/design/](docs/design/). They explain why the SDK works
+  the way it does, with backend evidence.
 
 ## License
 
-Apache-2.0; see [LICENSE](LICENSE). MapRoulette task payloads can contain OSM
-and other source data with their own attribution and licensing requirements.
+Copyright 2026 Martijn van Exel. Apache-2.0; see [LICENSE](LICENSE) and
+[NOTICE](NOTICE). MapRoulette task payloads can contain OSM and other source data
+with their own attribution and licensing requirements.

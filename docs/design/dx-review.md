@@ -1,5 +1,8 @@
 # Developer-experience review
 
+> Status: review record; findings marked Resolved were addressed for 0.1.0.
+> The consumer docs are [docs/guide/](../guide/getting-started.md).
+
 Date: 2026-10-06. Scope: `kotlin/`, `swift/`, `android-example/`, `docs/`,
 `fixtures/`, `scripts/`, root `README.md`. Snapshot: `main` at `8841f76`,
 plus the uncommitted edits to `.gitignore` and `docs/mobile-choice-challenges.md`.
@@ -7,6 +10,33 @@ plus the uncommitted edits to `.gitignore` and `docs/mobile-choice-challenges.md
 covered.
 
 This is a review only. No source, docs or build files were changed.
+
+## Resolution status (0.1.0)
+
+| Finding | Status |
+| --- | --- |
+| P0-1 SwiftPM by URL | Resolved: `Package.swift` at the repository root. |
+| P0-2 Kotlin publication | Resolved: JitPack, `com.github.mvexel:maproulette-mobile-sdk`, sources and Dokka javadoc JARs, POM. Maven Central deferred. |
+| P0-3 Example in the library | Resolved: Kotlin `example` source set (`runExample`); Swift `Example` is no longer a product. |
+| P0-4 Version and changelog | Resolved: root `VERSION`, generated `MapRouletteSdk.VERSION` / tested `MapRouletteSDK.version` in the User-Agent, `CHANGELOG.md`, 0.x policy. |
+| P1-1 Deletion opt-in | Resolved: `client.work/choiceOutcomes`, `ChoiceOutcome.withoutDeletion()`; demos use one client. The optional eligibility-aware `submitChoice` was not added. |
+| P1-2 Low-level writes | Resolved: Kotlin `@LowLevelTaskLifecycle` opt-in, Swift `@_spi(LowLevelTaskLifecycle)`. |
+| P1-3 Shims | Resolved: `allowedResolutions()` and the legacy constructors removed. No `Credentials` type. |
+| P1-4 Production default | Resolved: named environments; writes refused outside staging and loopback before 1.0. |
+| P1-5 Swift models | Resolved: public inits, `Hashable`, `Identifiable`, `Codable`/`Comparable` IDs, `let` fields. No `MapRouletteTesting` product. |
+| P1-6 Validation messages | Resolved: `require` messages (Kotlin), `MapRouletteError.reason` (Swift). |
+| P1-7 `Continuation` | Resolved: renamed `PageCursor` on both platforms. |
+| P1-8 kotlinx-serialization in the API | Open (follow-up). |
+| P1-9 API docs | Partly: KDoc/DocC on the read methods, Dokka in the Kotlin build. DocC catalog and Pages publishing are follow-ups. |
+| P1-10 Stale docs | Resolved: status banners, `handoff.md` removed, README rewritten. Link check in CI is a follow-up. |
+| P1-11 Consumer vs internal docs | Resolved: `README.md`, `docs/guide/`, `docs/design/`, `CONTRIBUTING.md`. |
+| P1-12 CI | Resolved: `.github/workflows/ci.yml`. |
+| P1-13 API guards | Open (follow-up): no `explicitApi()`, binary-compatibility validator or Swift API baseline yet. |
+| P1-14 Toolchain | Resolved: `mise.toml`, `scripts/check.sh` checks for Java and Swift. |
+| P1-15 Auth setup guide | Resolved: `docs/guide/authentication.md`. |
+| P1-16 "Too hard" label | Resolved: `ChoiceOutcome.TOO_HARD_ID` / `tooHardID`. |
+| P2-8, P2-10, P2-12 | Resolved in the guide, README and fixtures README. |
+| Other P2 | Open. |
 
 Priorities: **P0** blocks a first release. **P1** should be fixed before
 release. **P2** is nice to have. Effort: **S** < 2 h, **M** ½–1 day,

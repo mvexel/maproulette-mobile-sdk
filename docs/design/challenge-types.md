@@ -1,6 +1,8 @@
 # Challenge and task kinds: SDK model design
 
-Status: phase 1 design (2026-10-05), not implemented. This document goes
+> Status: design record; implemented in 0.1.0. The consumer docs are [docs/guide/](../guide/getting-started.md).
+
+Phase 1 design (2026-10-05), implemented with the changes below. This document goes
 with [task-completion.md](task-completion.md). Sources are the backend
 public fork `feat/mobile-oauth` at `a31e073` and `maproulette3` from
 January 2026.
@@ -10,7 +12,7 @@ place. See [mobile-choice-challenges.md](mobile-choice-challenges.md) for
 the proposed multiple-choice `cooperativeWork` type 3 and the mobile
 eligibility rule that replaces §4. Implemented in the SDK: `MobileSupport` is now
 `IN_PLACE | UNSUPPORTED` (standard, tag-fix and change-file tasks are
-unsupported) and `allowedResolutions()` is always empty, so the §4
+unsupported) and `allowedResolutions()` was removed in 0.1.0, so the §4
 `FULL`/`RESOLVE_WITHOUT_FIX` rules below are historical.
 
 The aim is to let a mobile client decide, from SDK types alone, **how to

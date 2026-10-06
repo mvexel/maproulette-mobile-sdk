@@ -1,19 +1,22 @@
 # Mobile task completion: design
 
-Status: phase 1 design (2026-10-05). No SDK or backend code has changed yet.
-The design is based on backend source and on probes against staging that do
-not change any data. Probes that change state are still pending (see
-[Live verification](#live-verification)).
+> Status: design record; implemented in 0.1.0. The consumer docs are [docs/guide/](../guide/getting-started.md).
+
+Phase 1 design (2026-10-05), since implemented in both SDKs. Section 9
+notes where the code differs. The design is based on backend source and on
+probes against staging; the state-changing probes are recorded in
+[Live verification](#live-verification).
 
 Sources:
 
-- Backend: public fork `github.com/mvexel/maproulette-mobile-backend`, branch
-  `feat/mobile-oauth` at `a31e073`, local checkout
-  `~/dev/maproulette-mobile-backend-public`. Staging (`mr-api.osm.lol`) runs
-  `e23263b` from the private-history repository. Its lifecycle code
-  (`TaskController`, `Locking`, `TaskDAL`) matches the public fork.
-- Frontend: `~/dev/maproulette3` (`maproulette/maproulette3`, checkout from
-  January 2026).
+- Backend: the public fork
+  [mvexel/maproulette-mobile-backend-public](https://github.com/mvexel/maproulette-mobile-backend-public/tree/feat/mobile-oauth),
+  branch `feat/mobile-oauth` at `a31e073`. At the time, staging
+  (`mr-api.osm.lol`) ran an earlier build of the fork backend. Its lifecycle
+  code (`TaskController`, `Locking`, `TaskDAL`) matches the public fork.
+  Upstream backend: [maproulette/maproulette-backend](https://github.com/maproulette/maproulette-backend).
+- Frontend: [maproulette/maproulette3](https://github.com/maproulette/maproulette3),
+  checkout from January 2026.
 
 Scope: this covers MapRoulette task resolution only, meaning the task's
 status in the MapRoulette database. It does not cover editing OSM data. The
@@ -397,7 +400,8 @@ suspend fun resolveTask(id: TaskId, resolution: TaskResolution)
 // Late-locking helper: start → resolve → release on failure; on 409, recover the stale own lock once (§6)
 suspend fun commitResolution(id: TaskId, resolution: TaskResolution)
 
-// Lifecycle errors: MapRouletteException with kind + a sealed detail
+// Lifecycle errors: MapRouletteException with kind + a sealed detail.
+// Implemented name: WriteProblem (not LockProblem); see "As implemented" below.
 sealed interface LockProblem {
     data class LockedByOtherUser(val message: String?) : LockProblem
     data class AlreadyHoldingTask(val lockedTaskId: TaskId, val challengeId: ChallengeId?,
@@ -439,9 +443,11 @@ The transport gains PUT and POST with an empty body, plus a no-retry flag
 for writes. Writes are never retried automatically by the SDK.
 
 **Changed 2026-10-06 (choice challenges):** `mobileSupport()` is now
-`IN_PLACE | UNSUPPORTED`, `allowedResolutions()` is always empty, and choice
+`IN_PLACE | UNSUPPORTED`, `allowedResolutions()` was always empty (removed in
+0.1.0), and choice
 tasks complete through `submitChoice`. See
-[mobile-choice-challenges.md](mobile-choice-challenges.md) and the README.
+[mobile-choice-challenges.md](mobile-choice-challenges.md) and the
+[guide](../guide/getting-started.md).
 
 **As implemented (2026-10-05).** Both SDKs follow this section with these
 differences: the detail type is `WriteProblem` (adds `InsufficientScope` and

@@ -1,7 +1,7 @@
 # Android example
 
 The default build browses the deployed MapRoulette API anonymously. **The Sign
-in button requires the [patched MapRoulette backend](https://github.com/mvexel/maproulette-mobile-backend/tree/feat/mobile-oauth)
+in button requires the [patched MapRoulette backend](https://github.com/mvexel/maproulette-mobile-backend-public/tree/feat/mobile-oauth)
 with its mobile OAuth provider enabled.** A normal MapRoulette API deployment
 or an OSM OAuth application by itself cannot serve the `/oauth/mobile/*`
 endpoints used by this app. Sign-in is disabled until a debug build specifies
@@ -9,21 +9,43 @@ an approved client ID and that backend's origin. The example uses AppAuth's
 browser authorization-code flow with S256 PKCE; it does not embed a personal
 API key or client secret.
 
+## Build and run
+
+Open this directory in Android Studio, or build and install on a connected device:
+
+```sh
+mise exec -- ./gradlew :app:assembleDebug
+adb -d install -r app/build/outputs/apk/debug/app-debug.apk
+adb -d shell am start -n org.maproulette.example/.MainActivity
+```
+
+Configure the Android SDK in Android Studio or through `ANDROID_HOME` first. The
+app compiles against SDK 36 and runs on Android 8.0 (API 26) or later. It lists a
+challenge's tasks, shows nearby tasks on a MapLibre map with the
+[OpenFreeMap Liberty style](https://openfreemap.org/quick_start/), and opens task
+details. Map rendering and location belong to the app, not the SDK.
+
 ## Configure a debug sign-in build
 
 Deploy the mobile backend patch and follow its
-[mobile OAuth configuration guide](https://github.com/mvexel/maproulette-mobile-backend/blob/feat/mobile-oauth/docs/mobile-oauth.md).
+[mobile OAuth configuration guide](https://github.com/mvexel/maproulette-mobile-backend-public/blob/feat/mobile-oauth/docs/mobile-oauth.md).
 Enable `mobileOAuth`, register `maproulette-android-example` as a public client,
 and configure the backend's OSM OAuth client credentials and callback. The
 Android app's client ID is a public identifier; the OSM client secret stays on
 the backend. The tested staging backend is `https://mr-api.osm.lol` and uses
-development OSM accounts with a separate MapRoulette database.
+development OSM accounts with a separate MapRoulette database. To use it, you
+need a development OSM account and a client ID on that backend; see the
+[staging checklist](../docs/guide/authentication.md#staging-checklist-bearer-sign-in).
 
 Register this exact native callback with the backend's mobile OAuth configuration:
 
 ```text
 org.maproulette.example:/oauth2redirect
 ```
+
+The app consumes the SDK from `../kotlin` through a Gradle composite build. Java
+comes from mise (`mise install` at the repository root pins JDK 17); prefix
+Gradle commands with `mise exec --` if mise is not activated in your shell.
 
 Build against an HTTPS test backend:
 
@@ -44,7 +66,7 @@ sign-in.
 
 ## Task completion (multiple-choice tasks)
 
-Mobile shows only multiple-choice tasks (docs/mobile-choice-challenges.md). The
+Mobile shows only multiple-choice tasks ([spec](../docs/design/mobile-choice-challenges.md)). The
 map and the challenge list read with `cct=3&excludeStale=true`; the list also
 drops every task that is not `IN_PLACE` on the client. A non-choice task opened
 by id says **Not available on mobile**. The staging pilot is challenge `3`
@@ -65,11 +87,12 @@ noting that the staging build edits development OSM. Task-level outcomes (for
 the pilot: Not a bench, Bench is gone, Too hard) and Skip are separate buttons.
 
 **Allow deleting OSM elements** on the main screen is a demo setting, default
-off. Off, "Bench is gone" is recorded as Not an issue. On, it deletes the node
+off. It sets the SDK client's `allowElementDeletion`; the app uses one client.
+Off, "Bench is gone" is recorded as Not an issue. On, it deletes the node
 when the check reports `deleteAllowed`; otherwise (the node is in a way or
-relation) it is offered without deletion and recorded as Not an issue, and the
-confirmation says so. If OSM still refuses the delete (`element_in_use`), the
-app offers the same outcome without deletion after a confirmation.
+relation) the app submits `outcome.withoutDeletion()`, recorded as Not an issue,
+and the confirmation says so. If OSM still refuses the delete (`element_in_use`),
+the app offers the same outcome without deletion after a confirmation.
 
 Submission runs the SDK's late-locking `submitChoice` off the main thread; the
 write finishes even if the screen closes and Back is blocked meanwhile. On
@@ -82,7 +105,9 @@ pick another task. The map and list refresh after a submission.
 
 Writes are possible only against an allowlisted disposable backend: exactly
 `https://mr-api.osm.lol`, or loopback in a debug build with
-`-PmaprouletteAllowLoopback=true` (`AppSession.WRITE_ORIGINS`). For any other
+`-PmaprouletteAllowLoopback=true` (`AppSession.WRITE_ORIGINS`). The SDK enforces
+the same rule itself before 1.0: it refuses every task write on other
+environments before sending anything. For any other
 origin, including `maproulette.org`, the app requests only `tasks:read` and
 shows no actions. The session transport also refuses every lifecycle write URL
 (`task/{id}/start|refreshLock|release|skip|choice|{status}`) before sending
@@ -125,20 +150,7 @@ This is an app-owned first integration, not a reusable authentication package. I
 ## Checks
 
 ```sh
-./gradlew :app:assembleDebug :app:lintDebug :app:testDebugUnitTest
+mise exec -- ./gradlew assembleDebug testDebugUnitTest lintDebug
 ```
 
-The unit tests cover task-point mapping, origin, loopback and callback validation, scope selection, the confirmation text, and the choice task screen's state machine including the deletion setting (fake SDK operations; no network). Browser callbacks, Keystore persistence, refresh and logout additionally require device testing with a configured backend.
-
-On 2026-10-05, a physical Pixel 8 completed browser authorization and consent against a local backend with a **synthetic OSM provider**, displayed the authenticated user, restored the encrypted session after force-stop/relaunch, and signed out with server revocation confirmed. This verifies that integration path; it is not a real OSM login result.
-
-Pixel 8 acceptance also verified browser cancellation and refresh with a local
-30-second access lifetime. A second refresh succeeded after process restart,
-confirming that the rotated refresh token was saved; logout then confirmed
-server revocation. The isolated database contains no public challenges, so the
-authenticated read correctly returned a missing-challenge response.
-
-The Pixel 8 also completed a real development-OSM browser sign-in against the
-patched staging backend on 2026-10-05, displayed its MapRoulette user ID, and
-read nearby tasks from the separate staging challenge. This verifies that
-deployment, not an unpatched MapRoulette instance.
+CI runs the same command. The unit tests cover task-point mapping, origin, loopback and callback validation, scope selection, the confirmation text, and the choice task screen's state machine including the deletion setting (fake SDK operations; no network). Browser callbacks, Keystore persistence, refresh and logout additionally require device testing with a configured backend.

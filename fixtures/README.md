@@ -2,26 +2,39 @@
 
 `contract.json` contains synthetic, nonsecret examples of the deployed API shapes.
 `task-completion.json` holds the lifecycle write routes, error bodies and expected
-mappings, `commitResolution` responses, and table-driven task-kind, instruction,
-`allowedResolutions` and `verifyResolution` cases.
+mappings, `commitResolution` responses, and table-driven task-kind, instruction
+and `verifyResolution` cases.
 Its `float_numbers` case keeps raw `1.0`/`1e5` literals: integer fields written as
 floats decode as whole numbers on both platforms and fractions are rejected.
+`environments.json` holds service-URL validation and the pre-1.0 write allowlist
+(`allowsWrites`) for each environment URL.
 `choice.json` holds the multiple-choice (type 3) cases: the SLC example and its decoded
 form with deletion off and on, valid edge payloads, one invalid payload per broken rule
-(rules 1–5 of docs/mobile-choice-challenges.md §2), `mobileSupport` cases, exact canonical
+(rules 1–5 of [the choice spec](../docs/design/mobile-choice-challenges.md) §2), `mobileSupport` cases, exact canonical
 request bodies, submissions rejected before any request, every `POST …/choice` error
 mapping with its release behavior, retry flows, `choice/check` responses, the `osm:tagfix`
 identity flag and the `choiceOnly` query parameters.
 Both native suites load the same file directly; no generated or copied fixture variants.
 IDs and API key text here are invented. These fixtures complement, rather than replace,
-the read-only live probes documented in `docs/api-probes.json` and backend-source evidence.
+the read-only live probes documented in [`docs/design/api-probes.json`](../docs/design/api-probes.json)
+and backend-source evidence.
+
+## Adding a fixture case
+
+1. Add a row to the right file (`contract.json`, `task-completion.json`, `choice.json` or `environments.json`).
+   Keep it synthetic: invented IDs, no real keys or tokens.
+2. Add or extend the test that reads it, in **both** suites: `kotlin/src/test/` and
+   `swift/Tests/MapRouletteTests/`. Each suite loads the file directly.
+3. Run `scripts/check.sh`. Both suites must pass with the same expected behavior.
+
+## What the contract tests cover
 
 The contract tests cover:
 
 - Integer project references in direct challenge reads versus embedded projects in search.
 - Null/missing optional fields, unknown fields/statuses and strict required identities.
 - Full GeoJSON and cooperative-work preservation without interpreting OSM identity.
-- Challenge offset pagination versus task page-number pagination; continuation binding.
+- Challenge offset pagination versus task page-number pagination; page-cursor binding.
 - ANY-tag encoding, local-survey inclusion, enabled/archive and spatial challenge filters.
 - Spatial summary envelopes and distinction from full task details.
 - Spatial summary `point` objects preserve the deployed `{ "lat": number,
@@ -29,7 +42,7 @@ The contract tests cover:
   named latitude/longitude fields rather than GeoJSON `coordinates`. Task-detail
   `geometries` remains a GeoJSON FeatureCollection and is a separate contract.
 - All-challenge spatial search (empty/default challenge IDs), preserving other filters,
-  versus selected-challenge membership validation and separate continuation scopes.
+  versus selected-challenge membership validation and separate page-cursor scopes.
 - Minimal identity extraction, credential validation and nonsecret error descriptions.
 - Per-user credential isolation across clients sharing a transport, anonymous requests,
   key rotation and logout without retaining an earlier key.
@@ -85,7 +98,7 @@ successful completion, reproducing the failure without depending on production.
 `findTaskMarkers(filter, limit)` uses the frontend's read-only
 `PUT /markers/box/{west}/{south}/{east}/{north}` route with JSON `{}`. The default
 limit is 100, accepted range 1–1000. It returns an unordered bounded list of
-`TaskSummary` values, without totals or continuation; reaching the limit may mean
+`TaskSummary` values, without totals or a page cursor; reaching the limit may mean
 truncation. This is separate from sorted, paginated `findTasksInBounds`.
 
 All-challenge marker discovery sends `ce=true&pe=true` to include only enabled
