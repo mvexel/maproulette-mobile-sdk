@@ -215,7 +215,7 @@ class ContractTest {
         var keyCalls = 0; var tokenCalls = 0
         val client = MapRouletteClient(serviceUrl = "https://example.invalid:9443/prefix/api/v2/",
             transport = wire, apiKey = { keyCalls++; null }, accessToken = { tokenCalls++; "synthetic-access-token" })
-        assertEquals(UserIdentity(900, false), client.getCurrentUser())
+        assertEquals(UserIdentity(900, false, setOf("tasks:read")), client.getCurrentUser())
         assertEquals(1, keyCalls); assertEquals(1, tokenCalls)
         val request = wire.requests.single()
         assertEquals("https://example.invalid:9443/oauth/mobile/me", request.url)
@@ -275,7 +275,7 @@ class ContractTest {
             val client = MapRouletteClient(serviceUrl = server.url("/api/v2/").toString(), transport = transport,
                 accessToken = { "wire-bearer" })
             server.enqueue(MockResponse().setBody(body("identity_mobile")))
-            assertEquals(UserIdentity(900, false), client.getCurrentUser())
+            assertEquals(UserIdentity(900, false, setOf("tasks:read")), client.getCurrentUser())
             val identity = assertNotNull(server.takeRequest(2, TimeUnit.SECONDS))
             assertEquals("/oauth/mobile/me", identity.path)
             assertEquals("Bearer wire-bearer", identity.getHeader("Authorization"))

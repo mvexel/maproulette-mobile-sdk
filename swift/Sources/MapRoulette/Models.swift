@@ -118,6 +118,8 @@ public struct Challenge: Sendable {
   public let id: ChallengeID, projectID: ProjectID
   public let name: String, instruction: String?, description: String?, tags: [String]?
   public let enabled: Bool?, archived: Bool?, requiresLocal: Bool?
+  /// Raw challenge-level hint: 0 none, 1 tag fix, 2 change file. The task's work decides behavior.
+  public var cooperativeType: Int? = nil
 }
 public struct ChallengeTag: Sendable { public let id: Int64, name: String }
 public struct TaskStatus: Equatable, Sendable {
@@ -135,12 +137,62 @@ public struct MapRouletteTask: Sendable {
   public let id: TaskID, challengeID: ChallengeID
   public let name: String, instruction: String?, status: TaskStatus?
   public let geometry: JSONValue, location: JSONValue?, cooperativeWork: JSONValue?
+  /// Current lock holder; only the single-task read reports it (fresh from the database).
+  public var lockedBy: Int64? = nil
+  public var completedBy: Int64? = nil
+  public var mappedOn: String? = nil
+  public var reviewStatus: Int? = nil
+  public var bundleID: Int64? = nil
 }
 public struct TaskSummary: Sendable {
   public let id: TaskID, challengeID: ChallengeID
   public let title: String, status: TaskStatus?, point: JSONValue?
 }
-public struct UserIdentity: Sendable { public let id: Int64, guest: Bool }
+/// `scopes` is the bearer grant's scope set, or nil for API-key and anonymous identities.
+public struct UserIdentity: Sendable {
+  public let id: Int64, guest: Bool
+  public var scopes: Set<String>? = nil
+  /// Bearer grants need `tasks:write`; an API key acts with the user's full authority.
+  public var canWriteTasks: Bool { scopes.map { $0.contains("tasks:write") } ?? !guest }
+}
+/// The only statuses the SDK writes. Deleted, Disabled and Skipped-by-status are deliberately absent.
+public enum TaskResolution: Int, Sendable, CaseIterable {
+  case fixed = 1, notAnIssue = 2, alreadyFixed = 5, tooHard = 6
+}
+/// A held edit lock. `bundledTaskIDs` is non-empty when the lock covers a task bundle.
+public struct TaskLock: Sendable {
+  public let task: MapRouletteTask, primaryTaskID: TaskID, bundledTaskIDs: [TaskID]
+}
+/// Lifecycle detail attached to write failures. Never contains credentials or raw bodies.
+public enum WriteProblem: Sendable, Equatable {
+  /// 403: another user holds the lock. The message is the server's text and may name that user.
+  case lockedByOtherUser(message: String?)
+  /// 409: the caller already holds a lock on a different task.
+  case alreadyHoldingTask(
+    lockedTaskID: TaskID, challengeID: ChallengeID?, challengeName: String?, startedAt: String?)
+  /// 403 on refresh: the caller no longer owns the lock.
+  case lockLost
+  /// 400 on a status write: completed by someone else, invalid status or paused challenge.
+  case invalidTransition
+  /// 403 insufficient_scope: the bearer grant lacks `tasks:write`; sign in again to grant it.
+  case insufficientScope
+  /// The request may have been applied (network failure, 5xx or unreadable success). Re-read the
+  /// task before acting; never resend a skip or status write blindly.
+  case outcomeUnknown
+}
+/// Interpretation of a fresh task read after an interrupted status write.
+public enum ResolutionCheck: Sendable, Equatable {
+  /// The target status is recorded and the lock is gone. Do not resend.
+  case applied
+  /// Not applied and the caller still holds the lock: resending is safe.
+  case notAppliedLockHeld
+  /// Not applied and unlocked: start again, then resend.
+  case notAppliedUnlocked
+  /// Another user holds the lock. Do not resend.
+  case lockedByOther
+  /// Another user completed the task, or it has another final status. Stop.
+  case resolvedByOther
+}
 /// In-memory continuation bound to one client, operation, query and page size.
 public struct Continuation: Sendable {
   let owner: UUID
@@ -157,10 +209,14 @@ public enum ErrorKind: String, Sendable {
 /// Descriptions deliberately omit server bodies, credentials and transport errors.
 public struct MapRouletteError: Error, CustomStringConvertible, Sendable {
   public let kind: ErrorKind, status: Int?, retryAfter: String?
-  public init(_ kind: ErrorKind, status: Int? = nil, retryAfter: String? = nil) {
+  public let problem: WriteProblem?
+  public init(
+    _ kind: ErrorKind, status: Int? = nil, retryAfter: String? = nil, problem: WriteProblem? = nil
+  ) {
     self.kind = kind
     self.status = status
     self.retryAfter = retryAfter
+    self.problem = problem
   }
   public var description: String {
     "MapRoulette \(kind.rawValue)" + (status.map { " (HTTP \($0))" } ?? "")

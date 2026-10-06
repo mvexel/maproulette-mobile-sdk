@@ -6,7 +6,8 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.serialization.json.*
 import okhttp3.HttpUrl.Companion.toHttpUrl
 
-/** Read-only client. No locks, writes, storage, implicit pagination or automatic retries. */
+/** MapRoulette client: reads plus the bare task-lifecycle writes (start, refresh, release, skip and
+ * status 1/2/5/6). No storage, implicit pagination or automatic retries; writes are never resent. */
 class MapRouletteClient(
     serviceUrl: String = "https://maproulette.org/api/v2/",
     private val transport: Transport,
@@ -147,6 +148,159 @@ class MapRouletteClient(
         }
     }
 
+    /** Locks the task for the caller (`GET task/{id}/start`). A repeat by the owner refreshes the lock.
+     * Failures carry [WriteProblem.LockedByOtherUser] (403) or [WriteProblem.AlreadyHoldingTask] (409). */
+    suspend fun startTask(id: TaskId): TaskLock = lock(id, "start", Write.START)
+
+    /** Refreshes a held lock. Only for long edit flows; [commitResolution] does not need it. */
+    suspend fun refreshTaskLock(id: TaskId): TaskLock = lock(id, "refreshLock", Write.REFRESH)
+
+    /** Releases the caller's lock. The server returns success even when the caller holds no lock, so
+     * success does not prove ownership. */
+    suspend fun releaseTask(id: TaskId) {
+        write(Write.RELEASE, "task/${id.value}/release", HttpMethod.GET)
+    }
+
+    /** Skips the task without changing its status and releases the caller's lock if held.
+     * Not idempotent (the server counts every skip): after [WriteProblem.OutcomeUnknown], re-read
+     * instead of resending. */
+    suspend fun skipTask(id: TaskId) {
+        write(Write.SKIP, "task/${id.value}/skip", HttpMethod.POST)
+    }
+
+    /** Bare status write (`PUT task/{id}/{code}`, no query or body). The server releases the lock.
+     * Call it inside a fresh [startTask], or use [commitResolution]. Never resend after
+     * [WriteProblem.OutcomeUnknown] without [verifyResolution]. */
+    suspend fun resolveTask(id: TaskId, resolution: TaskResolution) {
+        write(Write.RESOLVE, "task/${id.value}/${resolution.code}", HttpMethod.PUT)
+    }
+
+    /** Late-locking commit: start, then the status write. If the status write fails, the lock is
+     * released once (best effort) before the error is rethrown. If start reports a stale lock of
+     * the caller's on another task (409), that task is re-read, released when still locked, and
+     * start is retried once. Cancellation propagates without cleanup; the server expires locks. */
+    suspend fun commitResolution(id: TaskId, resolution: TaskResolution) {
+        startForCommit(id)
+        try {
+            resolveTask(id, resolution)
+        } catch (e: MapRouletteException) {
+            releaseQuietly(id)
+            throw e
+        }
+    }
+
+    private suspend fun startForCommit(id: TaskId) {
+        try {
+            startReleasingUnknown(id)
+            return
+        } catch (e: MapRouletteException) {
+            val held = e.problem as? WriteProblem.AlreadyHoldingTask
+            if (held == null || held.lockedTaskId == id) throw e
+            // Under late locking, a lock held elsewhere comes from an interrupted commit by this user.
+            val stale = try {
+                getTask(held.lockedTaskId)
+            } catch (read: MapRouletteException) {
+                if (read.kind != ErrorKind.NOT_FOUND) throw e
+                null
+            }
+            if (stale?.lockedBy != null) {
+                try {
+                    releaseTask(held.lockedTaskId)
+                } catch (_: MapRouletteException) {
+                    throw e
+                }
+            }
+        }
+        startReleasingUnknown(id)
+    }
+
+    // A start with an unknown outcome may hold the lock: release it once before rethrowing.
+    private suspend fun startReleasingUnknown(id: TaskId) {
+        try {
+            startTask(id)
+        } catch (e: MapRouletteException) {
+            if (e.problem == WriteProblem.OutcomeUnknown) releaseQuietly(id)
+            throw e
+        }
+    }
+
+    private suspend fun releaseQuietly(id: TaskId) {
+        try {
+            releaseTask(id)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (_: Exception) {
+            // Best effort: the server-side lock expiry is the backstop.
+        }
+    }
+
+    private suspend fun lock(id: TaskId, action: String, operation: Write): TaskLock {
+        val response = write(operation, "task/${id.value}/$action", HttpMethod.GET)
+        return try {
+            val o = Json.parseToJsonElement(response.body).obj()
+            val task = task(o)
+            require(task.id == id && response.status == 200)
+            TaskLock(
+                task,
+                TaskId(o.long("lockPrimaryTaskId")),
+                o["lockBundledTasks"]?.takeUnless { it == JsonNull }?.jsonArray
+                    ?.map { TaskId(it.jsonPrimitive.also { p -> require(!p.isString) }.long) }
+                    ?: emptyList(),
+            )
+        } catch (e: CancellationException) {
+            throw e
+        } catch (_: Exception) {
+            // The lock may be held even though the response could not be read.
+            throw MapRouletteException(ErrorKind.PROTOCOL, response.status, problem = WriteProblem.OutcomeUnknown)
+        }
+    }
+
+    private enum class Write { START, REFRESH, RELEASE, SKIP, RESOLVE }
+
+    private suspend fun write(operation: Write, path: String, method: HttpMethod): HttpResponse {
+        val response = try {
+            send(path, method = method)
+        } catch (e: MapRouletteException) {
+            if (e.kind != ErrorKind.NETWORK) throw e
+            throw MapRouletteException(e.kind, e.status, e.retryAfter, WriteProblem.OutcomeUnknown)
+        }
+        if (response.status in 200..299) return response
+        throw failure(response, writeProblem(operation, response))
+    }
+
+    // Bodies are inspected only for the lock/scope details below and never retained.
+    private fun writeProblem(operation: Write, response: HttpResponse): WriteProblem? {
+        val body = try {
+            Json.parseToJsonElement(response.body) as? JsonObject
+        } catch (_: Exception) {
+            null
+        }
+        fun field(name: String) = (body?.get(name) as? JsonPrimitive)?.takeIf { it.isString }?.content
+        return when (response.status) {
+            400 -> WriteProblem.InvalidTransition.takeIf {
+                operation == Write.RESOLVE && field("error") != "invalid_request"
+            }
+            403 -> when {
+                field("error") == "insufficient_scope" -> WriteProblem.InsufficientScope
+                operation == Write.REFRESH -> WriteProblem.LockLost
+                (operation == Write.START || operation == Write.RESOLVE) &&
+                    field("message")?.contains("locked", ignoreCase = true) == true ->
+                    WriteProblem.LockedByOtherUser(field("message"))
+                else -> null
+            }
+            409 -> if (operation == Write.START && body != null) runCatching {
+                WriteProblem.AlreadyHoldingTask(
+                    TaskId(body.long("lockedTaskId")),
+                    body.optionalLong("parentId")?.let(::ChallengeId),
+                    body.text("parentName"),
+                    body.text("startedAt"),
+                )
+            }.getOrNull() else null
+            in 500..599 -> WriteProblem.OutcomeUnknown
+            else -> null
+        }
+    }
+
     suspend fun getCurrentUser(): UserIdentity {
         currentCoroutineContext().ensureActive()
         val credentials = readCredentials()
@@ -161,8 +315,9 @@ class MapRouletteClient(
                 val id = value.long("id")
                 require(id > 0 && value.long("osmId") > 0)
                 value.str("displayName")
-                require(value.str("scope") == "tasks:read")
-                UserIdentity(id, false)
+                val scopes = value.str("scope").split(' ').toSet()
+                require("tasks:read" in scopes && "" !in scopes)
+                UserIdentity(id, false, scopes)
             } else UserIdentity(value.long("id"), requireNotNull(value.bool("guest")))
         }
     }
@@ -228,6 +383,34 @@ class MapRouletteClient(
     private suspend fun request(path: String, params: Map<String, String> = emptyMap(),
                             method: HttpMethod = HttpMethod.GET, body: String? = null,
                             credentials: Credentials? = null, atOriginRoot: Boolean = false): JsonElement {
+        val response = send(path, params, method, body, credentials, atOriginRoot)
+        if (response.status != 200) throw failure(response)
+        return try {
+            Json.parseToJsonElement(response.body)
+        } catch (_: Exception) {
+            throw MapRouletteException(ErrorKind.PROTOCOL)
+        }
+    }
+
+    private fun failure(response: HttpResponse, problem: WriteProblem? = null): MapRouletteException {
+        val kind = when (response.status) {
+            401 -> ErrorKind.AUTHENTICATION
+            403 -> ErrorKind.PERMISSION
+            404 -> ErrorKind.NOT_FOUND
+            409 -> ErrorKind.CONFLICT
+            429 -> ErrorKind.RATE_LIMIT
+            in 500..599 -> ErrorKind.SERVER
+            else -> ErrorKind.HTTP
+        }
+        val retryAfter = response.headers.entries
+            .firstOrNull { it.key.equals("Retry-After", true) }
+            ?.value
+        return MapRouletteException(kind, response.status, retryAfter, problem)
+    }
+
+    private suspend fun send(path: String, params: Map<String, String> = emptyMap(),
+                             method: HttpMethod = HttpMethod.GET, body: String? = null,
+                             credentials: Credentials? = null, atOriginRoot: Boolean = false): HttpResponse {
         currentCoroutineContext().ensureActive()
         val url = base.newBuilder()
             .apply { if (atOriginRoot) encodedPath("/") }
@@ -256,27 +439,7 @@ class MapRouletteClient(
             throw MapRouletteException(ErrorKind.NETWORK)
         }
         currentCoroutineContext().ensureActive()
-
-        if (response.status != 200) {
-            val kind = when (response.status) {
-                401 -> ErrorKind.AUTHENTICATION
-                403 -> ErrorKind.PERMISSION
-                404 -> ErrorKind.NOT_FOUND
-                409 -> ErrorKind.CONFLICT
-                429 -> ErrorKind.RATE_LIMIT
-                in 500..599 -> ErrorKind.SERVER
-                else -> ErrorKind.HTTP
-            }
-            val retryAfter = response.headers.entries
-                .firstOrNull { it.key.equals("Retry-After", true) }
-                ?.value
-            throw MapRouletteException(kind, response.status, retryAfter)
-        }
-        return try {
-            Json.parseToJsonElement(response.body)
-        } catch (_: Exception) {
-            throw MapRouletteException(ErrorKind.PROTOCOL)
-        }
+        return response
     }
 
     // Keep this boundary around response parsing only. Caller validation and
@@ -342,6 +505,10 @@ private fun challenge(value: JsonElement): Challenge {
         enabled = o.bool("enabled"),
         archived = o.bool("isArchived"),
         requiresLocal = o.bool("requiresLocal"),
+        cooperativeType = o.optionalLong("cooperativeType")?.let {
+            require(it in Int.MIN_VALUE..Int.MAX_VALUE)
+            it.toInt()
+        },
     )
 }
 
@@ -362,6 +529,15 @@ private fun task(value: JsonElement): Task {
         geometry = geometry,
         location = o.objectOrNull("location"),
         cooperativeWork = o.objectOrNull("cooperativeWork"),
+        lockedBy = o.optionalLong("lockedBy"),
+        completedBy = o.optionalLong("completedBy"),
+        // Serialized as an ISO string; tolerate an epoch number without failing the whole read.
+        mappedOn = (o["mappedOn"] as? JsonPrimitive)?.takeUnless { it == JsonNull }?.content,
+        reviewStatus = o.optionalLong("reviewStatus")?.let {
+            require(it in Int.MIN_VALUE..Int.MAX_VALUE)
+            it.toInt()
+        },
+        bundleId = o.optionalLong("bundleId"),
     )
 }
 

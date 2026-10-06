@@ -1,6 +1,7 @@
 import Foundation
 
-/// Explicit read operations only; no locks, implicit pagination, retries or persistence.
+/// Reads plus the bare task-lifecycle writes (start, refresh, release, skip and status 1/2/5/6).
+/// No implicit pagination, retries or persistence; writes are never resent.
 public final class MapRouletteClient: Sendable {
   private let base: URL
   private let transport: any Transport
@@ -91,10 +92,13 @@ public final class MapRouletteClient: Sendable {
       let id = try o.required("id").integer()
       let osmID = try o.required("osmId").integer()
       _ = try o.required("displayName").string()
-      guard id > 0, osmID > 0, try o.required("scope").string() == "tasks:read" else {
+      let scopes = try o.required("scope").string().split(
+        separator: " ", omittingEmptySubsequences: false
+      ).map(String.init)
+      guard id > 0, osmID > 0, scopes.contains("tasks:read"), !scopes.contains("") else {
         throw MapRouletteError(.protocolFailure)
       }
-      return UserIdentity(id: id, guest: false)
+      return UserIdentity(id: id, guest: false, scopes: Set(scopes))
     }
     return try UserIdentity(id: o.required("id").integer(), guest: o.required("guest").boolean())
   }
@@ -156,6 +160,150 @@ public final class MapRouletteClient: Sendable {
         || markers.allSatisfy({ filter.challengeIDs.contains($0.challengeID) })
     else { throw MapRouletteError(.protocolFailure) }
     return markers
+  }
+
+  /// Locks the task for the caller (`GET task/{id}/start`). A repeat by the owner refreshes it.
+  /// Failures carry `.lockedByOtherUser` (403) or `.alreadyHoldingTask` (409).
+  public func startTask(_ id: TaskID) async throws -> TaskLock {
+    try await lock(id, action: "start", .start)
+  }
+  /// Refreshes a held lock. Only for long edit flows; `commitResolution` does not need it.
+  public func refreshTaskLock(_ id: TaskID) async throws -> TaskLock {
+    try await lock(id, action: "refreshLock", .refresh)
+  }
+  /// Releases the caller's lock. Succeeds even when the caller holds no lock; not proof of ownership.
+  public func releaseTask(_ id: TaskID) async throws {
+    _ = try await write(.release, "task/\(id.value)/release", .get)
+  }
+  /// Skips without changing status and releases the caller's lock if held. Not idempotent (the
+  /// server counts every skip): after `.outcomeUnknown`, re-read instead of resending.
+  public func skipTask(_ id: TaskID) async throws {
+    _ = try await write(.skip, "task/\(id.value)/skip", .post)
+  }
+  /// Bare status write (`PUT task/{id}/{code}`, no query or body). The server releases the lock.
+  /// Call it inside a fresh `startTask`, or use `commitResolution`. Never resend after
+  /// `.outcomeUnknown` without `verifyResolution`.
+  public func resolveTask(_ id: TaskID, as resolution: TaskResolution) async throws {
+    _ = try await write(.resolve, "task/\(id.value)/\(resolution.rawValue)", .put)
+  }
+  /// Late-locking commit: start, then the status write. If the status write fails, the lock is
+  /// released once (best effort) before the error is rethrown. If start reports a stale lock of
+  /// the caller's on another task (409), that task is re-read, released when still locked, and
+  /// start is retried once. Cancellation propagates without cleanup; the server expires locks.
+  public func commitResolution(_ id: TaskID, as resolution: TaskResolution) async throws {
+    try await startForCommit(id)
+    do {
+      try await resolveTask(id, as: resolution)
+    } catch let error as MapRouletteError {
+      await releaseQuietly(id)
+      throw error
+    }
+  }
+
+  private func startForCommit(_ id: TaskID) async throws {
+    do {
+      try await startReleasingUnknown(id)
+      return
+    } catch let error as MapRouletteError {
+      guard case .alreadyHoldingTask(let held, _, _, _) = error.problem, held != id else {
+        throw error
+      }
+      // Under late locking, a lock held elsewhere comes from an interrupted commit by this user.
+      let stale: MapRouletteTask?
+      do {
+        stale = try await getTask(held)
+      } catch let read as MapRouletteError {
+        guard read.kind == .notFound else { throw error }
+        stale = nil
+      }
+      if stale?.lockedBy != nil {
+        do { try await releaseTask(held) } catch is MapRouletteError { throw error }
+      }
+    }
+    try await startReleasingUnknown(id)
+  }
+
+  // A start with an unknown outcome may hold the lock: release it once before rethrowing.
+  private func startReleasingUnknown(_ id: TaskID) async throws {
+    do {
+      _ = try await startTask(id)
+    } catch let error as MapRouletteError {
+      if error.problem == .outcomeUnknown { await releaseQuietly(id) }
+      throw error
+    }
+  }
+
+  private func releaseQuietly(_ id: TaskID) async {
+    // Best effort: the server-side lock expiry is the backstop.
+    try? await releaseTask(id)
+  }
+
+  private enum Write { case start, refresh, release, skip, resolve }
+
+  private func lock(_ id: TaskID, action: String, _ operation: Write) async throws -> TaskLock {
+    let response = try await write(operation, "task/\(id.value)/\(action)", .get)
+    do {
+      let value = try JSONDecoder().decode(JSONValue.self, from: response.body)
+      let o = try value.object()
+      let result = try task(value)
+      guard result.id == id, response.status == 200 else { throw MapRouletteError(.protocolFailure) }
+      let primary = try TaskID(o.required("lockPrimaryTaskId").integer())
+      let bundled = try o.optional("lockBundledTasks")?.array().map { try TaskID($0.integer()) } ?? []
+      return TaskLock(task: result, primaryTaskID: primary, bundledTaskIDs: bundled)
+    } catch {
+      // The lock may be held even though the response could not be read.
+      throw MapRouletteError(.protocolFailure, status: response.status, problem: .outcomeUnknown)
+    }
+  }
+
+  private func write(_ operation: Write, _ path: String, _ method: HTTPMethod) async throws
+    -> HTTPResponse
+  {
+    let response: HTTPResponse
+    do {
+      response = try await send(path, method: method)
+    } catch let error as MapRouletteError where error.kind == .network {
+      throw MapRouletteError(.network, problem: .outcomeUnknown)
+    }
+    if (200...299).contains(response.status) { return response }
+    throw failure(response, problem: writeProblem(operation, response))
+  }
+
+  // Bodies are inspected only for the lock/scope details below and never retained.
+  private func writeProblem(_ operation: Write, _ response: HTTPResponse) -> WriteProblem? {
+    let body = try? JSONDecoder().decode(JSONValue.self, from: response.body).object()
+    func field(_ name: String) -> String? {
+      if case .string(let value) = body?[name] { return value }
+      return nil
+    }
+    switch response.status {
+    case 400:
+      return operation == .resolve && field("error") != "invalid_request" ? .invalidTransition : nil
+    case 403:
+      if field("error") == "insufficient_scope" { return .insufficientScope }
+      if operation == .refresh { return .lockLost }
+      if operation == .start || operation == .resolve,
+        let message = field("message"), message.lowercased().contains("locked")
+      {
+        return .lockedByOtherUser(message: message)
+      }
+      return nil
+    case 409:
+      guard operation == .start, let body,
+        let held = try? TaskID(body.required("lockedTaskId").integer())
+      else { return nil }
+      do {
+        return try .alreadyHoldingTask(
+          lockedTaskID: held,
+          challengeID: body.optional("parentId").map { try ChallengeID($0.integer()) },
+          challengeName: body.optional("parentName")?.string(),
+          startedAt: body.optional("startedAt")?.string())
+      } catch { return nil }
+    case 500...599:
+      return .outcomeUnknown
+    default:
+      return nil
+    }
   }
 
   private func page<T: Sendable>(
@@ -225,6 +373,37 @@ public final class MapRouletteClient: Sendable {
     body: Data? = nil, credential suppliedCredential: Credentials? = nil,
     originRelative: Bool = false
   ) async throws -> JSONValue {
+    let response = try await send(
+      path, params: params, method: method, body: body, credential: suppliedCredential,
+      originRelative: originRelative)
+    guard response.status == 200 else { throw failure(response) }
+    do { return try JSONDecoder().decode(JSONValue.self, from: response.body) } catch {
+      throw MapRouletteError(.protocolFailure)
+    }
+  }
+
+  private func failure(_ response: HTTPResponse, problem: WriteProblem? = nil) -> MapRouletteError {
+    let kind: ErrorKind
+    switch response.status {
+    case 401: kind = .authentication
+    case 403: kind = .permission
+    case 404: kind = .notFound
+    case 409: kind = .conflict
+    case 429: kind = .rateLimit
+    case 500...599: kind = .server
+    default: kind = .http
+    }
+    return MapRouletteError(
+      kind, status: response.status,
+      retryAfter: response.headers.first { $0.key.lowercased() == "retry-after" }?.value,
+      problem: problem)
+  }
+
+  private func send(
+    _ path: String, params: [String: String] = [:], method: HTTPMethod = .get,
+    body: Data? = nil, credential suppliedCredential: Credentials? = nil,
+    originRelative: Bool = false
+  ) async throws -> HTTPResponse {
     try Task.checkCancellation()
     let credential: Credentials
     if let supplied = suppliedCredential {
@@ -257,24 +436,7 @@ public final class MapRouletteClient: Sendable {
     { throw CancellationError() } catch let error as MapRouletteError { throw error } catch {
       throw MapRouletteError(.network)
     }
-    guard response.status == 200 else {
-      let kind: ErrorKind
-      switch response.status {
-      case 401: kind = .authentication
-      case 403: kind = .permission
-      case 404: kind = .notFound
-      case 409: kind = .conflict
-      case 429: kind = .rateLimit
-      case 500...599: kind = .server
-      default: kind = .http
-      }
-      throw MapRouletteError(
-        kind, status: response.status,
-        retryAfter: response.headers.first { $0.key.lowercased() == "retry-after" }?.value)
-    }
-    do { return try JSONDecoder().decode(JSONValue.self, from: response.body) } catch {
-      throw MapRouletteError(.protocolFailure)
-    }
+    return response
   }
 }
 
@@ -298,6 +460,12 @@ extension JSONValue {
   fileprivate func boolean() throws -> Bool {
     guard case .bool(let v) = self else { throw MapRouletteError(.protocolFailure) }
     return v
+  }
+}
+extension Optional {
+  fileprivate func unwrap() throws -> Wrapped {
+    guard let self else { throw MapRouletteError(.protocolFailure) }
+    return self
   }
 }
 extension Dictionary where Key == String, Value == JSONValue {
@@ -340,7 +508,8 @@ private func challenge(_ value: JSONValue) throws -> Challenge {
     description: o.optional("description")?.string(),
     tags: o.optional("tags")?.array().map { try $0.string() },
     enabled: o.optional("enabled")?.boolean(), archived: o.optional("isArchived")?.boolean(),
-    requiresLocal: o.optional("requiresLocal")?.boolean())
+    requiresLocal: o.optional("requiresLocal")?.boolean(),
+    cooperativeType: o.optional("cooperativeType").map { try Int(exactly: $0.integer()).unwrap() })
 }
 private func task(_ value: JSONValue) throws -> MapRouletteTask {
   let o = try value.object()
@@ -356,7 +525,18 @@ private func task(_ value: JSONValue) throws -> MapRouletteTask {
   return try MapRouletteTask(
     id: TaskID(id), challengeID: ChallengeID(parent), name: o.required("name").string(),
     instruction: o.optional("instruction")?.string(), status: o.status(), geometry: geometry,
-    location: o.optionalObject("location"), cooperativeWork: o.optionalObject("cooperativeWork"))
+    location: o.optionalObject("location"), cooperativeWork: o.optionalObject("cooperativeWork"),
+    lockedBy: o.optional("lockedBy")?.integer(), completedBy: o.optional("completedBy")?.integer(),
+    // Serialized as an ISO string; tolerate an epoch number without failing the whole read.
+    mappedOn: o.optional("mappedOn").flatMap { value -> String? in
+      switch value {
+      case .string(let v): return v
+      case .integer(let v): return String(v)
+      default: return nil
+      }
+    },
+    reviewStatus: o.optional("reviewStatus").map { try Int(exactly: $0.integer()).unwrap() },
+    bundleID: o.optional("bundleId")?.integer())
 }
 private func summary(_ value: JSONValue) throws -> TaskSummary {
   let o = try value.object()

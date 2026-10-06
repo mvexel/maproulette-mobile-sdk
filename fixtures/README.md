@@ -1,6 +1,9 @@
 # Shared behavioral fixtures
 
 `contract.json` contains synthetic, nonsecret examples of the deployed API shapes.
+`task-completion.json` holds the lifecycle write routes, error bodies and expected
+mappings, `commitResolution` responses, and table-driven task-kind, instruction,
+`allowedResolutions` and `verifyResolution` cases.
 Both native suites load the same file directly; no generated or copied fixture variants.
 IDs and API key text here are invented. These fixtures complement, rather than replace,
 the read-only live probes documented in `docs/api-probes.json` and backend-source evidence.

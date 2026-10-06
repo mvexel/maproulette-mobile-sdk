@@ -1,6 +1,6 @@
 import Foundation
 
-public enum HTTPMethod: String, Sendable { case get = "GET", put = "PUT" }
+public enum HTTPMethod: String, Sendable { case get = "GET", put = "PUT", post = "POST" }
 public struct HTTPRequest: Sendable, CustomStringConvertible, CustomDebugStringConvertible {
   public var description: String { "HTTPRequest(\(method.rawValue))" }
   public var debugDescription: String { description }

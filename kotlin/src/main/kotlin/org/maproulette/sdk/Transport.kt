@@ -18,7 +18,7 @@ fun interface Transport {
 }
 
 // No data-class toString: headers and response bodies can contain credentials.
-enum class HttpMethod { GET, PUT }
+enum class HttpMethod { GET, PUT, POST }
 class HttpRequest(
     val url: String, val headers: Map<String, String>,
     val method: HttpMethod = HttpMethod.GET, val body: String? = null,
@@ -46,7 +46,12 @@ class OkHttpTransport : Transport, Closeable {
         suspendCancellableCoroutine { continuation ->
             val httpRequest = Request.Builder()
                 .url(request.url)
-                .method(request.method.name, request.body?.toRequestBody())
+                // OkHttp requires a body for PUT/POST; bare writes send an empty one (Content-Length: 0).
+                .method(
+                    request.method.name,
+                    request.body?.toRequestBody()
+                        ?: if (request.method == HttpMethod.GET) null else ByteArray(0).toRequestBody(),
+                )
                 .apply {
                     request.headers.forEach { (name, value) -> header(name, value) }
                 }

@@ -1,9 +1,10 @@
 # MapRoulette mobile SDK
 
 Inspectable, native Kotlin and Swift clients for the deployed MapRoulette API.
-The first slice is **read-only**: discover challenges, retrieve tasks and task
-locations, and retrieve the current user identity. No Rust, FFI, OSM database, or area
-initialization is required.
+They discover challenges, retrieve tasks and task locations, retrieve the
+current user identity, and record a user's MapRoulette task resolution through
+a small set of bare lifecycle writes. No Rust, FFI, OSM database, or area
+initialization is required. Nothing in the SDK writes to OpenStreetMap.
 
 This is an unpublished development SDK. APIs may change. Kotlin/JVM supports
 integration into Android applications; Swift Package Manager targets iOS 15+
@@ -11,11 +12,12 @@ and macOS 12+. Examples run on the host to exercise the same library clients.
 
 ## Backend compatibility
 
-| Flow             | SDK                    | Android demo    | Backend                                 |
-| ---------------- | ---------------------- | --------------- | --------------------------------------- |
-| Anonymous reads  | Supported              | Supported       | Existing MapRoulette API                |
-| Personal API key | Per-user `apiKey`      | No entry screen | Existing MapRoulette API                |
-| Browser sign-in  | Per-user `accessToken` | AppAuth flow    | **Mobile OAuth patch deployed/enabled** |
+| Flow             | SDK                                          | Android demo    | Backend                                      |
+| ---------------- | -------------------------------------------- | --------------- | -------------------------------------------- |
+| Anonymous reads  | Supported                                    | Supported       | Existing MapRoulette API                     |
+| Personal API key | Per-user `apiKey`                            | No entry screen | Existing MapRoulette API                     |
+| Browser sign-in  | Per-user `accessToken`                       | AppAuth flow    | **Mobile OAuth patch deployed/enabled**      |
+| Task writes      | `apiKey` or `accessToken` with `tasks:write` | Not yet         | Existing API (key); patched backend (bearer) |
 
 The Android sign-in example calls `/oauth/mobile/*`; configuring an OAuth app
 or supplying a client ID alone does not add those routes to an unpatched
@@ -42,8 +44,61 @@ before enabling sign-in in an app.
 | Get task                       | Full task geometry/properties and cooperative-work JSON                           |
 | Get current user               | Minimal identity; raw identity credentials are discarded                          |
 
-Task and challenge IDs are distinct from OSM IDs. Tasks can contain multiple
+`Task` also reports `lockedBy` (single-task read only), `completedBy`,
+`mappedOn`, `reviewStatus` and `bundleId`. Task and challenge IDs are distinct from OSM IDs. Tasks can contain multiple
 features. The SDK does not infer OSM element types from task names or geometry.
+
+## Task completion
+
+Design and backend evidence: [task completion](docs/task-completion.md) and
+[challenge and task kinds](docs/challenge-types.md). Mobile locks late: viewing
+a task takes no lock; the lock exists only for the seconds of a commit.
+
+| Operation (Kotlin / Swift)         | Request                     | Notes                                               |
+| ---------------------------------- | --------------------------- | --------------------------------------------------- |
+| `startTask` / `startTask(_:)`      | `GET task/{id}/start`       | Returns `TaskLock`; a repeat by the owner refreshes |
+| `refreshTaskLock`                  | `GET task/{id}/refreshLock` | Long edit flows only                                |
+| `releaseTask`                      | `GET task/{id}/release`     | Server returns success even without ownership       |
+| `skipTask`                         | `POST task/{id}/skip`       | Status unchanged; **not idempotent**                |
+| `resolveTask(id, resolution)`      | `PUT task/{id}/{1,2,5,6}`   | Server releases the lock                            |
+| `commitResolution(id, resolution)` | start → status write        | Late-locking helper (below)                         |
+
+All writes are bare (no query string, no body) and carry the client's single
+per-user credential. `TaskResolution` is `FIXED`/`fixed` (1, the user fixed it in
+OSM), `NOT_AN_ISSUE` (2), `ALREADY_FIXED` (5, someone else already fixed it) and
+`TOO_HARD` (6). Deleted, Disabled and status-based Skip are not expressible.
+
+`commitResolution` starts the task, then writes the status. If the status write
+fails it releases once (best effort) and rethrows. If start returns 409 because
+the caller still holds a lock from an interrupted commit, it re-reads that task,
+releases it when still locked, and retries start once. A 403 at start means
+another user is working on the task: pick another one.
+
+Write failures keep the usual `kind` and add a `problem`:
+`LockedByOtherUser`, `AlreadyHoldingTask` (409 details), `LockLost`,
+`InvalidTransition` (400 on status write), `InsufficientScope` (bearer grant
+lacks `tasks:write`: sign in again to grant write permission) and
+`OutcomeUnknown` (network failure, 5xx or unreadable success). After
+`OutcomeUnknown`, re-read the task and apply `verifyResolution(target, me)`;
+never resend a skip or status write blindly. A 401 is `authentication`: refresh
+the token in the host's provider (the SDK evaluates it per request) or sign in
+again. Cancellation propagates and leaves the outcome unknown; the server
+expires stale locks after 1–2 hours.
+
+Task kinds (`work()`), decoded leniently from the task's `cooperativeWork`:
+`Standard`, `TagFix`, `ChangeFile`, or `Unknown` with the raw payload. Use
+`mobileSupport()`, `allowedResolutions()` and `canSkip()` to decide what to offer:
+standard tasks offer 1/2/5/6 and Skip; tag-fix and change-file tasks offer 2/5/6
+and Skip (Fixed needs a future OSM upload); bundles and unknown kinds are
+unsupported. Only Created, Skipped and Too hard tasks offer actions.
+`resolvedInstruction(challenge)` picks the task or challenge instruction and lists
+its `select`/`checkbox` form fields (display only; answers are not submitted).
+`render(templateProperties())` performs the web UI's `{{property}}`
+substitution; markdown rendering and `#map…` properties belong to the app.
+
+Bearer identities report `scopes`; `UserIdentity.canWriteTasks` is false for a
+read-only grant. Writes must target a disposable development deployment such as
+staging, never production MapRoulette, while this SDK is in development.
 
 ## Kotlin
 
@@ -184,8 +239,8 @@ On one backend and OSM environment, browser and traditional web login resolve
 the same MapRoulette user by numeric OSM ID. The staging backend uses its own
 database and development OSM accounts, so a staging user is separate from a
 `maproulette.org` user.
-The native SDKs remain read clients: browser integration and credential storage
-belong to the host app, and Swift has no sign-in UI. OSM access tokens and
+Browser integration and credential storage belong to the host app, and Swift
+has no sign-in UI. OSM access tokens and
 server-side client secrets must never be supplied as MapRoulette credentials.
 
 For an application that already has a user's MapRoulette key, supply it through
@@ -218,7 +273,9 @@ Clearing local credentials is logout; it does not revoke a server-side key.
   does not imply a task is available to edit. Paginated task reads remain available for enumeration.
 - Missing task status is distinct from Created. Unknown numeric statuses are
   preserved; applications should not assume they are actionable.
-- No automatic retries: callers choose when to retry a failed read. Errors
+- No automatic retries: callers choose when to retry a failed read, and writes
+  are never resent by the SDK (iOS URLSession may still retry a PUT on a dropped
+  connection; see the task-completion design). Errors
   distinguish authentication, permission, missing objects, conflict, rate
   limits, server/HTTP/network failures, and invalid server responses. Rate-limit
   errors preserve the `Retry-After` value. Native cancellation propagates.
@@ -236,18 +293,16 @@ pagination expectations. Both platform test suites consume them. Fake
 transports exercise errors without production mutations. Run both suites with
 `scripts/check.sh` (JDK 17+ and Swift 6 required).
 
-The SDK does not provide locks, task completion writes, comments, offline task
-packs, edit queues, OSM uploads, map UI or campaign question definitions. The
-Android example supplies its own map UI. Some deployed
-MapRoulette GET routes mutate state; the client deliberately exposes only the
-verified read routes (including the marker-search PUT, which retrieves data).
-Writes require a separately designed lifecycle and
-controlled integration tests.
+The SDK does not provide comments, review actions, tags, completion responses,
+bundles, offline task packs, edit queues, OSM uploads, map UI or campaign
+question definitions. The Android example supplies its own map UI. Some deployed
+MapRoulette GET routes mutate state (`start`, `release`, `refreshLock` among
+them); the client exposes only the verified read routes (including the
+marker-search PUT, which retrieves data) and the lifecycle writes above.
 
-**Next implementation slice: mobile task completion.** This includes the
-per-user write grant, task lifecycle and conflict handling, and an Android
-completion action tested on a disposable staging task. See the
-[handoff](docs/handoff.md) for the current state and acceptance steps.
+**In progress: mobile task completion.** The SDK lifecycle, kind model and
+shared contract tests are in place. Remaining: the Android completion action
+tested on a disposable staging task. See the [handoff](docs/handoff.md).
 
 The [read-only probe record](docs/api-probes.json) records API quirks verified
 against the backend source and deployed service. The design discussion is

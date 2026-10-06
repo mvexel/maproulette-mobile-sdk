@@ -1,0 +1,1059 @@
+{
+ "_comment": "Synthetic lifecycle and task-kind fixtures shared by the Kotlin and Swift suites. IDs, names and messages are invented; user 900 is the caller, 901 another user.",
+ "task": {
+  "id": 101,
+  "parent": 42,
+  "name": "Bench",
+  "instruction": "",
+  "status": 0,
+  "geometries": {
+   "type": "FeatureCollection",
+   "features": []
+  },
+  "lockedBy": null,
+  "completedBy": null,
+  "mappedOn": null,
+  "reviewStatus": null
+ },
+ "task_lock_fields": {
+  "id": 101,
+  "parent": 42,
+  "name": "Bench",
+  "instruction": "",
+  "status": 1,
+  "geometries": {
+   "type": "FeatureCollection",
+   "features": []
+  },
+  "lockedBy": 901,
+  "completedBy": 900,
+  "mappedOn": "2026-10-05T12:00:00.000Z",
+  "reviewStatus": 0,
+  "bundleId": null
+ },
+ "start_200": {
+  "id": 101,
+  "parent": 42,
+  "name": "Bench",
+  "instruction": "",
+  "status": 0,
+  "geometries": {
+   "type": "FeatureCollection",
+   "features": []
+  },
+  "lockPrimaryTaskId": 101,
+  "lockBundledTasks": []
+ },
+ "start_200_bundle": {
+  "id": 101,
+  "parent": 42,
+  "name": "Bench",
+  "instruction": "",
+  "status": 0,
+  "geometries": {
+   "type": "FeatureCollection",
+   "features": []
+  },
+  "lockPrimaryTaskId": 100,
+  "lockBundledTasks": [
+   100,
+   102
+  ]
+ },
+ "start_malformed": {
+  "id": 101,
+  "parent": 42
+ },
+ "start_403_other": {
+  "status": "Forbidden",
+  "message": "Task is currently locked by user other-mapper"
+ },
+ "start_409_own": {
+  "status": "Conflict",
+  "message": "User already holds a lock",
+  "lockedTaskId": 555,
+  "parentId": 43,
+  "parentName": "Survey shops",
+  "bundledTasks": null,
+  "startedAt": "2026-10-05T11:58:00.000Z"
+ },
+ "start_409_own_minimal": {
+  "status": "Conflict",
+  "message": "User already holds a lock",
+  "lockedTaskId": 555,
+  "bundledTasks": null
+ },
+ "start_400_paused": {
+  "status": "KO",
+  "message": "This challenge is currently paused. Tasks cannot be locked until it is resumed."
+ },
+ "refresh_403_lost": {
+  "status": "Forbidden",
+  "message": "Lock on item [101] does not exist"
+ },
+ "resolve_403_locked": {
+  "status": "Forbidden",
+  "message": "This task is locked by another user, cannot update status at this time."
+ },
+ "resolve_400_invalid": {
+  "status": "KO",
+  "message": "Invalid task status supplied."
+ },
+ "gate_400_request": {
+  "error": "invalid_request"
+ },
+ "gate_401_invalid": {
+  "error": "invalid_token"
+ },
+ "gate_403_scope": {
+  "error": "insufficient_scope"
+ },
+ "legacy_401": {
+  "status": "NotAuthorized",
+  "message": "User not authorized"
+ },
+ "stale_locked": {
+  "id": 555,
+  "parent": 43,
+  "name": "Bench",
+  "instruction": "",
+  "status": 0,
+  "geometries": {
+   "type": "FeatureCollection",
+   "features": []
+  },
+  "lockedBy": 900
+ },
+ "stale_resolved": {
+  "id": 555,
+  "parent": 43,
+  "name": "Bench",
+  "instruction": "",
+  "status": 1,
+  "geometries": {
+   "type": "FeatureCollection",
+   "features": []
+  },
+  "completedBy": 900,
+  "lockedBy": null
+ },
+ "identity_mobile_write": {
+  "id": 900,
+  "osmId": 12345,
+  "displayName": "Example",
+  "scope": "tasks:read tasks:write"
+ },
+ "routes": [
+  {
+   "call": "start",
+   "method": "GET",
+   "path": "/api/v2/task/101/start",
+   "status": 200,
+   "body": "start_200"
+  },
+  {
+   "call": "refresh",
+   "method": "GET",
+   "path": "/api/v2/task/101/refreshLock",
+   "status": 200,
+   "body": "start_200"
+  },
+  {
+   "call": "release",
+   "method": "GET",
+   "path": "/api/v2/task/101/release",
+   "status": 200,
+   "body": "task"
+  },
+  {
+   "call": "skip",
+   "method": "POST",
+   "path": "/api/v2/task/101/skip",
+   "status": 204,
+   "body": null
+  },
+  {
+   "call": "resolve",
+   "resolution": 1,
+   "method": "PUT",
+   "path": "/api/v2/task/101/1",
+   "status": 204,
+   "body": null
+  },
+  {
+   "call": "resolve",
+   "resolution": 2,
+   "method": "PUT",
+   "path": "/api/v2/task/101/2",
+   "status": 204,
+   "body": null
+  },
+  {
+   "call": "resolve",
+   "resolution": 5,
+   "method": "PUT",
+   "path": "/api/v2/task/101/5",
+   "status": 204,
+   "body": null
+  },
+  {
+   "call": "resolve",
+   "resolution": 6,
+   "method": "PUT",
+   "path": "/api/v2/task/101/6",
+   "status": 204,
+   "body": null
+  }
+ ],
+ "errors": [
+  {
+   "call": "start",
+   "status": 403,
+   "body": "start_403_other",
+   "kind": "permission",
+   "problem": "lockedByOtherUser"
+  },
+  {
+   "call": "start",
+   "status": 403,
+   "body": "gate_403_scope",
+   "kind": "permission",
+   "problem": "insufficientScope"
+  },
+  {
+   "call": "resolve",
+   "status": 403,
+   "body": "resolve_403_locked",
+   "kind": "permission",
+   "problem": "lockedByOtherUser"
+  },
+  {
+   "call": "resolve",
+   "status": 403,
+   "body": "gate_403_scope",
+   "kind": "permission",
+   "problem": "insufficientScope"
+  },
+  {
+   "call": "skip",
+   "status": 403,
+   "body": "gate_403_scope",
+   "kind": "permission",
+   "problem": "insufficientScope"
+  },
+  {
+   "call": "release",
+   "status": 403,
+   "body": "gate_403_scope",
+   "kind": "permission",
+   "problem": "insufficientScope"
+  },
+  {
+   "call": "skip",
+   "status": 403,
+   "body": "start_403_other",
+   "kind": "permission",
+   "problem": null
+  },
+  {
+   "call": "refresh",
+   "status": 403,
+   "body": "refresh_403_lost",
+   "kind": "permission",
+   "problem": "lockLost"
+  },
+  {
+   "call": "start",
+   "status": 409,
+   "body": "start_409_own",
+   "kind": "conflict",
+   "problem": "alreadyHoldingTask"
+  },
+  {
+   "call": "start",
+   "status": 409,
+   "body": "start_409_own_minimal",
+   "kind": "conflict",
+   "problem": "alreadyHoldingTask"
+  },
+  {
+   "call": "start",
+   "status": 400,
+   "body": "start_400_paused",
+   "kind": "http",
+   "problem": null
+  },
+  {
+   "call": "resolve",
+   "status": 400,
+   "body": "resolve_400_invalid",
+   "kind": "http",
+   "problem": "invalidTransition"
+  },
+  {
+   "call": "resolve",
+   "status": 400,
+   "body": "gate_400_request",
+   "kind": "http",
+   "problem": null
+  },
+  {
+   "call": "start",
+   "status": 401,
+   "body": "gate_401_invalid",
+   "kind": "authentication",
+   "problem": null
+  },
+  {
+   "call": "resolve",
+   "status": 401,
+   "body": "legacy_401",
+   "kind": "authentication",
+   "problem": null
+  },
+  {
+   "call": "skip",
+   "status": 404,
+   "body": null,
+   "kind": "notFound",
+   "problem": null
+  },
+  {
+   "call": "resolve",
+   "status": 429,
+   "body": null,
+   "kind": "rateLimit",
+   "problem": null
+  },
+  {
+   "call": "resolve",
+   "status": 503,
+   "body": null,
+   "kind": "server",
+   "problem": "outcomeUnknown"
+  },
+  {
+   "call": "skip",
+   "status": 500,
+   "body": null,
+   "kind": "server",
+   "problem": "outcomeUnknown"
+  },
+  {
+   "call": "start",
+   "status": 200,
+   "body": "start_malformed",
+   "kind": "protocol",
+   "problem": "outcomeUnknown"
+  }
+ ],
+ "challenge_kinds": [
+  {
+   "cooperativeType": 0,
+   "kind": "none"
+  },
+  {
+   "cooperativeType": 1,
+   "kind": "tags"
+  },
+  {
+   "cooperativeType": 2,
+   "kind": "changeFile"
+  },
+  {
+   "cooperativeType": 7,
+   "kind": "unknown"
+  },
+  {
+   "cooperativeType": null,
+   "kind": "none"
+  }
+ ],
+ "kinds": [
+  {
+   "name": "standard",
+   "task": {
+    "id": 101,
+    "parent": 42,
+    "name": "Bench",
+    "instruction": "",
+    "status": 0,
+    "geometries": {
+     "type": "FeatureCollection",
+     "features": []
+    }
+   },
+   "work": "standard",
+   "support": "full"
+  },
+  {
+   "name": "coop_null",
+   "task": {
+    "id": 101,
+    "parent": 42,
+    "name": "Bench",
+    "instruction": "",
+    "status": 0,
+    "geometries": {
+     "type": "FeatureCollection",
+     "features": []
+    },
+    "cooperativeWork": null
+   },
+   "work": "standard",
+   "support": "full"
+  },
+  {
+   "name": "tagfix_v1",
+   "task": {
+    "id": 101,
+    "parent": 42,
+    "name": "Bench",
+    "instruction": "",
+    "status": 0,
+    "geometries": {
+     "type": "FeatureCollection",
+     "features": []
+    },
+    "cooperativeWork": {
+     "meta": {
+      "version": 1
+     },
+     "operations": [
+      {
+       "operationType": "modifyElement",
+       "data": {
+        "id": "node/123456",
+        "operations": [
+         {
+          "operation": "setTags",
+          "data": {
+           "backrest": "yes"
+          }
+         },
+         {
+          "operation": "unsetTags",
+          "data": [
+           "fixme"
+          ]
+         }
+        ]
+       }
+      }
+     ]
+    }
+   },
+   "work": "tagFix",
+   "version": 1,
+   "support": "resolveWithoutFix",
+   "edits": [
+    {
+     "element": "node/123456",
+     "kind": "modify",
+     "setTags": {
+      "backrest": "yes"
+     },
+     "unsetTags": [
+      "fixme"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "tagfix_v2",
+   "task": {
+    "id": 101,
+    "parent": 42,
+    "name": "Bench",
+    "instruction": "",
+    "status": 0,
+    "geometries": {
+     "type": "FeatureCollection",
+     "features": []
+    },
+    "cooperativeWork": {
+     "meta": {
+      "version": 2,
+      "type": 1
+     },
+     "operations": [
+      {
+       "operationType": "modifyElement",
+       "data": {
+        "id": "way/42",
+        "operations": [
+         {
+          "operation": "setTags",
+          "data": {
+           "surface": "asphalt",
+           "lit": "yes"
+          }
+         },
+         {
+          "operation": "unsetTags",
+          "data": [
+           "note"
+          ]
+         },
+         {
+          "operation": "futureOperation",
+          "data": 1
+         }
+        ]
+       }
+      },
+      {
+       "operationType": "createElement",
+       "data": {
+        "operations": [
+         {
+          "operation": "setTags",
+          "data": {
+           "amenity": "bench"
+          }
+         }
+        ]
+       }
+      }
+     ]
+    }
+   },
+   "work": "tagFix",
+   "version": 2,
+   "support": "resolveWithoutFix",
+   "edits": [
+    {
+     "element": "way/42",
+     "kind": "modify",
+     "setTags": {
+      "surface": "asphalt",
+      "lit": "yes"
+     },
+     "unsetTags": [
+      "note"
+     ]
+    },
+    {
+     "element": null,
+     "kind": "create",
+     "setTags": {
+      "amenity": "bench"
+     },
+     "unsetTags": []
+    }
+   ]
+  },
+  {
+   "name": "changefile_v2",
+   "task": {
+    "id": 101,
+    "parent": 42,
+    "name": "Bench",
+    "instruction": "",
+    "status": 0,
+    "geometries": {
+     "type": "FeatureCollection",
+     "features": []
+    },
+    "cooperativeWork": {
+     "meta": {
+      "version": 2,
+      "type": 2
+     },
+     "file": {
+      "format": "osc",
+      "encoding": "base64",
+      "content": "PG9zbUNoYW5nZS8+"
+     }
+    }
+   },
+   "work": "changeFile",
+   "format": "osc",
+   "encoding": "base64",
+   "support": "resolveWithoutFix"
+  },
+  {
+   "name": "coop_unknown_version",
+   "task": {
+    "id": 101,
+    "parent": 42,
+    "name": "Bench",
+    "instruction": "",
+    "status": 0,
+    "geometries": {
+     "type": "FeatureCollection",
+     "features": []
+    },
+    "cooperativeWork": {
+     "meta": {
+      "version": 3,
+      "type": 1
+     },
+     "operations": []
+    }
+   },
+   "work": "unknown",
+   "support": "unsupported"
+  },
+  {
+   "name": "coop_unknown_type",
+   "task": {
+    "id": 101,
+    "parent": 42,
+    "name": "Bench",
+    "instruction": "",
+    "status": 0,
+    "geometries": {
+     "type": "FeatureCollection",
+     "features": []
+    },
+    "cooperativeWork": {
+     "meta": {
+      "version": 2,
+      "type": 9
+     }
+    }
+   },
+   "work": "unknown",
+   "support": "unsupported"
+  },
+  {
+   "name": "coop_missing_meta",
+   "task": {
+    "id": 101,
+    "parent": 42,
+    "name": "Bench",
+    "instruction": "",
+    "status": 0,
+    "geometries": {
+     "type": "FeatureCollection",
+     "features": []
+    },
+    "cooperativeWork": {
+     "type": 1,
+     "operations": []
+    }
+   },
+   "work": "unknown",
+   "support": "unsupported"
+  },
+  {
+   "name": "tagfix_unknown_operation",
+   "task": {
+    "id": 101,
+    "parent": 42,
+    "name": "Bench",
+    "instruction": "",
+    "status": 0,
+    "geometries": {
+     "type": "FeatureCollection",
+     "features": []
+    },
+    "cooperativeWork": {
+     "meta": {
+      "version": 2,
+      "type": 1
+     },
+     "operations": [
+      {
+       "operationType": "splitElement",
+       "data": {
+        "id": "way/7"
+       }
+      }
+     ]
+    }
+   },
+   "work": "tagFix",
+   "version": 2,
+   "support": "unsupported",
+   "edits": [
+    {
+     "element": "way/7",
+     "kind": "unknown",
+     "setTags": {},
+     "unsetTags": []
+    }
+   ]
+  },
+  {
+   "name": "tagfix_bad_element_id",
+   "task": {
+    "id": 101,
+    "parent": 42,
+    "name": "Bench",
+    "instruction": "",
+    "status": 0,
+    "geometries": {
+     "type": "FeatureCollection",
+     "features": []
+    },
+    "cooperativeWork": {
+     "meta": {
+      "version": 2,
+      "type": 1
+     },
+     "operations": [
+      {
+       "operationType": "modifyElement",
+       "data": {
+        "id": "way-7",
+        "operations": []
+       }
+      }
+     ]
+    }
+   },
+   "work": "unknown",
+   "support": "unsupported"
+  },
+  {
+   "name": "bundled",
+   "task": {
+    "id": 101,
+    "parent": 42,
+    "name": "Bench",
+    "instruction": "",
+    "status": 0,
+    "geometries": {
+     "type": "FeatureCollection",
+     "features": []
+    },
+    "bundleId": 77
+   },
+   "work": "standard",
+   "support": "unsupported"
+  }
+ ],
+ "allowed": [
+  {
+   "kind": "standard",
+   "status": 0,
+   "resolutions": [
+    1,
+    2,
+    5,
+    6
+   ],
+   "skip": true
+  },
+  {
+   "kind": "standard",
+   "status": 3,
+   "resolutions": [
+    1,
+    2,
+    5,
+    6
+   ],
+   "skip": true
+  },
+  {
+   "kind": "standard",
+   "status": 6,
+   "resolutions": [
+    1,
+    2,
+    5,
+    6
+   ],
+   "skip": true
+  },
+  {
+   "kind": "standard",
+   "status": 1,
+   "resolutions": [],
+   "skip": false
+  },
+  {
+   "kind": "standard",
+   "status": 5,
+   "resolutions": [],
+   "skip": false
+  },
+  {
+   "kind": "standard",
+   "status": null,
+   "resolutions": [],
+   "skip": false
+  },
+  {
+   "kind": "standard",
+   "status": 73,
+   "resolutions": [],
+   "skip": false
+  },
+  {
+   "kind": "tagfix_v1",
+   "status": 0,
+   "resolutions": [
+    2,
+    5,
+    6
+   ],
+   "skip": true
+  },
+  {
+   "kind": "tagfix_v2",
+   "status": 3,
+   "resolutions": [
+    2,
+    5,
+    6
+   ],
+   "skip": true
+  },
+  {
+   "kind": "tagfix_v1",
+   "status": 1,
+   "resolutions": [],
+   "skip": false
+  },
+  {
+   "kind": "changefile_v2",
+   "status": 6,
+   "resolutions": [
+    2,
+    5,
+    6
+   ],
+   "skip": true
+  },
+  {
+   "kind": "bundled",
+   "status": 0,
+   "resolutions": [],
+   "skip": false
+  },
+  {
+   "kind": "coop_unknown_version",
+   "status": 0,
+   "resolutions": [],
+   "skip": false
+  },
+  {
+   "kind": "tagfix_unknown_operation",
+   "status": 0,
+   "resolutions": [],
+   "skip": false
+  },
+  {
+   "kind": "tagfix_bad_element_id",
+   "status": 0,
+   "resolutions": [],
+   "skip": false
+  }
+ ],
+ "verify": [
+  {
+   "status": 1,
+   "completedBy": 900,
+   "lockedBy": null,
+   "target": 1,
+   "expect": "applied"
+  },
+  {
+   "status": 1,
+   "completedBy": null,
+   "lockedBy": null,
+   "target": 1,
+   "expect": "applied"
+  },
+  {
+   "status": 0,
+   "completedBy": null,
+   "lockedBy": 900,
+   "target": 1,
+   "expect": "notAppliedLockHeld"
+  },
+  {
+   "status": 0,
+   "completedBy": null,
+   "lockedBy": null,
+   "target": 2,
+   "expect": "notAppliedUnlocked"
+  },
+  {
+   "status": 3,
+   "completedBy": null,
+   "lockedBy": null,
+   "target": 5,
+   "expect": "notAppliedUnlocked"
+  },
+  {
+   "status": 0,
+   "completedBy": null,
+   "lockedBy": 901,
+   "target": 1,
+   "expect": "lockedByOther"
+  },
+  {
+   "status": 2,
+   "completedBy": 901,
+   "lockedBy": null,
+   "target": 1,
+   "expect": "resolvedByOther"
+  },
+  {
+   "status": 1,
+   "completedBy": 901,
+   "lockedBy": null,
+   "target": 1,
+   "expect": "resolvedByOther"
+  },
+  {
+   "status": 5,
+   "completedBy": 900,
+   "lockedBy": null,
+   "target": 6,
+   "expect": "resolvedByOther"
+  }
+ ],
+ "instruction": {
+  "task": {
+   "id": 101,
+   "parent": 42,
+   "name": "Bench",
+   "instruction": "",
+   "status": 0,
+   "geometries": {
+    "type": "FeatureCollection",
+    "features": [
+     {
+      "type": "Feature",
+      "geometry": {
+       "type": "Point",
+       "coordinates": [
+        -111.89,
+        40.76
+       ]
+      },
+      "properties": {
+       "@id": "node/123456",
+       "name": "Bench A",
+       "amenity": "bench",
+       "seats": 3,
+       "lit": true,
+       "nested": {
+        "a": 1
+       },
+       "empty": null
+      }
+     },
+     {
+      "type": "Feature",
+      "geometry": null,
+      "properties": {
+       "name": "Bench B"
+      }
+     }
+    ]
+   }
+  },
+  "challenge": "Check the bench {{name}} ({{#osmType}} {{#osmId}}) at task {{#mrTaskId}}.\nMissing: [{{missing}}]\n{{{copyable \"x\"}}}\nSee [the wiki](https://wiki.openstreetmap.org/wiki/Key:backrest).\n[select \"Has backrest?\" name=\"backrest\" values=\"yes,no, unknown\"]\n[checkbox \"Photo taken\" name=\"photo\"]\nQuirk: {{name}}{{amenity}}",
+  "properties": {
+   "#mrTaskId": "101",
+   "#osmId": "123456",
+   "#osmType": "node",
+   "@id": "node/123456",
+   "name": "Bench B",
+   "amenity": "bench",
+   "seats": "3",
+   "lit": "true"
+  },
+  "formFields": [
+   {
+    "type": "select",
+    "name": "backrest",
+    "label": "Has backrest?",
+    "values": [
+     "yes",
+     "no",
+     "unknown"
+    ]
+   },
+   {
+    "type": "checkbox",
+    "name": "photo",
+    "label": "Photo taken"
+   }
+  ],
+  "rendered": "Check the bench Bench B (node 123456) at task 101.\nMissing: []\n{{{copyable \"x\"}}}\nSee [the wiki](https://wiki.openstreetmap.org/wiki/Key:backrest).\n[select \"Has backrest?\" name=\"backrest\" values=\"yes,no, unknown\"]\n[checkbox \"Photo taken\" name=\"photo\"]\nQuirk: Bench B{{amenity}}"
+ },
+ "instruction_choice": [
+  {
+   "task": "Do the task",
+   "challenge": "Do the challenge",
+   "expect": "Do the task"
+  },
+  {
+   "task": "",
+   "challenge": "Do the challenge",
+   "expect": "Do the challenge"
+  },
+  {
+   "task": "  ",
+   "challenge": "Do the challenge",
+   "expect": "Do the challenge"
+  },
+  {
+   "task": null,
+   "challenge": null,
+   "expect": ""
+  }
+ ],
+ "osm_identity": [
+  {
+   "feature": {
+    "type": "Feature",
+    "id": "way/77",
+    "geometry": null,
+    "properties": {
+     "osmid": "node/1"
+    }
+   },
+   "osmId": "77",
+   "osmType": "way"
+  },
+  {
+   "feature": {
+    "type": "Feature",
+    "geometry": null,
+    "properties": {
+     "osmid": "r88"
+    }
+   },
+   "osmId": "88",
+   "osmType": "relation"
+  },
+  {
+   "feature": {
+    "type": "Feature",
+    "geometry": null,
+    "properties": {
+     "id": "99",
+     "type": "node"
+    }
+   },
+   "osmId": "99",
+   "osmType": "node"
+  },
+  {
+   "feature": {
+    "type": "Feature",
+    "geometry": {
+     "type": "Point",
+     "coordinates": [
+      0,
+      0
+     ]
+    },
+    "properties": {
+     "id": "bench-1"
+    }
+   },
+   "osmId": null,
+   "osmType": null
+  }
+ ]
+}
