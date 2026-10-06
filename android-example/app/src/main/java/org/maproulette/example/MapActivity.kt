@@ -3,7 +3,7 @@ package org.maproulette.example
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.app.AlertDialog
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.RectF
 import android.location.Location
@@ -14,7 +14,6 @@ import android.os.Looper
 import android.view.View
 import android.widget.Button
 import android.widget.LinearLayout
-import android.widget.ScrollView
 import android.widget.TextView
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -180,37 +179,18 @@ class MapActivity : Activity() {
             "task-points",
         ).firstOrNull() ?: return false
         val id = hit.getStringProperty("taskId")?.toLongOrNull()?.let(::TaskId) ?: return false
-        request?.cancel()
-        status.text = "Loading task ${id.value}…"
-        request = scope.launch {
-            try {
-                val currentClient = client
-                val task = currentClient.getTask(id)
-                val challenge = currentClient.getChallenge(task.challengeId)
-                val text = TextView(this@MapActivity).apply {
-                    setPadding(24, 12, 24, 24)
-                    textSize = 16f
-                    setTextIsSelectable(true)
-                    text = buildString {
-                        appendLine("Task ${task.id.value} · ${task.status?.knownName ?: "Unknown status"}")
-                        appendLine("Challenge ${challenge.id.value}: ${challenge.name}")
-                        appendLine("\nTask instructions")
-                        appendLine(task.instruction?.takeIf { it.isNotBlank() } ?: "Use the challenge instructions below.")
-                        appendLine("\nChallenge instructions")
-                        appendLine(challenge.instruction?.takeIf { it.isNotBlank() } ?: "No challenge instructions.")
-                    }
-                }
-                AlertDialog.Builder(this@MapActivity).setTitle(task.name)
-                    .setView(ScrollView(this@MapActivity).apply { addView(text) })
-                    .setPositiveButton("Close", null).show()
-                status.text = "Task ${id.value} loaded. Tap another dot to inspect it."
-            } catch (cancelled: CancellationException) {
-                throw cancelled
-            } catch (error: Exception) {
-                status.text = errorMessage(error)
-            }
-        }
+        @Suppress("DEPRECATION") // Plain Activity result API, as for AppAuth.
+        startActivityForResult(TaskActivity.intent(this, id), TaskActivity.REQUEST)
         return true
+    }
+
+    @Deprecated("Plain Activity result API")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        // A resolved or skipped task changes the markers: search the same area again.
+        if (requestCode == TaskActivity.REQUEST && data?.getBooleanExtra(TaskActivity.EXTRA_CHANGED, false) == true) {
+            searchArea()
+        }
     }
 
     private fun locate() {

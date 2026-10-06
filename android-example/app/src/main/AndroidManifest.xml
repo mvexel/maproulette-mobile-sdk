@@ -13,6 +13,11 @@
             android:name="net.openid.appauth.RedirectUriReceiverActivity"
             android:theme="@style/Theme.AppCompat.Translucent.NoTitleBar" />
         <activity android:name=".MapActivity" android:exported="false" />
+        <!-- Handles configuration changes itself so a commit in flight keeps its screen. -->
+        <activity
+            android:name=".TaskActivity"
+            android:exported="false"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboard|keyboardHidden|navigation|uiMode|density|fontScale|locale|layoutDirection" />
         <activity android:name=".MainActivity" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

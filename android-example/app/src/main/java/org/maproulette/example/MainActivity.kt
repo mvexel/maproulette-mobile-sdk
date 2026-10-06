@@ -1,7 +1,6 @@
 package org.maproulette.example
 
 import android.app.Activity
-import android.app.AlertDialog
 import android.content.Intent
 import android.os.Bundle
 import android.text.InputType
@@ -22,20 +21,24 @@ import kotlinx.coroutines.launch
 import org.maproulette.sdk.ChallengeId
 import org.maproulette.sdk.ErrorKind
 import org.maproulette.example.auth.AppSession
+import org.maproulette.example.auth.SignInLauncher
+import org.maproulette.example.task.TaskText
 import org.maproulette.sdk.MapRouletteException
 import org.maproulette.sdk.Task
 import org.maproulette.sdk.TaskId
 
-/** A deliberately small SDK consumer. No task locks or edits are requested. */
+/** A deliberately small SDK consumer. Task completion lives in [TaskActivity]. */
 class MainActivity : Activity() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private lateinit var session: AppSession
     private lateinit var sessionClient: AppSession.SessionClient
     private val client get() = sessionClient.client
     private var requestJob: Job? = null
-    private var pendingAuthFlow: String? = null
+    private lateinit var signIn: SignInLauncher
     private lateinit var signInButton: Button
     private lateinit var authStatus: TextView
+    private lateinit var accountHint: TextView
+    private var loadedChallenge: ChallengeId? = null
 
     private lateinit var challengeInput: EditText
     private lateinit var loadButton: Button
@@ -50,7 +53,7 @@ class MainActivity : Activity() {
         super.onCreate(savedInstanceState)
         session = AppSession.get(this)
         sessionClient = session.newClient()
-        pendingAuthFlow = savedInstanceState?.getString("pendingAuthFlow")
+        signIn = SignInLauncher(this, session, scope).apply { restore(savedInstanceState) }
         val content = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(20), dp(20), dp(20), dp(24))
@@ -76,26 +79,25 @@ class MainActivity : Activity() {
         authStatus = label(session.view.value.message, 14f)
         content.addView(authStatus)
         signInButton = Button(this).apply {
-            text = if (session.view.value.signedIn) "Sign out" else "Sign in"
+            text = signInText(session.view.value)
             isEnabled = session.signInAvailable
             setOnClickListener {
-                if (session.view.value.signedIn) {
+                val view = session.view.value
+                if (view.signedIn && (view.canWriteTasks || !session.writesConfigured)) {
                     isEnabled = false
                     scope.launch {
                         try { session.signOut() } finally { isEnabled = session.signInAvailable }
                     }
                 } else {
-                    try {
-                        val intent = session.beginSignIn()
-                        pendingAuthFlow = session.pendingFlow
-                        startActivityForResult(intent, 100)
-                    } catch (_: Exception) {
-                        session.cancelSignIn("Could not open browser sign-in. Check the test-backend configuration.")
-                    }
+                    signIn.signIn()
                 }
             }
         }
         content.addView(signInButton)
+        accountHint = label(if (session.signInAvailable) signIn.accountHint() else "", 13f).apply {
+            visibility = if (session.signInAvailable) View.VISIBLE else View.GONE
+        }
+        content.addView(accountHint)
         content.addView(Button(this).apply {
             text = "Nearby task map"
             setOnClickListener { startActivity(Intent(this@MainActivity, MapActivity::class.java)) }
@@ -139,9 +141,11 @@ class MainActivity : Activity() {
                     retryAction = null
                     retryButton.visibility = View.GONE
                     observedGeneration = view.generation
+                    // Reload the list as the new account (or anonymously) after a switch.
+                    if (loadedChallenge != null && !busy) loadChallenge()
                 }
                 authStatus.text = view.message
-                signInButton.text = if (view.signedIn) "Sign out" else "Sign in"
+                signInButton.text = signInText(view)
                 signInButton.isEnabled = session.signInAvailable
             }
         }
@@ -156,6 +160,7 @@ class MainActivity : Activity() {
         }
         val id = ChallengeId(value)
         results.removeAllViews()
+        loadedChallenge = id
         runRequest("Loading challenge…", ::loadChallenge) {
             val currentClient = client
             val challenge = currentClient.getChallenge(id)
@@ -175,7 +180,7 @@ class MainActivity : Activity() {
                 results.addView(Button(this).apply {
                     isAllCaps = false
                     text = "${task.name}\nTask ${task.id.value} · ${statusLabel(task)}"
-                    setOnClickListener { showTask(task.id, challenge.instruction) }
+                    setOnClickListener { showTask(task.id) }
                 })
             }
             status.text = if (page.next != null) {
@@ -186,29 +191,15 @@ class MainActivity : Activity() {
         }
     }
 
-    private fun showTask(id: TaskId, challengeInstruction: String?) {
-        if (busy) return
-        runRequest("Loading task ${id.value}…", { showTask(id, challengeInstruction) }) {
-            val task = client.getTask(id)
-            val details = LinearLayout(this).apply {
-                orientation = LinearLayout.VERTICAL
-                setPadding(dp(20), dp(12), dp(20), dp(12))
-                addView(label("Task ${task.id.value} · ${statusLabel(task)}", 15f))
-                addView(label("Challenge ${task.challengeId.value}", 15f))
-                addView(label("Task instructions", 18f))
-                addView(label(task.instruction?.takeIf { it.isNotBlank() } ?: "No task-specific instructions. Use the challenge instructions below.", 16f))
-                addView(label("Challenge instructions", 18f))
-                addView(label(challengeInstruction?.takeIf { it.isNotBlank() } ?: "No challenge instructions.", 16f))
-                addView(label("Geometry (GeoJSON)", 18f))
-                addView(label(task.geometry.toString(), 13f))
-            }
-            AlertDialog.Builder(this)
-                .setTitle(task.name)
-                .setView(ScrollView(this).apply { addView(details) })
-                .setPositiveButton("Close", null)
-                .show()
-            status.text = "Task ${id.value} loaded. No task status changed."
-        }
+    private fun showTask(id: TaskId) {
+        @Suppress("DEPRECATION") // Plain Activity result API, as for AppAuth.
+        startActivityForResult(TaskActivity.intent(this, id), TaskActivity.REQUEST)
+    }
+
+    private fun signInText(view: org.maproulette.example.auth.SessionView) = when {
+        !view.signedIn -> "Sign in"
+        session.writesConfigured && !view.canWriteTasks -> "Sign in again to enable task actions"
+        else -> "Sign out"
     }
 
     private fun runRequest(message: String, retry: () -> Unit, block: suspend () -> Unit) {
@@ -249,9 +240,7 @@ class MainActivity : Activity() {
         else -> "Could not load the data. Please retry."
     }
 
-    private fun statusLabel(task: Task): String = task.status?.let {
-        it.knownName ?: "Unknown status (${it.code})"
-    } ?: "Status unavailable"
+    private fun statusLabel(task: Task): String = TaskText.status(task.status?.code)
 
     private fun label(value: String, size: Float) = TextView(this).apply {
         text = value
@@ -264,7 +253,7 @@ class MainActivity : Activity() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putString("challengeId", challengeInput.text.toString())
-        outState.putString("pendingAuthFlow", pendingAuthFlow)
+        signIn.save(outState)
         super.onSaveInstanceState(outState)
     }
 
@@ -277,10 +266,9 @@ class MainActivity : Activity() {
     @Deprecated("Prototype uses AppAuth's activity-result flow")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == 100) {
-            val expected = pendingAuthFlow
-            pendingAuthFlow = null
-            scope.launch { session.finishSignIn(data, expected) }
-        }
+        if (signIn.onActivityResult(requestCode, data)) return
+        // A resolution changes the task list; reload it so the new status shows.
+        if (requestCode == TaskActivity.REQUEST && data?.getBooleanExtra(TaskActivity.EXTRA_CHANGED, false) == true &&
+            loadedChallenge != null && !busy) loadChallenge()
     }
 }

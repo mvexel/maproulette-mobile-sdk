@@ -4,6 +4,7 @@ import java.net.URI
 
 /** One backend origin owns both credentials and SDK data; no discovery or redirect guessing. */
 class AuthEndpoints(baseUrl: String, val clientId: String, allowLoopback: Boolean) {
+    val loopbackAllowed = allowLoopback
     private val base = URI(baseUrl)
     val origin: String
     val enabled: Boolean get() = clientId.isNotBlank()

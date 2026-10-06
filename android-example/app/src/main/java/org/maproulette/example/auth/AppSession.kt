@@ -15,6 +15,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import androidx.browser.customtabs.CustomTabsClient
 import net.openid.appauth.AppAuthConfiguration
 import net.openid.appauth.AuthState
 import net.openid.appauth.AuthorizationException
@@ -27,7 +28,9 @@ import net.openid.appauth.TokenRequest
 import net.openid.appauth.TokenResponse
 import org.json.JSONObject
 import org.maproulette.example.BuildConfig
+import org.maproulette.sdk.ErrorKind
 import org.maproulette.sdk.MapRouletteClient
+import org.maproulette.sdk.MapRouletteException
 import org.maproulette.sdk.OkHttpTransport
 import org.maproulette.sdk.Transport
 import java.io.Closeable
@@ -38,7 +41,14 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
 /** Public session state contains no credentials or provider error descriptions. */
-data class SessionView(val generation: Long, val signedIn: Boolean, val userId: Long?, val message: String)
+data class SessionView(
+    val generation: Long,
+    val signedIn: Boolean,
+    val userId: Long?,
+    val message: String,
+    /** The grant includes `tasks:write`. False for read-only grants and signed-out sessions. */
+    val canWriteTasks: Boolean = false,
+)
 class SessionFailure(message: String) : Exception(message)
 
 /** App-owned prototype. All mutable state is accessed on Dispatchers.Main. */
@@ -47,6 +57,8 @@ class AppSession private constructor(context: Context) {
         BuildConfig.DEBUG && BuildConfig.MAPROULETTE_ALLOW_LOOPBACK)
     private val store = runCatching { EncryptedAuthStore(context, endpoints.storageBinding) }.getOrNull()
     val signInAvailable: Boolean get() = endpoints.enabled && store != null
+    /** Task writes need sign-in and never target the production MapRoulette deployment. */
+    val writesConfigured: Boolean get() = signInAvailable && writesAllowedFor(endpoints.origin, endpoints.loopbackAllowed)
     private val tokenMutex = Mutex()
     private var generation = 0L
     private var authState: AuthState? = null
@@ -56,6 +68,12 @@ class AppSession private constructor(context: Context) {
     private val configuration = AuthorizationServiceConfiguration(Uri.parse(endpoints.authorize), Uri.parse(endpoints.token))
     private val authorizationService = AuthorizationService(context, AppAuthConfiguration.Builder()
         .setConnectionBuilder { uri -> openConnection(uri.toString()) }.build())
+    /** Browser cookies (including the OpenStreetMap login) are not shared with an ephemeral Custom
+     * Tab, so every sign-in can choose an account. Without it, the browser's OSM login is reused. */
+    val privateSignInSupported: Boolean = authorizationService.browserDescriptor.let { browser ->
+        browser?.useCustomTab == true &&
+            runCatching { CustomTabsClient.isEphemeralBrowsingSupported(context, browser.packageName) }.getOrDefault(false)
+    }
     private val mutableView = MutableStateFlow(SessionView(0, false, null, signedOutMessage()))
     val view: StateFlow<SessionView> = mutableView
     val pendingFlow: String? get() = pendingState
@@ -75,7 +93,7 @@ class AppSession private constructor(context: Context) {
                         val restored = AuthState.jsonDeserialize(it)
                         if (restored.isAuthorized && userId != null && endpoints.enabled) authState = restored
                     }
-                    publish(if (authState != null) "Signed in as MapRoulette user $userId" else signedOutMessage())
+                    publish(if (authState != null) signedInMessage() else signedOutMessage())
                 }
             }
         } catch (_: Exception) {
@@ -93,8 +111,14 @@ class AppSession private constructor(context: Context) {
         else -> "Signed out · Public access"
     }
 
+    private fun signedInMessage(): String {
+        val readOnly = writesConfigured && authState?.scopeSet?.contains(WRITE_SCOPE) != true
+        return "Signed in as MapRoulette user $userId" + if (readOnly) " · read-only sign-in" else ""
+    }
+
     private fun publish(message: String) {
-        mutableView.value = SessionView(generation, authState != null, userId, message)
+        val writable = authState?.scopeSet?.contains(WRITE_SCOPE) == true
+        mutableView.value = SessionView(generation, authState != null, userId, message, writable)
     }
 
     private fun persist(refreshPending: Boolean = false) {
@@ -118,16 +142,22 @@ class AppSession private constructor(context: Context) {
         }
     }
 
-    fun beginSignIn(): Intent {
+    /** [status] (for example the revocation result of a preceding sign-out) stays visible. */
+    fun beginSignIn(status: String? = null): Intent {
         check(signInAvailable) { "Sign-in is not available" }
-        invalidate("Opening browser sign-in…")
+        invalidate(listOfNotNull(status, "Opening browser sign-in…").joinToString(" "))
         val request = AuthorizationRequest.Builder(configuration, endpoints.clientId, ResponseTypeValues.CODE,
-            Uri.parse(endpoints.redirect)).setScope("tasks:read").build()
+            Uri.parse(endpoints.redirect)).setScope(requestedScope).build()
         // AppAuth supplies fresh state and an S256 verifier/challenge pair.
         pendingState = request.state
         persist()
-        return authorizationService.getAuthorizationRequestIntent(request)
+        val tabs = authorizationService.createCustomTabsIntentBuilder()
+            .apply { if (privateSignInSupported) setEphemeralBrowsingEnabled(true) }
+            .build()
+        return authorizationService.getAuthorizationRequestIntent(request, tabs)
     }
+
+    private val requestedScope get() = if (writesConfigured) "$READ_SCOPE $WRITE_SCOPE" else READ_SCOPE
 
     fun cancelSignIn(message: String = "Sign-in canceled. Public browsing is available.") {
         invalidate(message)
@@ -172,14 +202,14 @@ class AppSession private constructor(context: Context) {
                         }
                     }
                     checkGeneration(expected)
-                    check(!identity.guest && identity.id > 0)
+                    check(!identity.guest && identity.id > 0 && identity.scopes == next.scopeSet)
                     stage = "secure storage"
                     authState = next
                     userId = identity.id
                     persist()
                     generation++
                     clients.toList().forEach { it.close() }
-                    publish("Signed in as MapRoulette user ${identity.id}")
+                    publish(signedInMessage())
                 }
             }
         } catch (cancelled: CancellationException) {
@@ -195,10 +225,18 @@ class AppSession private constructor(context: Context) {
     }
 
     private fun validateToken(token: TokenResponse) {
-        require(token.tokenType.equals("Bearer", true) && !token.accessToken.isNullOrBlank())
-        require(!token.refreshToken.isNullOrBlank() && token.scope == "tasks:read")
-        require((token.accessTokenExpirationTime ?: 0L) > System.currentTimeMillis())
+        require(token.tokenType.equals("Bearer", true) && !token.accessToken.isNullOrBlank()) { "token type or access token" }
+        require(!token.refreshToken.isNullOrBlank()) { "missing refresh token" }
+        // A refresh must keep the grant's scope; a new grant may be read-only if the client is.
+        val granted = scopes(token.scope)
+        val expected = authState?.scopeSet
+        require(if (expected != null) granted == expected else granted == scopes(READ_SCOPE) || granted == scopes(requestedScope)) {
+            "unexpected scope"
+        }
+        require((token.accessTokenExpirationTime ?: 0L) > System.currentTimeMillis()) { "expired token" }
     }
+
+    private fun scopes(value: String?): Set<String> = value?.split(' ')?.filter { it.isNotEmpty() }?.toSet().orEmpty()
 
     private suspend fun requestToken(request: TokenRequest): TokenResponse = suspendCancellableCoroutine { continuation ->
         authorizationService.performTokenRequest(request) { response, exception ->
@@ -225,7 +263,9 @@ class AppSession private constructor(context: Context) {
                     }
                 } catch (cancelled: CancellationException) {
                     throw cancelled
-                } catch (_: Exception) {
+                } catch (failure: Exception) {
+                    // Class and validation reason only; never token content.
+                    if (BuildConfig.DEBUG) Log.w("MapRouletteAuth", "Refresh failed: ${failure.javaClass.simpleName} ${failure.message.orEmpty()}")
                     if (generation == expected) invalidate("Refresh could not complete safely. Sign in again.")
                     throw SessionFailure("Sign in again before retrying")
                 }
@@ -233,6 +273,19 @@ class AppSession private constructor(context: Context) {
             currentCoroutineContext().ensureActive()
             checkGeneration(expected)
             authState?.accessToken
+        }
+    }
+
+    /** One forced refresh after the server rejected [usedHeader]. Refresh failure signs out. */
+    private suspend fun renewAfterRejection(expected: Long, usedHeader: String) = withContext(Dispatchers.Main.immediate) {
+        val current = authState
+        // Only the request that used the current token triggers a refresh; others see the renewed one.
+        if (generation != expected || current == null || usedHeader != "Bearer ${current.accessToken}") return@withContext
+        current.needsTokenRefresh = true
+        try {
+            accessToken(expected)
+        } catch (_: SessionFailure) {
+            // accessToken already cleared the session and published the sign-in prompt.
         }
     }
 
@@ -276,15 +329,20 @@ class AppSession private constructor(context: Context) {
         val expected = generation
         val transport = OkHttpTransport()
         val boundTransport = Transport { request ->
-            withContext(Dispatchers.Main.immediate) { checkGeneration(expected) }
+            withContext(Dispatchers.Main.immediate) {
+                checkGeneration(expected)
+                // Enforced below the UI: a lifecycle write leaves the device only for an allowlisted
+                // backend and a grant that includes tasks:write. Everything else is refused unsent.
+                if (isTaskWrite(request.url) && !(writesConfigured && authState?.scopeSet?.contains(WRITE_SCOPE) == true)) {
+                    throw MapRouletteException(ErrorKind.PERMISSION)
+                }
+            }
             val response = transport.execute(request)
             withContext(Dispatchers.Main.immediate) {
                 checkGeneration(expected)
-                if (response.status == 401 && request.headers.containsKey("Authorization")) {
-                    invalidate("This sign-in is no longer valid. Sign in again.")
-                    throw SessionFailure("Sign in again before retrying")
-                }
             }
+            // The rejected request is never resent: the SDK reports authentication to the caller.
+            if (response.status == 401) request.headers["Authorization"]?.let { renewAfterRejection(expected, it) }
             response
         }
         val client = MapRouletteClient(serviceUrl = endpoints.api, transport = boundTransport,
@@ -300,6 +358,27 @@ class AppSession private constructor(context: Context) {
     }
 
     companion object {
+        const val READ_SCOPE = "tasks:read"
+        const val WRITE_SCOPE = "tasks:write"
+
+        /** Development writes may target only a disposable deployment, never maproulette.org. */
+        /** Disposable deployments that may receive task writes (AGENTS.md). Never maproulette.org. */
+        val WRITE_ORIGINS = setOf("https://mr-api.osm.lol")
+
+        /** Exact origin allowlist; loopback only in a debug build that enabled it for local testing. */
+        fun writesAllowedFor(origin: String, loopbackAllowed: Boolean): Boolean {
+            val uri = runCatching { java.net.URI(origin) }.getOrNull() ?: return false
+            if (uri.rawUserInfo != null || !uri.rawPath.isNullOrEmpty() || uri.rawQuery != null || uri.rawFragment != null) return false
+            if (origin in WRITE_ORIGINS) return true
+            return loopbackAllowed && uri.scheme == "http" && (uri.host == "127.0.0.1" || uri.host == "localhost")
+        }
+
+        private val taskWrite = Regex("""/task/\d+/(start|refreshLock|release|skip|\d+)/?$""")
+
+        /** Any task lifecycle write (start, refreshLock, release, skip or status), whatever the method. */
+        fun isTaskWrite(url: String): Boolean =
+            runCatching { java.net.URI(url).rawPath }.getOrNull()?.let { taskWrite.containsMatchIn(it) } ?: true
+
         @Volatile private var instance: AppSession? = null
         fun get(context: Context): AppSession = instance ?: synchronized(this) {
             instance ?: AppSession(context.applicationContext).also { instance = it }

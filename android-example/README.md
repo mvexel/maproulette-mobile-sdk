@@ -37,10 +37,49 @@ For the tested staging deployment, replace `https://backend.example` with
 `https://mr-api.osm.lol`. Install the resulting debug APK, tap **Sign in**, and
 authorize with a development OSM account. The staging database contains a Salt
 Lake City bench challenge (ID `1`) with 168 tasks. Open the map around Salt Lake
-City and tap **Search this area** to inspect nearby tasks. The app currently
-reads tasks only; tapping a task cannot complete it. A plain debug build without
+City and tap **Search this area** to inspect nearby tasks. A plain debug build without
 these Gradle properties uses anonymous `maproulette.org` reads and disables
 sign-in.
+
+## Task completion
+
+A sign-in build requests `tasks:read tasks:write`; the backend grants write only
+to clients configured for it. Tapping a task (map dot or list entry) opens the
+task screen with the substituted instructions and, for a write-enabled session,
+the actions this task kind allows (docs/challenge-types.md): **I fixed this in
+OSM** (Fixed, standard tasks only), **Not an issue**, **Already fixed** (someone
+else had fixed it in OSM before you saw the task), **Too hard** and **Skip**.
+Every action asks for confirmation. Bundled and unrecognized task kinds are
+read-only with an explanation, and a banner shows when another user holds the
+task's lock.
+
+Viewing never locks. A confirmed resolution runs the SDK's late-locking
+`commitResolution` (start, status, release on failure); Skip uses `POST skip`.
+The write finishes even if the screen is closed, and Back is blocked while it
+runs. Afterwards the app re-reads the task and shows its status and who
+completed it compared with the signed-in user. When the outcome is unknown
+(connection lost, server error) the app re-reads and applies the SDK's
+`verifyResolution`; it never resends a write automatically. A 401 triggers one
+token refresh; nothing is resent and the user chooses again. A read-only grant
+(for example a session from before write support) gets **Sign in again to enable
+task actions**. The map and list refresh after a write.
+
+Writes are possible only against an allowlisted disposable backend: exactly
+`https://mr-api.osm.lol`, or loopback in a debug build with
+`-PmaprouletteAllowLoopback=true` (`AppSession.WRITE_ORIGINS`). For any other
+origin, including `maproulette.org`, the app requests only `tasks:read` and
+shows no actions. The session transport also refuses every lifecycle write URL
+(`task/{id}/start|refreshLock|release|skip|{status}`) before sending unless the
+origin is allowlisted and the current grant includes `tasks:write`, so a UI bug
+cannot send one. The default build shows no task actions.
+
+**Choosing an OpenStreetMap account.** OSM keeps you signed in in the browser,
+so a normal browser tab silently reuses that OSM account. Sign-in therefore
+uses an ephemeral Custom Tab (Chrome 136+), which shares no cookies, so each
+sign-in shows the OSM login. Other browsers fall back to a normal tab; the app
+then explains how to sign out of OSM in the browser. (The backend does not
+forward `prompt=login` to OSM, and OSM honors it only for OpenID Connect
+requests.)
 
 The base URL must be an origin, without a path, query, fragment or credentials. The SDK's API URL and all authentication endpoints use that origin. Configuration properties are public identifiers and URLs, not credentials.
 
@@ -65,7 +104,7 @@ Refresh is serialized. A persisted uncertainty marker is written before a refres
 
 Sign-out clears local credentials and closes old SDK clients before attempting grant revocation. If the network is unavailable, the UI reports that server revocation is unconfirmed. Requests and browser callbacks from an earlier session cannot install credentials into a newer session. A 401 on a bearer-authenticated SDK request invalidates the local session.
 
-This is an app-owned first integration, not a reusable authentication package. It has no account list, background synchronization or task-editing controls.
+This is an app-owned first integration, not a reusable authentication package. It has no account list or background synchronization. Signing out or switching accounts discards the task screen's state; a result that arrives for the previous account is never shown.
 
 ## Checks
 
@@ -73,7 +112,7 @@ This is an app-owned first integration, not a reusable authentication package. I
 ./gradlew :app:assembleDebug :app:lintDebug :app:testDebugUnitTest
 ```
 
-The unit tests cover task-point mapping and origin, loopback and callback validation. Browser callbacks, Keystore persistence, refresh and logout additionally require device testing with a configured backend.
+The unit tests cover task-point mapping, origin, loopback and callback validation, and the task screen's state machine (fake SDK operations; no network). Browser callbacks, Keystore persistence, refresh and logout additionally require device testing with a configured backend.
 
 On 2026-10-05, a physical Pixel 8 completed browser authorization and consent against a local backend with a **synthetic OSM provider**, displayed the authenticated user, restored the encrypted session after force-stop/relaunch, and signed out with server revocation confirmed. This verifies that integration path; it is not a real OSM login result.
 
