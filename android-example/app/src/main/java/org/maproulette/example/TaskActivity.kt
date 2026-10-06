@@ -196,6 +196,13 @@ class TaskActivity : Activity() {
                 questionCards(state.work, null, enabled = false)
                 signInPrompt()
             }
+            is TaskScreen.CheckFailed -> {
+                showTask(state.task, state.challenge)
+                notice.text = "Couldn't check this right now. The app checks OpenStreetMap before a task can be answered; check your connection and retry."
+                body.addView(button("Retry") { controller.load(taskId) })
+                upcoming.firstOrNull()?.let { body.addView(button("Next task") { openNext() }) }
+                body.addView(button("Back to tasks") { finish() })
+            }
             is TaskScreen.NoLongerNeeded -> {
                 showTask(state.task, state.challenge)
                 notice.text = TaskText.NO_LONGER_NEEDED
@@ -279,12 +286,12 @@ class TaskActivity : Activity() {
                 notice.text = "$element is part of a way or relation in OpenStreetMap, so it was not deleted. Nothing was changed."
                 val plain = TaskWorkController.withoutDeletion(state.task, state.outcome)
                 if (plain != null) {
-                    body.addView(button("Send “${state.outcome.label}” without deleting\n${TaskText.outcomeExplanation(plain, state.form.work.element)}") {
+                    body.addView(button("Send “${state.outcome.label}” without deleting\n${TaskText.outcomeExplanation(plain, state.form.work.element, notDeletable = true)}") {
                         val user = session.view.value.userId ?: return@button
                         val owner = controller
                         AlertDialog.Builder(this)
                             .setTitle("Send “${state.outcome.label}” without deleting?")
-                            .setMessage(TaskText.outcomeSummary(plain, state.form.work.element, state.task.id.value, user, session.osmServer))
+                            .setMessage(TaskText.outcomeSummary(plain, state.form.work.element, state.task.id.value, user, session.osmServer, notDeletable = true))
                             .setPositiveButton("Confirm") { _, _ -> if (controller === owner) owner.sendWithoutDeletion() }
                             .setNegativeButton("Cancel", null)
                             .show()
@@ -437,7 +444,8 @@ class TaskActivity : Activity() {
             is ChoiceAction.Answers -> "Upload these answers?" to
                 TaskText.answersSummary(form, task.id.value, user, session.osmServer)
             is ChoiceAction.Outcome -> "“${action.outcome.label}”?" to
-                TaskText.outcomeSummary(action.outcome, element, task.id.value, user, session.osmServer)
+                TaskText.outcomeSummary(action.outcome, element, task.id.value, user, session.osmServer,
+                    notDeletable = action.outcome.id in form.notDeletable)
             ChoiceAction.Skip -> "Skip this task?" to
                 "${TaskText.SKIP_EXPLANATION}\n\nThis records a skip for task ${task.id.value} in MapRoulette as user $user. It does not edit OpenStreetMap."
         }
@@ -467,7 +475,8 @@ class TaskActivity : Activity() {
         val owner = controller
         val summary = when (val action = state.action) {
             is ChoiceAction.Answers -> TaskText.answersSummary(state.form.copy(answers = action.byQuestion), state.task.id.value, user, session.osmServer)
-            is ChoiceAction.Outcome -> TaskText.outcomeSummary(action.outcome, state.form.work.element, state.task.id.value, user, session.osmServer)
+            is ChoiceAction.Outcome -> TaskText.outcomeSummary(action.outcome, state.form.work.element, state.task.id.value, user,
+                session.osmServer, notDeletable = action.outcome.id in state.form.notDeletable)
             ChoiceAction.Skip -> return
         }
         AlertDialog.Builder(this)
@@ -486,7 +495,7 @@ class TaskActivity : Activity() {
 
     private fun actionExplanation(form: ChoiceForm, action: ChoiceAction) = when (action) {
         is ChoiceAction.Answers -> ""
-        is ChoiceAction.Outcome -> TaskText.outcomeExplanation(action.outcome, form.work.element)
+        is ChoiceAction.Outcome -> TaskText.outcomeExplanation(action.outcome, form.work.element, action.outcome.id in form.notDeletable)
         ChoiceAction.Skip -> TaskText.SKIP_EXPLANATION
     }
 

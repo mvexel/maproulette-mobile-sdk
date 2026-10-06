@@ -77,7 +77,8 @@ object TaskText {
         (option.setTags.map { (key, value) -> "$key=$value" } + option.unsetTags.map { "remove $it" }).joinToString(", ")
 
     /** What an outcome records, shown on its button. */
-    fun outcomeExplanation(outcome: ChoiceOutcome, element: OsmElementRef): String = when {
+    fun outcomeExplanation(outcome: ChoiceOutcome, element: OsmElementRef, notDeletable: Boolean = false): String = when {
+        notDeletable -> "${element(element)} is part of a way or relation, so it is not deleted. Marks the task “${status(outcome.resolution.code)}”."
         outcome.deletesElement -> "Deletes ${element(element)} from OpenStreetMap and marks the task Fixed."
         outcome.resolution == TaskResolution.TOO_HARD -> "You can't answer it. It stays open for other mappers."
         else -> "Marks the task “${status(outcome.resolution.code)}”. Does not edit OpenStreetMap."
@@ -108,8 +109,12 @@ object TaskText {
     }
 
     /** Confirmation for a task-level outcome. */
-    fun outcomeSummary(outcome: ChoiceOutcome, element: OsmElementRef, taskId: Long, me: Long, osmServer: String?): String =
-        if (outcome.deletesElement) {
+    fun outcomeSummary(outcome: ChoiceOutcome, element: OsmElementRef, taskId: Long, me: Long, osmServer: String?,
+                       notDeletable: Boolean = false): String =
+        if (notDeletable) {
+            "${element(element)} is part of a way or relation in OpenStreetMap, so it is not deleted. Instead, mark task $taskId " +
+                "as “${status(outcome.resolution.code)}” in MapRoulette as user $me. It does not edit OpenStreetMap."
+        } else if (outcome.deletesElement) {
             "Delete ${element(element)} from OpenStreetMap as your OpenStreetMap account, then mark task $taskId as Fixed " +
                 "for MapRoulette user $me.\n\n${osmNotice(osmServer)}"
         } else {

@@ -654,6 +654,16 @@ The SDKs follow this section, with these differences:
 - The backend's `503 osm_edits_unavailable` (the server cannot use stored OSM
   tokens; refused before any lock check or upload) maps to `OsmUnavailable`,
   on submit and on `checkChoice`.
+- App rules, changed by the user (2026-10-06):
+  - With deletion enabled but `deleteAllowed` false (the node is in a way
+    or relation), or after `element_in_use`, "gone" is still offered,
+    without deletion: it records Not an issue, and its confirmation says
+    the element is not deleted.
+  - A failed check (network, `osm_unavailable`, `osm_edits_unavailable`,
+    other errors) is not "no longer needs answering". The app says
+    "Couldn't check this right now" with Retry and Next task. The task
+    stays not actionable until a check succeeds. Only an ineligible
+    result is "This one no longer needs answering".
 - Retries are narrower than above:
   - After an unknown outcome, only a **non-editing** outcome is resent, and
     only when a fresh read shows the caller still holds the lock. Answers and

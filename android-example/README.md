@@ -54,9 +54,10 @@ A sign-in build requests `tasks:read tasks:write osm:tagfix`; the backend may
 grant less. A session whose grant lacks `tasks:write` or `osm:tagfix` (for
 example one from before choice support) shows **Sign in again to enable
 editing**. Opening a task never locks it. For a write-enabled session the app
-calls `checkChoice`; if the task is ineligible or the check fails, it says
-**This one no longer needs answering** and offers no actions, only **Next
-task** (the next one from the list or map) and Back. Otherwise each
+calls `checkChoice`. An ineligible task says **This one no longer needs
+answering** and offers only **Next task** (the next one from the list or map)
+and Back. A failed check says **Couldn't check this right now** with Retry and
+Next task; the task is not actionable until a check succeeds. Otherwise each
 question is a card: every option shows its exact tag change (`backrest=yes`)
 under the label, and **Can't tell** leaves the question out. **Submit answers**
 is enabled once one question is answered and confirms the exact tag changes,
@@ -65,9 +66,10 @@ the pilot: Not a bench, Bench is gone, Too hard) and Skip are separate buttons.
 
 **Allow deleting OSM elements** on the main screen is a demo setting, default
 off. Off, "Bench is gone" is recorded as Not an issue. On, it deletes the node
-and is offered only when the check reports `deleteAllowed`; if OSM still refuses
-(`element_in_use`), the app offers the same outcome without deletion after a
-confirmation.
+when the check reports `deleteAllowed`; otherwise (the node is in a way or
+relation) it is offered without deletion and recorded as Not an issue, and the
+confirmation says so. If OSM still refuses the delete (`element_in_use`), the
+app offers the same outcome without deletion after a confirmation.
 
 Submission runs the SDK's late-locking `submitChoice` off the main thread; the
 write finishes even if the screen closes and Back is blocked meanwhile. On

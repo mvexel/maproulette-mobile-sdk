@@ -55,6 +55,10 @@ class TaskTextTest {
         val on = TaskText.outcomeSummary(goneOn, work.element, 42, 7, TaskText.DEV_OSM)
         assertTrue(on, on.startsWith("Delete node/123 from OpenStreetMap") && on.contains("development OpenStreetMap"))
         assertTrue(TaskText.outcomeExplanation(goneOn, work.element).contains("Deletes node/123"))
+        val blocked = TaskText.outcomeSummary(goneOff, work.element, 42, 7, TaskText.DEV_OSM, notDeletable = true)
+        assertTrue(blocked, blocked.contains("part of a way or relation") && blocked.contains("not deleted") &&
+            blocked.contains("“Not an issue”") && blocked.contains("does not edit OpenStreetMap"))
+        assertTrue(TaskText.outcomeExplanation(goneOff, work.element, notDeletable = true).contains("not deleted"))
     }
 
     @Test

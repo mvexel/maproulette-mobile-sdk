@@ -149,12 +149,23 @@ class TaskWorkControllerTest {
     }
 
     @Test
-    fun failedCheckIsNotOffered() = runTest {
-        val ops = FakeOps().thenRead({ task() })
-        ops.check = { throw failure(ErrorKind.SERVER, ChoiceProblem.OsmUnavailable) }
+    fun failedCheckIsNotActionableUntilARetrySucceeds() = runTest {
+        val ops = FakeOps().thenRead({ task() }, { task() })
+        var checks = 0
+        ops.check = {
+            if (checks++ == 0) throw failure(ErrorKind.SERVER, ChoiceProblem.OsmUnavailable)
+            ChoiceEligibility(eligible = true, deleteAllowed = true, reason = null)
+        }
         val c = controller(ops)
-        assertTrue(c.state.value is TaskScreen.NoLongerNeeded)
-        assertFalse(c.changed)
+        assertTrue(c.state.value is TaskScreen.CheckFailed)
+        assertFalse("not stale: the map keeps it", c.changed)
+        c.perform(ChoiceAction.Outcome(task().choiceOutcomes().first()))
+        c.perform(ChoiceAction.Skip)
+        advanceUntilIdle()
+        assertTrue(ops.submissions.isEmpty())
+        c.load(ID) // Retry
+        advanceUntilIdle()
+        assertTrue(c.state.value is TaskScreen.Answering)
     }
 
     @Test
@@ -172,9 +183,28 @@ class TaskWorkControllerTest {
         assertTrue(allowed.outcome("gone").deletesElement)
         assertEquals(TaskResolution.FIXED, allowed.outcome("gone").resolution)
 
-        val inWay = FakeOps(allowElementDeletion = true).thenRead({ task() })
+        assertEquals(emptySet<String>(), allowed.answering.form.notDeletable)
+    }
+
+    @Test
+    fun undeletableGoneIsOfferedAsNotAnIssueWithoutDeletion() = runTest {
+        val inWay = FakeOps(allowElementDeletion = true).thenRead({ task() }, { task(status = 2, completedBy = ME) })
         inWay.check = { ChoiceEligibility(eligible = true, deleteAllowed = false, reason = null) }
-        assertEquals(listOf("not-a-bench", "too-hard"), controller(inWay).answering.form.outcomes.map { it.id })
+        inWay.submit = { ChoiceResult(TaskStatus(2), null) }
+        val c = controller(inWay)
+        assertEquals(listOf("not-a-bench", "gone", "too-hard"), c.answering.form.outcomes.map { it.id })
+        val gone = c.outcome("gone")
+        assertFalse(gone.deletesElement)
+        assertEquals(TaskResolution.NOT_AN_ISSUE, gone.resolution)
+        assertEquals(setOf("gone"), c.answering.form.notDeletable)
+        c.perform(ChoiceAction.Outcome(gone))
+        advanceUntilIdle()
+        assertFalse((inWay.submissions.single() as ChoiceSubmission.Outcome).outcome.deletesElement)
+        assertTrue(c.state.value is TaskScreen.Done)
+
+        val off = FakeOps(allowElementDeletion = false).thenRead({ task() })
+        off.check = { ChoiceEligibility(eligible = true, deleteAllowed = false, reason = null) }
+        assertEquals("deletion off: plain Not an issue, nothing blocked", emptySet<String>(), controller(off).answering.form.notDeletable)
     }
 
     @Test

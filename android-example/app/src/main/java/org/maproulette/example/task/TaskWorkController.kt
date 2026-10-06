@@ -84,6 +84,9 @@ data class ChoiceForm(
     val work: TaskWork.Choice,
     val outcomes: List<ChoiceOutcome>,
     val answers: Map<String, String> = emptyMap(),
+    /** Ids of delete outcomes offered without deletion because the element cannot be deleted
+     * (it is in a way or relation); they record Not an issue. */
+    val notDeletable: Set<String> = emptySet(),
 )
 
 /** Screen states (docs/task-completion.md §11, docs/mobile-choice-challenges.md §7 app rules). */
@@ -94,8 +97,10 @@ sealed interface TaskScreen {
     data class NotAvailable(val task: Task, val challenge: Challenge, val reason: String) : TaskScreen
     /** Signed out or read-only: the questions without actions. No eligibility check is made. */
     data class Preview(val task: Task, val challenge: Challenge, val work: TaskWork.Choice) : TaskScreen
-    /** Ineligible (stale) at open or submit, or the check failed. No actions. */
+    /** Ineligible (stale) at open or submit. No actions. */
     data class NoLongerNeeded(val task: Task, val challenge: Challenge) : TaskScreen
+    /** The eligibility check failed (network, OSM unavailable, …): not actionable until a retry succeeds. */
+    data class CheckFailed(val task: Task, val challenge: Challenge) : TaskScreen
     /** [notice] explains why the user is back here; the answers are kept. */
     data class Answering(val task: Task, val challenge: Challenge, val form: ChoiceForm, val notice: String? = null) : TaskScreen
     data class Submitting(val task: Task, val challenge: Challenge, val form: ChoiceForm, val action: ChoiceAction) : TaskScreen
@@ -184,12 +189,12 @@ class TaskWorkController(
             log("Choice check for task ${task.id.value} failed: ${e.javaClass.simpleName}")
             null
         }
-        if (eligibility?.eligible != true) {
-            if (eligibility != null) changed = true // The server now hides it from discovery.
+        if (eligibility == null) return TaskScreen.CheckFailed(task, challenge)
+        if (!eligibility.eligible) {
+            changed = true // The server now hides it from discovery.
             return TaskScreen.NoLongerNeeded(task, challenge)
         }
-        return TaskScreen.Answering(task, challenge,
-            ChoiceForm(work, offeredOutcomes(task, ops.allowElementDeletion, eligibility.deleteAllowed)))
+        return TaskScreen.Answering(task, challenge, form(task, work, ops.allowElementDeletion, eligibility.deleteAllowed))
     }
 
     /** [optionId] null means "Can't tell": the question is left out of the submission. */
@@ -433,10 +438,17 @@ class TaskWorkController(
     }
 
     companion object {
-        /** Outcomes to offer: declared plus Too hard, decoded with the deletion setting. A deleting
-         * outcome is shown only when the check allows deletion (the node is in no way or relation). */
-        fun offeredOutcomes(task: Task, allowElementDeletion: Boolean, deleteAllowed: Boolean): List<ChoiceOutcome> =
-            task.choiceOutcomes(allowElementDeletion).filter { !it.deletesElement || deleteAllowed }
+        /** The form for an eligible task: declared outcomes plus Too hard, decoded with the deletion
+         * setting. When the check does not allow deletion (the node is in a way or relation), a delete
+         * outcome is offered without deletion instead (Not an issue) and listed in [ChoiceForm.notDeletable]. */
+        fun form(task: Task, work: TaskWork.Choice, allowElementDeletion: Boolean, deleteAllowed: Boolean): ChoiceForm {
+            val outcomes = task.choiceOutcomes(allowElementDeletion).map {
+                if (it.deletesElement && !deleteAllowed) withoutDeletion(task, it) ?: it else it
+            }
+            val blocked = if (allowElementDeletion && !deleteAllowed) task.choiceOutcomes(true).filter { it.deletesElement }.map { it.id }.toSet()
+                else emptySet()
+            return ChoiceForm(work, outcomes, notDeletable = blocked)
+        }
 
         /** The deleting [outcome] decoded without deletion (Not an issue), or null if it is not a delete. */
         fun withoutDeletion(task: Task, outcome: ChoiceOutcome): ChoiceOutcome? =
