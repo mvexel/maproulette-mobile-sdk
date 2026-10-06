@@ -99,7 +99,7 @@ The sign-in endpoints, relative to the origin:
 | `/oauth/mobile/revoke` | Revoke a grant on sign-out |
 
 The fork backend's setup guide is in the
-[backend repository](https://github.com/mvexel/maproulette-mobile-backend-public/tree/feat/mobile-oauth).
+[backend repository](https://github.com/mvexel/maproulette-mobile-backend/tree/feat/mobile-oauth).
 
 ## Android: AppAuth
 

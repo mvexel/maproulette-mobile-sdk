@@ -24,7 +24,7 @@ Before 1.0, the SDK sends task writes (skip, choice submission, locks and
 status writes) only to the disposable staging deployment `https://mr-api.osm.lol`
 or to a loopback server. On any other environment it refuses the write before
 sending anything. Staging runs the
-[fork backend](https://github.com/mvexel/maproulette-mobile-backend-public/tree/feat/mobile-oauth)
+[fork backend](https://github.com/mvexel/maproulette-mobile-backend/tree/feat/mobile-oauth)
 against the development OSM server, with its own database. Browser sign-in
 (`/oauth/mobile/*`) and the choice routes exist only on that fork, so production
 cannot serve them anyway.

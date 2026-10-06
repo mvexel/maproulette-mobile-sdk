@@ -1,7 +1,7 @@
 # Android example
 
 The default build browses the deployed MapRoulette API anonymously. **The Sign
-in button requires the [patched MapRoulette backend](https://github.com/mvexel/maproulette-mobile-backend-public/tree/feat/mobile-oauth)
+in button requires the [patched MapRoulette backend](https://github.com/mvexel/maproulette-mobile-backend/tree/feat/mobile-oauth)
 with its mobile OAuth provider enabled.** A normal MapRoulette API deployment
 or an OSM OAuth application by itself cannot serve the `/oauth/mobile/*`
 endpoints used by this app. Sign-in is disabled until a debug build specifies
@@ -28,7 +28,7 @@ details. Map rendering and location belong to the app, not the SDK.
 ## Configure a debug sign-in build
 
 Deploy the mobile backend patch and follow its
-[mobile OAuth configuration guide](https://github.com/mvexel/maproulette-mobile-backend-public/blob/feat/mobile-oauth/docs/mobile-oauth.md).
+[mobile OAuth configuration guide](https://github.com/mvexel/maproulette-mobile-backend/blob/feat/mobile-oauth/docs/mobile-oauth.md).
 Enable `mobileOAuth`, register `maproulette-android-example` as a public client,
 and configure the backend's OSM OAuth client credentials and callback. The
 Android app's client ID is a public identifier; the OSM client secret stays on

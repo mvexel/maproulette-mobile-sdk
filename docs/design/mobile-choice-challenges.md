@@ -9,7 +9,7 @@ v1 spec (2026-10-06). It builds on
 Sources:
 
 - Backend fork
-  [mvexel/maproulette-mobile-backend-public](https://github.com/mvexel/maproulette-mobile-backend-public/tree/feat/mobile-oauth),
+  [mvexel/maproulette-mobile-backend](https://github.com/mvexel/maproulette-mobile-backend/tree/feat/mobile-oauth),
   `feat/mobile-oauth` at `15bc9f8`. Backend paths below are relative to it.
 - Web frontend [maproulette/maproulette3](https://github.com/maproulette/maproulette3)
   at `f6241e50`.

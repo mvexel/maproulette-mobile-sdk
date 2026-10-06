@@ -111,7 +111,7 @@ kind `.validation` and a `reason`.
 Why: while the SDK is pre-release, writes may only go to a disposable
 deployment. Also, production does not have the mobile routes this SDK needs
 for writing: bearer sign-in (`/oauth/mobile/*`) and the choice routes exist only
-on the [fork backend](https://github.com/mvexel/maproulette-mobile-backend-public/tree/feat/mobile-oauth).
+on the [fork backend](https://github.com/mvexel/maproulette-mobile-backend/tree/feat/mobile-oauth).
 Staging runs that fork against the development OSM server
 (`master.apis.dev.openstreetmap.org`), with its own database. Staging users and
 challenges are separate from production ones.

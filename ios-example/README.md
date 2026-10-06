@@ -7,7 +7,7 @@ wording and write rules. It has no third-party dependencies (MapKit for the map,
 `ASWebAuthenticationSession` for sign-in, the Keychain for tokens).
 
 The default build browses `maproulette.org` anonymously. **Sign-in needs the
-[patched MapRoulette backend](https://github.com/mvexel/maproulette-mobile-backend-public/tree/feat/mobile-oauth)
+[patched MapRoulette backend](https://github.com/mvexel/maproulette-mobile-backend/tree/feat/mobile-oauth)
 with its mobile OAuth provider**, just like on Android.
 
 ## Build and run

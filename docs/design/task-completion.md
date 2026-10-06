@@ -10,7 +10,7 @@ probes against staging; the state-changing probes are recorded in
 Sources:
 
 - Backend: the public fork
-  [mvexel/maproulette-mobile-backend-public](https://github.com/mvexel/maproulette-mobile-backend-public/tree/feat/mobile-oauth),
+  [mvexel/maproulette-mobile-backend](https://github.com/mvexel/maproulette-mobile-backend/tree/feat/mobile-oauth),
   branch `feat/mobile-oauth` at `a31e073`. At the time, staging
   (`mr-api.osm.lol`) ran an earlier build of the fork backend. Its lifecycle
   code (`TaskController`, `Locking`, `TaskDAL`) matches the public fork.
