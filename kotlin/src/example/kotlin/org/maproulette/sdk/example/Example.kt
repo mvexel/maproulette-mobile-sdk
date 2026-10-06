@@ -1,8 +1,12 @@
-package org.maproulette.sdk
+package org.maproulette.sdk.example
 
 import kotlinx.coroutines.runBlocking
+import org.maproulette.sdk.ChallengeId
+import org.maproulette.sdk.MapRouletteClient
+import org.maproulette.sdk.OkHttpTransport
 
-/** Read-only CLI: ./gradlew run --args='16441' (optional MAPROULETTE_API_KEY environment variable). */
+/** Read-only CLI against production: ./gradlew runExample --args='16441'
+ * (optional MAPROULETTE_API_KEY environment variable). */
 fun main(args: Array<String>) = runBlocking {
     val id = ChallengeId(args.firstOrNull()?.toLong() ?: 16441L)
     OkHttpTransport().use { transport ->

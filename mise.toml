@@ -1,0 +1,4 @@
+# Toolchain pins for local development and CI. Swift comes from Xcode (Swift 6 / Xcode 16 or newer).
+# Gradle runs through the checked-in wrappers, so only Java is pinned; it matches jvmToolchain(17).
+[tools]
+java = "temurin-17"

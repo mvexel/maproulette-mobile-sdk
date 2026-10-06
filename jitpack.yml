@@ -1,0 +1,6 @@
+# JitPack builds the Kotlin SDK from the kotlin/ Gradle build and serves it as
+# com.github.mvexel:maproulette-mobile-sdk:<tag>.
+jdk:
+  - openjdk17
+install:
+  - ./kotlin/gradlew -p kotlin publishToMavenLocal --console=plain
