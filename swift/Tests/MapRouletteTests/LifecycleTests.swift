@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import MapRoulette
+@_spi(LowLevelTaskLifecycle) @testable import MapRoulette
 
 private let lifecycleURL = URL(fileURLWithPath: #filePath)
     .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
@@ -30,7 +30,7 @@ private actor Script: Transport {
     }
 }
 private func client(_ script: Script) throws -> MapRouletteClient {
-    try MapRouletteClient(transport: script, apiKey: { "synthetic-user-key" })
+    MapRouletteClient(environment: .staging, transport: script, apiKey: { "synthetic-user-key" })
 }
 private let taskID = try! TaskID(101)
 
@@ -68,14 +68,14 @@ private func problemName(_ problem: WriteProblem?) -> String? {
         for bearer in [false, true] {
             let script = Script(HTTPResponse(status: row["status"] as! Int, body: body(row["body"] as? String)))
             let client = bearer
-                ? try MapRouletteClient(transport: script, accessToken: { "synthetic-access-token" })
+                ? MapRouletteClient(environment: .staging, transport: script, accessToken: { "synthetic-access-token" })
                 : try client(script)
             try await call(client, row)
             let requests = await script.requests
             #expect(requests.count == 1)
             let request = requests[0]
             #expect(request.method.rawValue == row["method"] as! String)
-            #expect(request.url.absoluteString == "https://maproulette.org" + (row["path"] as! String))
+            #expect(request.url.absoluteString == "https://mr-api.osm.lol" + (row["path"] as! String))
             #expect(request.body == nil); #expect(request.headers["Content-Type"] == nil)
             if bearer {
                 #expect(request.headers["Authorization"] == "Bearer synthetic-access-token"); #expect(request.headers["apiKey"] == nil)
@@ -261,12 +261,11 @@ private func kindName(_ kind: ElementTagEdit.Kind) -> String {
     }
 }
 
-@Test func allowedResolutionsFollowKindAndStatus() async throws {
-    for row in rows("allowed") {
+@Test func canSkipFollowsKindAndStatus() async throws {
+    for row in rows("can_skip") {
         var raw = kindTask(row["kind"] as! String)
         raw["status"] = row["status"]
         let task = try await decode(raw)
-        #expect(Set(task.allowedResolutions().map(\.rawValue)) == Set(row["resolutions"] as! [Int]), "\(row)")
         #expect(task.canSkip() == row["skip"] as! Bool, "\(row)")
     }
 }

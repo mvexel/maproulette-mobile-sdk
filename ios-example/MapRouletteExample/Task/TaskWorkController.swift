@@ -4,8 +4,9 @@ import os
 
 /// The SDK operations the task screen uses; a fake replaces it in unit tests.
 protocol TaskOps: Sendable {
-  /// The app's demo setting; outcomes shown must be decoded with it (the SDK rejects others).
-  var allowElementDeletion: Bool { get }
+  /// Outcomes decoded with the client's deletion setting (the SDK rejects others, except their
+  /// `withoutDeletion()` form).
+  func choiceOutcomes(_ task: MapRouletteTask) -> [ChoiceOutcome]
   func getTask(_ id: TaskID) async throws -> MapRouletteTask
   func getChallenge(_ task: MapRouletteTask) async throws -> Challenge
   func checkChoice(_ id: TaskID) async throws -> ChoiceEligibility
@@ -13,35 +14,24 @@ protocol TaskOps: Sendable {
   func skipTask(_ id: TaskID) async throws
 }
 
-/// Bound to one account's clients: a controller never sends through a later account's client.
-/// `configured` uses the deletion setting; `noDeletion` has deletion off and sends every
-/// non-deleting outcome, including "gone" offered without deletion after `element_in_use`.
+/// Bound to one account's client: a controller never sends through a later account's client.
+/// The client's deletion setting is the cap; "gone" without deletion (after `element_in_use`,
+/// or when the check disallows deletion) is sent as `outcome.withoutDeletion()`.
 struct ClientTaskOps: TaskOps {
-  let configured: MapRouletteClient
-  let noDeletion: MapRouletteClient
+  let client: MapRouletteClient
 
-  init(configured: MapRouletteClient, noDeletion: MapRouletteClient) {
-    precondition(!noDeletion.allowElementDeletion)
-    self.configured = configured
-    self.noDeletion = noDeletion
-  }
-  init(_ session: SessionClient) {
-    self.init(configured: session.client, noDeletion: session.noDeletionClient)
-  }
+  init(_ client: MapRouletteClient) { self.client = client }
 
-  var allowElementDeletion: Bool { configured.allowElementDeletion }
-  func getTask(_ id: TaskID) async throws -> MapRouletteTask { try await configured.getTask(id) }
+  func choiceOutcomes(_ task: MapRouletteTask) -> [ChoiceOutcome] { client.choiceOutcomes(task) }
+  func getTask(_ id: TaskID) async throws -> MapRouletteTask { try await client.getTask(id) }
   func getChallenge(_ task: MapRouletteTask) async throws -> Challenge {
-    try await configured.getChallenge(task.challengeID)
+    try await client.getChallenge(task.challengeID)
   }
-  func checkChoice(_ id: TaskID) async throws -> ChoiceEligibility { try await configured.checkChoice(id) }
+  func checkChoice(_ id: TaskID) async throws -> ChoiceEligibility { try await client.checkChoice(id) }
   func submitChoice(_ task: MapRouletteTask, _ submission: ChoiceSubmission) async throws -> ChoiceResult {
-    if case .outcome(let outcome) = submission, !outcome.deletesElement {
-      return try await noDeletion.submitChoice(task, submission)
-    }
-    return try await configured.submitChoice(task, submission)
+    try await client.submitChoice(task, submission)
   }
-  func skipTask(_ id: TaskID) async throws { try await configured.skipTask(id) }
+  func skipTask(_ id: TaskID) async throws { try await client.skipTask(id) }
 }
 
 enum ChoiceAction: Equatable, Sendable {
@@ -94,7 +84,7 @@ struct LoadedTask: Sendable {
   let challenge: Challenge
 }
 
-/// Screen states (docs/task-completion.md §11, docs/mobile-choice-challenges.md §7 app rules).
+/// Screen states (docs/design/task-completion.md §11, docs/design/mobile-choice-challenges.md §7 app rules).
 enum TaskScreen: Sendable {
   enum Pending: Sendable { case unknown, submissionPending, statusPending }
 
@@ -219,7 +209,7 @@ enum TaskScreen: Sendable {
   private func opened(_ loaded: LoadedTask) async -> TaskScreen {
     let task = loaded.task
     guard task.mobileSupport() == .inPlace,
-      let work = ChoiceWork(task.work(allowElementDeletion: ops.allowElementDeletion))
+      let work = ChoiceWork(task.work())
     else { return .notAvailable(loaded, reason: TaskText.unavailableReason(task)) }
     guard writer != nil else { return .preview(loaded, work) }
     let eligibility: ChoiceEligibility
@@ -236,7 +226,7 @@ enum TaskScreen: Sendable {
     }
     return .answering(
       loaded,
-      Self.form(task, work, allowElementDeletion: ops.allowElementDeletion, deleteAllowed: eligibility.deleteAllowed),
+      Self.form(work, outcomes: ops.choiceOutcomes(task), deleteAllowed: eligibility.deleteAllowed),
       notice: nil)
   }
 
@@ -284,7 +274,7 @@ enum TaskScreen: Sendable {
   /// After `element_in_use`: the same outcome without deletion (Not an issue), once the user confirms.
   func sendWithoutDeletion() {
     guard case .elementInUse(let loaded, let form, let outcome) = state, writer != nil,
-      let plain = Self.withoutDeletion(loaded.task, outcome)
+      let plain = Self.withoutDeletion(outcome)
     else { return }
     submit(loaded, form, .outcome(plain))
   }
@@ -377,7 +367,7 @@ enum TaskScreen: Sendable {
     switch error.problem {
     case .choice(.taskIneligible)?: return .noLongerNeeded(loaded)
     case .choice(.elementInUse)?:
-      if case .outcome(let outcome) = action, Self.withoutDeletion(loaded.task, outcome) != nil {
+      if case .outcome(let outcome) = action, Self.withoutDeletion(outcome) != nil {
         return .elementInUse(loaded, form, outcome)
       }
       return answering("OpenStreetMap refused the change because the element is in use. Nothing was changed.")
@@ -446,7 +436,7 @@ enum TaskScreen: Sendable {
     }
   }
 
-  /// Applies docs/task-completion.md §5 to a fresh read. Never resends and never releases: an
+  /// Applies docs/design/task-completion.md §5 to a fresh read. Never resends and never releases: an
   /// edit may still be uploading.
   private func verify(_ pending: TaskScreen.CheckAgain, _ me: Int64) async {
     var checking = pending
@@ -535,24 +525,19 @@ enum TaskScreen: Sendable {
     }
   }
 
-  /// The form for an eligible task: declared outcomes plus Too hard, decoded with the deletion
-  /// setting. When the check does not allow deletion (the node is in a way or relation), a delete
-  /// outcome is offered without deletion instead (Not an issue) and listed in `notDeletable`.
-  nonisolated static func form(
-    _ task: MapRouletteTask, _ work: ChoiceWork, allowElementDeletion: Bool, deleteAllowed: Bool
-  ) -> ChoiceForm {
-    let outcomes = task.choiceOutcomes(allowElementDeletion: allowElementDeletion).map {
-      $0.deletesElement && !deleteAllowed ? (withoutDeletion(task, $0) ?? $0) : $0
-    }
-    let blocked =
-      allowElementDeletion && !deleteAllowed
-      ? Set(task.choiceOutcomes(allowElementDeletion: true).filter(\.deletesElement).map(\.id)) : []
-    return ChoiceForm(work: work, outcomes: outcomes, notDeletable: blocked)
+  /// The form for an eligible task: `outcomes` are the client's (declared plus Too hard, decoded
+  /// with the deletion setting). When the check does not allow deletion (the node is in a way or
+  /// relation), a delete outcome is offered without deletion instead (Not an issue) and listed in
+  /// `notDeletable`.
+  nonisolated static func form(_ work: ChoiceWork, outcomes: [ChoiceOutcome], deleteAllowed: Bool) -> ChoiceForm {
+    let blocked = deleteAllowed ? [] : Set(outcomes.filter(\.deletesElement).map(\.id))
+    return ChoiceForm(
+      work: work, outcomes: outcomes.map { deleteAllowed ? $0 : $0.withoutDeletion() },
+      notDeletable: blocked)
   }
 
-  /// The deleting `outcome` decoded without deletion (Not an issue), or nil if it is not a delete.
-  nonisolated static func withoutDeletion(_ task: MapRouletteTask, _ outcome: ChoiceOutcome) -> ChoiceOutcome? {
-    guard outcome.deletesElement else { return nil }
-    return task.choiceOutcomes(allowElementDeletion: false).first { $0.id == outcome.id }
+  /// The deleting `outcome` without deletion (Not an issue), or nil if it is not a delete.
+  nonisolated static func withoutDeletion(_ outcome: ChoiceOutcome) -> ChoiceOutcome? {
+    outcome.deletesElement ? outcome.withoutDeletion() : nil
   }
 }

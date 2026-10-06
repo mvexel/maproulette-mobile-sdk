@@ -13,7 +13,7 @@ import org.maproulette.sdk.templateProperties
 import org.maproulette.sdk.work
 import java.net.URI
 
-/** User-facing wording for choice tasks (docs/mobile-choice-challenges.md §7). */
+/** User-facing wording for choice tasks (docs/design/mobile-choice-challenges.md §7). */
 object TaskText {
     fun status(code: Int?): String = when (code) {
         null -> "Status unavailable"

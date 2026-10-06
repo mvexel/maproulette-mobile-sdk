@@ -119,7 +119,7 @@
       return o
     }
 
-    /// The pilot payload (docs/mobile-choice-challenges.md §3).
+    /// The pilot payload (docs/design/mobile-choice-challenges.md §3).
     private func payload(element: Int64) -> [String: Any] {
       func options(_ key: String, _ values: [(String, String)]) -> [[String: Any]] {
         values.map { ["id": $0.0, "label": $0.1, "setTags": [key: $0.0.hasPrefix("c") ? String($0.0.dropFirst()) : $0.0]] }

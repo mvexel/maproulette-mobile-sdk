@@ -725,95 +725,80 @@
    "support": "unsupported"
   }
  ],
- "allowed": [
+ "can_skip": [
   {
    "kind": "standard",
    "status": 0,
-   "resolutions": [],
    "skip": false
   },
   {
    "kind": "standard",
    "status": 3,
-   "resolutions": [],
    "skip": false
   },
   {
    "kind": "standard",
    "status": 6,
-   "resolutions": [],
    "skip": false
   },
   {
    "kind": "standard",
    "status": 1,
-   "resolutions": [],
    "skip": false
   },
   {
    "kind": "standard",
    "status": 5,
-   "resolutions": [],
    "skip": false
   },
   {
    "kind": "standard",
    "status": null,
-   "resolutions": [],
    "skip": false
   },
   {
    "kind": "standard",
    "status": 73,
-   "resolutions": [],
    "skip": false
   },
   {
    "kind": "tagfix_v1",
    "status": 0,
-   "resolutions": [],
    "skip": false
   },
   {
    "kind": "tagfix_v2",
    "status": 3,
-   "resolutions": [],
    "skip": false
   },
   {
    "kind": "tagfix_v1",
    "status": 1,
-   "resolutions": [],
    "skip": false
   },
   {
    "kind": "changefile_v2",
    "status": 6,
-   "resolutions": [],
    "skip": false
   },
   {
    "kind": "bundled",
    "status": 0,
-   "resolutions": [],
    "skip": false
   },
   {
    "kind": "coop_unknown_version",
    "status": 0,
-   "resolutions": [],
    "skip": false
   },
   {
    "kind": "tagfix_unknown_operation",
    "status": 0,
-   "resolutions": [],
    "skip": false
   },
   {
    "kind": "tagfix_bad_element_id",
    "status": 0,
-   "resolutions": [],
    "skip": false
   }
  ],

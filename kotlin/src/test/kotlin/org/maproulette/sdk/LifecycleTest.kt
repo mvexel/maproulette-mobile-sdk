@@ -1,3 +1,5 @@
+@file:OptIn(LowLevelTaskLifecycle::class)
+
 package org.maproulette.sdk
 
 import java.io.File
@@ -28,7 +30,8 @@ class LifecycleTest {
         fun calls() = requests.map { "${it.method} ${it.url.substringAfter("/api/v2/")}" }
     }
     private fun ok(name: String? = null, status: Int = 200) = HttpResponse(status, body = name?.let(::body) ?: "")
-    private fun client(script: Script) = MapRouletteClient(transport = script, apiKey = { "synthetic-user-key" })
+    private fun client(script: Script) =
+        MapRouletteClient(MapRouletteEnvironment.STAGING, transport = script, apiKey = { "synthetic-user-key" })
     private val id = TaskId(101)
 
     private suspend fun call(client: MapRouletteClient, row: JsonObject) {
@@ -62,12 +65,12 @@ class LifecycleTest {
         for (row in rows("routes")) {
             for (bearer in listOf(false, true)) {
                 val script = Script(HttpResponse(row["status"]!!.jsonPrimitive.int, body = row.text("body")?.let(::body) ?: ""))
-                val client = if (bearer) MapRouletteClient(transport = script, accessToken = { "synthetic-access-token" })
+                val client = if (bearer) MapRouletteClient(MapRouletteEnvironment.STAGING, transport = script, accessToken = { "synthetic-access-token" })
                 else client(script)
                 call(client, row)
                 val request = script.requests.single()
                 assertEquals(row.text("method"), request.method.name)
-                assertEquals("https://maproulette.org" + row.text("path"), request.url)
+                assertEquals("https://mr-api.osm.lol" + row.text("path"), request.url)
                 assertNull(request.body); assertFalse("Content-Type" in request.headers)
                 if (bearer) {
                     assertEquals("Bearer synthetic-access-token", request.headers["Authorization"]); assertFalse("apiKey" in request.headers)
@@ -196,7 +199,7 @@ class LifecycleTest {
     @Test fun bareWritesReachRealTransportWithoutBody() = runBlocking<Unit> {
         MockWebServer().use { server -> OkHttpTransport().use { transport ->
             server.start()
-            val client = MapRouletteClient(serviceUrl = server.url("/api/v2/").toString(), transport = transport, accessToken = { "wire-bearer" })
+            val client = MapRouletteClient(MapRouletteEnvironment(server.url("/api/v2/").toString()), transport = transport, accessToken = { "wire-bearer" })
             server.enqueue(MockResponse().setResponseCode(204)); server.enqueue(MockResponse().setResponseCode(204))
             client.skipTask(id); client.resolveTask(id, TaskResolution.FIXED)
             for ((method, path) in listOf("POST" to "/api/v2/task/101/skip", "PUT" to "/api/v2/task/101/1")) {
@@ -250,12 +253,10 @@ class LifecycleTest {
         assertEquals(CooperativeType.CHANGE_FILE, client(wire).getChallenge(ChallengeId(42)).cooperativeKind)
     }
 
-    @Test fun allowedResolutionsFollowKindAndStatus() = runBlocking<Unit> {
-        for (row in rows("allowed")) {
+    @Test fun canSkipFollowsKindAndStatus() = runBlocking<Unit> {
+        for (row in rows("can_skip")) {
             val base = kind(row.text("kind")!!).getValue("task").jsonObject
             val task = decode(JsonObject(base + ("status" to row.getValue("status"))))
-            assertEquals(row.getValue("resolutions").jsonArray.map { it.jsonPrimitive.int }.toSet(),
-                task.allowedResolutions().map { it.code }.toSet(), row.toString())
             assertEquals(row["skip"]!!.jsonPrimitive.boolean, task.canSkip(), row.toString())
         }
     }

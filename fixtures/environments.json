@@ -1,0 +1,27 @@
+{
+ "_comment": "Service URL validation and the pre-1.0 write allowlist, shared by the Kotlin and Swift suites. valid: the environment can be created; writes: allowsWrites (only https://mr-api.osm.lol on the default port, and loopback hosts).",
+ "cases": [
+  {"url": "https://maproulette.org/api/v2/", "valid": true, "writes": false},
+  {"url": "https://mr-api.osm.lol/api/v2/", "valid": true, "writes": true},
+  {"url": "https://MR-API.osm.lol/api/v2/", "valid": true, "writes": true},
+  {"url": "https://mr-api.osm.lol:443/api/v2/", "valid": true, "writes": true},
+  {"url": "https://mr-api.osm.lol:8443/api/v2/", "valid": true, "writes": false},
+  {"url": "https://mr-api.osm.lol./api/v2/", "valid": true, "writes": false},
+  {"url": "https://mr-api.osm.lol.example.org/api/v2/", "valid": true, "writes": false},
+  {"url": "https://example.org/api/v2/", "valid": true, "writes": false},
+  {"url": "http://127.0.0.1:8080/api/v2/", "valid": true, "writes": true},
+  {"url": "http://localhost/api/v2/", "valid": true, "writes": true},
+  {"url": "http://LOCALHOST/api/v2/", "valid": true, "writes": true},
+  {"url": "http://[::1]:9000/api/v2/", "valid": true, "writes": true},
+  {"url": "https://localhost/api/v2/", "valid": true, "writes": true},
+  {"url": "http://mr-api.osm.lol/api/v2/", "valid": false},
+  {"url": "http://example.org/api/v2/", "valid": false},
+  {"url": "https://example.org/api/v2/?a=1", "valid": false},
+  {"url": "https://example.org/api/v2/#top", "valid": false},
+  {"url": "https://user:secret@mr-api.osm.lol/api/v2/", "valid": false},
+  {"url": "https://@mr-api.osm.lol/api/v2/", "valid": false},
+  {"url": "ftp://mr-api.osm.lol/api/v2/", "valid": false},
+  {"url": "https://example.org:99999/api/v2/", "valid": false},
+  {"url": "nope", "valid": false}
+ ]
+}

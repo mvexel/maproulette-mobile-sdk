@@ -1,3 +1,5 @@
+@file:OptIn(LowLevelTaskLifecycle::class)
+
 package org.maproulette.sdk
 
 import java.io.File
@@ -34,7 +36,8 @@ class ChoiceTest {
         else -> row.jsonArray.let { HttpResponse(it[0].jsonPrimitive.int, body = it[1].takeUnless { b -> b == JsonNull }?.toString() ?: "") }
     }
     private fun client(script: Script, deletion: Boolean = false) =
-        MapRouletteClient(transport = script, accessToken = { "synthetic-access-token" }, allowElementDeletion = deletion)
+        MapRouletteClient(MapRouletteEnvironment.STAGING, transport = script, accessToken = { "synthetic-access-token" },
+            allowElementDeletion = deletion)
 
     private fun taskJson(payload: JsonElement?, extra: Map<String, JsonElement> = emptyMap()): JsonObject {
         val base = fixtures.getValue("task").jsonObject
@@ -92,8 +95,9 @@ class ChoiceTest {
         s["answers"]?.let { answers -> return ChoiceSubmission.Answers(answers.jsonObject.mapValues { it.value.jsonPrimitive.content }) }
         val outcomeId = s.text("outcome")!!
         val decodedWith = (s["decodedWithDeletion"] as? JsonPrimitive)?.boolean ?: deletion
-        return ChoiceSubmission.Outcome(task.choiceOutcomes(decodedWith).firstOrNull { it.id == outcomeId }
-            ?: ChoiceOutcome(outcomeId, "Synthetic", null, TaskResolution.NOT_AN_ISSUE, false))
+        val outcome = task.choiceOutcomes(decodedWith).firstOrNull { it.id == outcomeId }
+            ?: ChoiceOutcome(outcomeId, "Synthetic", null, TaskResolution.NOT_AN_ISSUE, false)
+        return ChoiceSubmission.Outcome(if (s.flag("withoutDeletion")) outcome.withoutDeletion() else outcome)
     }
 
     @Test fun slcExampleDecodesWithDeletionOffAndOn() = runBlocking<Unit> {
@@ -105,8 +109,16 @@ class ChoiceTest {
             assertEquals(fixtures.getValue("outcomes").jsonObject.getValue(key), JsonArray(task.choiceOutcomes(deletion).map(::outcomeJson)))
             assertEquals(task.choiceOutcomes(deletion).dropLast(1), work.outcomes)
         }
-        assertEquals(task.choiceOutcomes(false), task.choiceOutcomes())
-        assertEquals(emptyList(), decode(taskJson(null)).choiceOutcomes())
+        // The public surface: the client applies its own deletion setting.
+        for (deletion in listOf(false, true)) {
+            val client = MapRouletteClient(transport = Script(emptyList()), allowElementDeletion = deletion)
+            assertEquals(task.choiceOutcomes(deletion), client.choiceOutcomes(task))
+            assertEquals(task.work(deletion), client.work(task))
+            // withoutDeletion() of every outcome equals the deletion-off decoding.
+            assertEquals(task.choiceOutcomes(false), client.choiceOutcomes(task).map { it.withoutDeletion() })
+        }
+        assertEquals(task.work(false), task.work())
+        assertEquals(emptyList(), MapRouletteClient(transport = Script(emptyList())).choiceOutcomes(decode(taskJson(null))))
     }
 
     @Test fun payloadValidationRules() = runBlocking<Unit> {
@@ -120,7 +132,7 @@ class ChoiceTest {
                 assertEquals(TaskWork.Unknown(task.cooperativeWork!!), task.work(deletion), row.text("name"))
             }
             assertEquals(MobileSupport.UNSUPPORTED, task.mobileSupport(), row.text("name"))
-            assertEquals(emptyList(), task.choiceOutcomes())
+            assertEquals(emptyList(), task.choiceOutcomes(false))
             rules += row["rule"]!!.jsonPrimitive.int
         }
         assertEquals((1..5).toSet(), rules)
@@ -135,7 +147,6 @@ class ChoiceTest {
             val support = if (task.mobileSupport() == MobileSupport.IN_PLACE) "inPlace" else "unsupported"
             assertEquals(row.text("support"), support, row.text("name"))
             assertEquals(row.flag("skip"), task.canSkip(), row.text("name"))
-            assertEquals(emptySet(), task.allowedResolutions(), row.text("name"))
         }
     }
 
@@ -149,6 +160,10 @@ class ChoiceTest {
             assertEquals(listOf("GET /api/v2/task/101/start", "POST /api/v2/task/101/choice"), script.calls(), row.text("name"))
             val post = script.requests.last()
             assertEquals(row.text("body"), post.body, row.text("name"))
+            row["resolution"]?.let { expected ->
+                val outcome = (submission(task, row, deletion) as ChoiceSubmission.Outcome).outcome
+                assertEquals(expected.jsonPrimitive.int, outcome.resolution.code, row.text("name"))
+            }
             assertEquals("application/json", post.headers["Content-Type"])
             assertEquals("Bearer synthetic-access-token", post.headers["Authorization"]); assertFalse("apiKey" in post.headers)
             assertNull(script.requests.first().body)
@@ -271,7 +286,7 @@ class ChoiceTest {
     @Test fun choicePostReachesRealTransportWithJsonBody() = runBlocking<Unit> {
         MockWebServer().use { server -> OkHttpTransport().use { transport ->
             server.start()
-            val client = MapRouletteClient(serviceUrl = server.url("/api/v2/").toString(), transport = transport,
+            val client = MapRouletteClient(MapRouletteEnvironment(server.url("/api/v2/").toString()), transport = transport,
                 accessToken = { "wire-bearer" })
             val task = slcTask()
             server.enqueue(MockResponse().setBody(fixtures.getValue("start").toString()))

@@ -17,8 +17,8 @@ import Testing
     let task = try await makeTask()
     guard case .choice(let element, _, let questions, _) = task.work() else { Issue.record("not choice"); return }
     #expect(TaskText.tagChange(questions[0].options[0]) == "backrest=yes")
-    let off = task.choiceOutcomes(allowElementDeletion: false)
-    let on = task.choiceOutcomes(allowElementDeletion: true)
+    let off = outcomes(task, deletion: false)
+    let on = outcomes(task, deletion: true)
     #expect(TaskText.outcomeExplanation(on[1], element: element).hasPrefix("Deletes node/123"))
     #expect(TaskText.outcomeExplanation(off[1], element: element) == "Marks the task “Not an issue”. Does not edit OpenStreetMap.")
     #expect(TaskText.outcomeExplanation(off[1], element: element, notDeletable: true).contains("is not deleted"))
@@ -28,7 +28,7 @@ import Testing
   @Test func answersSummaryListsExactChangesAndCantTell() async throws {
     let task = try await makeTask()
     let work = try #require(ChoiceWork(task.work()))
-    var form = TaskWorkController.form(task, work, allowElementDeletion: false, deleteAllowed: true)
+    var form = TaskWorkController.form(work, outcomes: outcomes(task), deleteAllowed: true)
     form.answers = ["backrest": "no"]
     let text = TaskText.answersSummary(form, taskID: 42, me: 7, osmServer: TaskText.devOSM)
     #expect(text.contains("• backrest=no"))
@@ -39,12 +39,12 @@ import Testing
 
   @Test func outcomeSummaries() async throws {
     let task = try await makeTask()
-    let gone = try #require(task.choiceOutcomes(allowElementDeletion: true).first { $0.id == "gone" })
+    let gone = try #require(outcomes(task, deletion: true).first { $0.id == "gone" })
     let element = try #require(ChoiceWork(task.work())).element
     #expect(
       TaskText.outcomeSummary(gone, element: element, taskID: 42, me: 7, osmServer: nil)
         .hasPrefix("Delete node/123 from OpenStreetMap"))
-    let plain = try #require(TaskWorkController.withoutDeletion(task, gone))
+    let plain = try #require(TaskWorkController.withoutDeletion(gone))
     #expect(
       TaskText.outcomeSummary(plain, element: element, taskID: 42, me: 7, osmServer: nil, notDeletable: true)
         .contains("so it is not deleted"))

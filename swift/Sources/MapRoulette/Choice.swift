@@ -2,20 +2,43 @@ import Foundation
 
 /// One question about the task's element. `expect` maps each guarded key to its required current
 /// value (nil: absent). "Can't tell" is not listed: leaving the question out of the answers means it.
-public struct ChoiceQuestion: Sendable, Equatable {
+public struct ChoiceQuestion: Hashable, Identifiable, Sendable {
   public let id: String, prompt: String, description: String?
   public let expect: [String: String?]
   public let options: [ChoiceOption]
+  public init(
+    id: String, prompt: String, description: String? = nil, expect: [String: String?],
+    options: [ChoiceOption]
+  ) {
+    self.id = id
+    self.prompt = prompt
+    self.description = description
+    self.expect = expect
+    self.options = options
+  }
 }
 /// One answer and its exact tag change; show the change below the label.
-public struct ChoiceOption: Sendable, Equatable {
+public struct ChoiceOption: Hashable, Identifiable, Sendable {
   public let id: String, label: String, description: String?
   public let setTags: [String: String], unsetTags: [String]
+  public init(
+    id: String, label: String, description: String? = nil, setTags: [String: String] = [:],
+    unsetTags: [String] = []
+  ) {
+    self.id = id
+    self.label = label
+    self.description = description
+    self.setTags = setTags
+    self.unsetTags = unsetTags
+  }
 }
 /// A task-level result that is not an answer. `resolution` is the status it will set: the declared
 /// 2 or 6, Not an issue for "gone" without deletion, or Fixed for an enabled delete.
 /// `deletesElement` is true only when the payload declares a delete AND deletion is enabled.
-public struct ChoiceOutcome: Sendable, Equatable {
+/// The built-in Too hard has the id `ChoiceOutcome.tooHardID`; its English label is a fallback.
+public struct ChoiceOutcome: Hashable, Identifiable, Sendable {
+  /// Id of the built-in Too hard outcome, for localizing its label.
+  public static let tooHardID = "too-hard"
   public let id: String, label: String, description: String?
   public let resolution: TaskResolution
   public let deletesElement: Bool
@@ -29,17 +52,27 @@ public struct ChoiceOutcome: Sendable, Equatable {
     self.resolution = resolution
     self.deletesElement = deletesElement
   }
+  /// The same outcome without the OSM delete: "gone" recorded as Not an issue. Use it per task,
+  /// e.g. when `checkChoice` reports `deleteAllowed == false` or a delete failed with
+  /// `.elementInUse`. `submitChoice` accepts it under a deletion-enabled client. Outcomes that do
+  /// not delete are returned unchanged.
+  public func withoutDeletion() -> ChoiceOutcome {
+    guard deletesElement else { return self }
+    return ChoiceOutcome(
+      id: id, label: label, description: description, resolution: .notAnIssue,
+      deletesElement: false)
+  }
 }
-public enum ChoiceSubmission: Sendable, Equatable {
+public enum ChoiceSubmission: Hashable, Sendable {
   /// Question id → option id; non-empty. Questions left out are "Can't tell".
   case answers([String: String])
-  /// One of `choiceOutcomes`, decoded with the same deletion setting as the client.
+  /// One of the client's `choiceOutcomes(_:)`, or its `withoutDeletion()` form.
   case outcome(ChoiceOutcome)
 }
 /// `changesetID` is nil when nothing was edited in OSM. After an interrupted response the result
 /// comes from a fresh task read, which may not report the changeset: then it is nil even for an
 /// edit.
-public struct ChoiceResult: Sendable, Equatable {
+public struct ChoiceResult: Hashable, Sendable {
   public let status: TaskStatus, changesetID: Int64?
   /// Public for app-side fakes, like Kotlin's data class.
   public init(status: TaskStatus, changesetID: Int64?) {
@@ -49,13 +82,13 @@ public struct ChoiceResult: Sendable, Equatable {
 }
 /// Why a choice task went stale: the element is gone or invisible, its `match` tags changed, or a
 /// guarded key no longer has its expected value. `.unknown` covers reasons added later.
-public enum IneligibleReason: Sendable, Equatable {
+public enum IneligibleReason: Hashable, Sendable {
   case elementGone, matchFailed, keyChanged, unknown
 }
 /// Fresh server-side OSM check. Eligibility is all-or-nothing: an ineligible task is not shown at
 /// all. `deleteAllowed` (the node is in no way or relation) is only meaningful when `eligible`;
 /// `reason` is set only when not. The server's diagnostic `detail` is not modelled.
-public struct ChoiceEligibility: Sendable, Equatable {
+public struct ChoiceEligibility: Hashable, Sendable {
   public let eligible: Bool, deleteAllowed: Bool, reason: IneligibleReason?
   /// Public for app-side fakes, like Kotlin's data class.
   public init(eligible: Bool, deleteAllowed: Bool, reason: IneligibleReason?) {
@@ -65,7 +98,7 @@ public struct ChoiceEligibility: Sendable, Equatable {
   }
 }
 /// Failures specific to choice submission and checks (`POST task/{id}/choice`, `choice/check`).
-public enum ChoiceProblem: Sendable, Equatable {
+public enum ChoiceProblem: Hashable, Sendable {
   /// 409 task_ineligible: the OSM element changed since the payload was written. Nothing was
   /// uploaded and no status was written; the server hides the task from mobile discovery. Say
   /// "This one no longer needs answering" and move on; never offer a conflict choice.
@@ -91,12 +124,12 @@ public enum ChoiceProblem: Sendable, Equatable {
   case unsupportedTask
 }
 
-let tooHardID = "too-hard"
+let tooHardID = ChoiceOutcome.tooHardID
 
 extension MapRouletteTask {
   /// Declared outcomes plus the built-in Too hard; empty when the task is not a valid choice task.
-  /// Pass the client's `allowElementDeletion`.
-  public func choiceOutcomes(allowElementDeletion: Bool = false) -> [ChoiceOutcome] {
+  /// Apps use `MapRouletteClient.choiceOutcomes(_:)`, which applies the client's setting.
+  func choiceOutcomes(allowElementDeletion: Bool) -> [ChoiceOutcome] {
     guard case .choice(_, _, _, let outcomes) = work(allowElementDeletion: allowElementDeletion)
     else { return [] }
     return outcomes + [
@@ -111,21 +144,31 @@ extension MapRouletteTask {
   func validateChoice(_ submission: ChoiceSubmission, allowElementDeletion: Bool) throws
     -> TaskResolution
   {
-    guard bundleID == nil,
-      case .choice(_, _, let questions, _) = work(allowElementDeletion: allowElementDeletion)
-    else { throw MapRouletteError(.validation) }
+    guard bundleID == nil else {
+      throw MapRouletteError(.validation, reason: "bundled tasks are not supported")
+    }
+    guard case .choice(_, _, let questions, _) = work(allowElementDeletion: allowElementDeletion)
+    else { throw MapRouletteError(.validation, reason: "not a valid choice task") }
     switch submission {
     case .answers(let answers):
-      guard (1...8).contains(answers.count),
+      guard (1...8).contains(answers.count) else {
+        throw MapRouletteError(.validation, reason: "answer 1 to 8 questions")
+      }
+      guard
         answers.allSatisfy({ answer in
           questions.contains { $0.id == answer.key && $0.options.contains { $0.id == answer.value } }
         })
-      else { throw MapRouletteError(.validation) }
+      else { throw MapRouletteError(.validation, reason: "unknown question or option id") }
       return .fixed
     case .outcome(let outcome):
-      // Must equal what this client decodes, so a UI built with another deletion setting fails.
-      guard choiceOutcomes(allowElementDeletion: allowElementDeletion).contains(outcome) else {
-        throw MapRouletteError(.validation)
+      // Must equal what this client decodes (or its no-delete form), so a UI built with another
+      // deletion setting fails here.
+      let allowed = choiceOutcomes(allowElementDeletion: allowElementDeletion)
+      guard allowed.contains(outcome) || allowed.map({ $0.withoutDeletion() }).contains(outcome)
+      else {
+        throw MapRouletteError(
+          .validation,
+          reason: "unknown outcome, or decoded with a different allowElementDeletion setting")
       }
       return outcome.resolution
     }
@@ -145,7 +188,7 @@ func choiceBody(_ submission: ChoiceSubmission) -> String {
 
 private struct Invalid: Error {}
 
-/// Strict v1 decoding (docs/mobile-choice-challenges.md §2). Any broken rule throws; unknown
+/// Strict v1 decoding (docs/design/mobile-choice-challenges.md §2). Any broken rule throws; unknown
 /// fields are ignored. The 16 KiB size rule is server-only.
 func choiceWork(_ raw: [String: JSONValue], allowElementDeletion: Bool) throws -> TaskWork {
   let meta = try object(required(raw["meta"]))

@@ -20,6 +20,7 @@ import org.junit.Test
 import org.maproulette.sdk.Challenge
 import org.maproulette.sdk.ChallengeId
 import org.maproulette.sdk.ChoiceEligibility
+import org.maproulette.sdk.ChoiceOutcome
 import org.maproulette.sdk.ChoiceProblem
 import org.maproulette.sdk.ChoiceResult
 import org.maproulette.sdk.ChoiceSubmission
@@ -35,14 +36,14 @@ import org.maproulette.sdk.WriteProblem
 import org.maproulette.sdk.HttpMethod
 import org.maproulette.sdk.HttpResponse
 import org.maproulette.sdk.MapRouletteClient
+import org.maproulette.sdk.MapRouletteEnvironment
 import org.maproulette.sdk.Transport
-import org.maproulette.sdk.choiceOutcomes
 
 private const val ME = 7L
 private const val OTHER = 8L
 private val ID = TaskId(42)
 
-/** The pilot bench payload (docs/mobile-choice-challenges.md §3), shortened to two questions. */
+/** The pilot bench payload (docs/design/mobile-choice-challenges.md §3), shortened to two questions. */
 internal val BENCH: JsonObject = Json.parseToJsonElement("""
     {"meta":{"version":2,"type":3,"choiceVersion":1},"element":"node/123","match":{"amenity":"bench"},
      "questions":[
@@ -52,6 +53,11 @@ internal val BENCH: JsonObject = Json.parseToJsonElement("""
        "options":[{"id":"wood","label":"Wood","setTags":{"material":"wood"}},{"id":"metal","label":"Metal","setTags":{"material":"metal"}}]}],
      "outcomes":[{"id":"not-a-bench","label":"Not a bench","status":2},{"id":"gone","label":"Bench is gone","delete":true}]}
 """).jsonObject
+
+/** The outcomes a client with this deletion setting offers. */
+internal fun outcomes(task: Task, deletion: Boolean = false): List<ChoiceOutcome> =
+    MapRouletteClient(transport = Transport { error("no network in unit tests") }, allowElementDeletion = deletion)
+        .choiceOutcomes(task)
 
 internal fun task(status: Int = 0, lockedBy: Long? = null, completedBy: Long? = null, cooperativeWork: JsonObject? = BENCH,
                   bundleId: Long? = null, instruction: String? = null, changesetId: Long? = null) = Task(
@@ -66,7 +72,8 @@ internal val CHALLENGE = Challenge(ChallengeId(1), ProjectId(2), "Benches", "Add
 private fun failure(kind: ErrorKind, problem: WriteProblem? = null) = MapRouletteException(kind, problem = problem)
 
 /** Records every call; each operation's behavior is replaceable per test. No network. */
-private class FakeOps(override val allowElementDeletion: Boolean = false) : TaskOps {
+private class FakeOps(val allowElementDeletion: Boolean = false) : TaskOps {
+    override fun choiceOutcomes(task: Task) = outcomes(task, allowElementDeletion)
     val calls = mutableListOf<String>()
     val submissions = mutableListOf<ChoiceSubmission>()
     var reads = ArrayDeque<() -> Task>()
@@ -159,7 +166,7 @@ class TaskWorkControllerTest {
         val c = controller(ops)
         assertTrue(c.state.value is TaskScreen.CheckFailed)
         assertFalse("not stale: the map keeps it", c.changed)
-        c.perform(ChoiceAction.Outcome(task().choiceOutcomes().first()))
+        c.perform(ChoiceAction.Outcome(outcomes(task()).first()))
         c.perform(ChoiceAction.Skip)
         advanceUntilIdle()
         assertTrue(ops.submissions.isEmpty())
@@ -374,7 +381,7 @@ class TaskWorkControllerTest {
     }
 
     @Test
-    fun clientOpsSendDeletesOnlyThroughTheDeletionClient() = runTest {
+    fun oneDeletionClientSendsGoneWithAndWithoutDeletion() = runTest {
         val bodies = mutableListOf<String?>()
         val start = """{"id":42,"parent":1,"name":"node/123","instruction":"","status":0,
             "geometries":{"type":"FeatureCollection","features":[]},"lockPrimaryTaskId":42,"lockBundledTasks":[]}"""
@@ -384,13 +391,12 @@ class TaskWorkControllerTest {
                 HttpResponse(200, body = """{"status":2,"changesetId":null}""")
             } else HttpResponse(200, body = start)
         }
-        fun client(deletion: Boolean) = MapRouletteClient(serviceUrl = "https://mr.example/api/v2/", transport = transport,
-            accessToken = { "token" }, allowElementDeletion = deletion)
-        val ops = ClientTaskOps(client(true), client(false))
+        val ops = ClientTaskOps(MapRouletteClient(MapRouletteEnvironment.STAGING, transport = transport,
+            accessToken = { "token" }, allowElementDeletion = true))
         val t = task()
-        val gone = t.choiceOutcomes(true).single { it.id == "gone" }
-        ops.submitChoice(t, ChoiceSubmission.Outcome(t.choiceOutcomes(true).single { it.id == "not-a-bench" }))
-        ops.submitChoice(t, ChoiceSubmission.Outcome(TaskWorkController.withoutDeletion(t, gone)!!))
+        val gone = ops.choiceOutcomes(t).single { it.id == "gone" }
+        ops.submitChoice(t, ChoiceSubmission.Outcome(ops.choiceOutcomes(t).single { it.id == "not-a-bench" }))
+        ops.submitChoice(t, ChoiceSubmission.Outcome(TaskWorkController.withoutDeletion(gone)!!))
         ops.submitChoice(t, ChoiceSubmission.Outcome(gone))
         ops.submitChoice(t, ChoiceSubmission.Answers(mapOf("backrest" to "no")))
         assertEquals(listOf("""{"outcome":"not-a-bench"}""", """{"outcome":"gone"}""", """{"outcome":"gone","delete":true}""",

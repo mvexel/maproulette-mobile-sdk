@@ -1,7 +1,7 @@
 import Foundation
 
 /// Challenge-level hint only; the task's `work()` decides how a task behaves.
-public enum CooperativeType: Sendable, Equatable {
+public enum CooperativeType: Hashable, Sendable {
   case none, tags, changeFile, unknown(Int)
 }
 extension Challenge {
@@ -16,7 +16,7 @@ extension Challenge {
 }
 
 /// How a task is meant to be worked, decoded from its `cooperativeWork` payload.
-public enum TaskWork: Sendable, Equatable {
+public enum TaskWork: Hashable, Sendable {
   case standard
   /// Proposed OSM tag changes. Applying them is an OSM write and is not offered by the SDK.
   case tagFix(version: Int, edits: [ElementTagEdit])
@@ -25,31 +25,47 @@ public enum TaskWork: Sendable, Equatable {
   /// Unrecognized version/type or malformed payload, preserved as received.
   case unknown(JSONValue)
   /// Multiple-choice questions about one OSM element (`meta.type` 3,
-  /// docs/mobile-choice-challenges.md). `match` is the identity guard (empty when absent);
-  /// `outcomes` are the declared ones, decoded with the deletion setting passed to `work`. Use
-  /// `choiceOutcomes` to include the built-in Too hard.
+  /// docs/design/mobile-choice-challenges.md). `match` is the identity guard (empty when absent);
+  /// `outcomes` are the declared ones: decoded without deletion by `task.work()`, with the
+  /// client's setting by `client.work(_:)`. `client.choiceOutcomes(_:)` adds the built-in Too hard.
   case choice(
     element: OSMElementRef, match: [String: String], questions: [ChoiceQuestion],
     outcomes: [ChoiceOutcome])
 }
-public struct OSMElementRef: Sendable, Hashable {
-  public enum ElementType: String, Sendable { case node, way, relation }
+public struct OSMElementRef: Hashable, Sendable {
+  public enum ElementType: String, Hashable, Sendable { case node, way, relation }
   public let type: ElementType, id: Int64
+  public init(type: ElementType, id: Int64) {
+    self.type = type
+    self.id = id
+  }
 }
 /// `element` is nil for created elements, which have no OSM id yet.
-public struct ElementTagEdit: Sendable, Equatable {
-  public enum Kind: Sendable, Equatable { case modify, create, delete, unknown(String?) }
+public struct ElementTagEdit: Hashable, Sendable {
+  public enum Kind: Hashable, Sendable { case modify, create, delete, unknown(String?) }
   public let element: OSMElementRef?, kind: Kind
   public let setTags: [String: String], unsetTags: [String]
+  public init(
+    element: OSMElementRef?, kind: Kind, setTags: [String: String] = [:], unsetTags: [String] = []
+  ) {
+    self.element = element
+    self.kind = kind
+    self.setTags = setTags
+    self.unsetTags = unsetTags
+  }
 }
 /// Display-only form fields. Their answers (`completionResponses`) are not submitted.
-public enum FormField: Sendable, Equatable {
+public enum FormField: Hashable, Sendable {
   case select(name: String, label: String, values: [String])
   case checkbox(name: String, label: String)
 }
 /// Instruction markdown (not rendered by the SDK) with the form fields it declares.
-public struct Instruction: Sendable, Equatable {
+public struct Instruction: Hashable, Sendable {
   public let markdown: String, formFields: [FormField]
+  public init(markdown: String, formFields: [FormField] = []) {
+    self.markdown = markdown
+    self.formFields = formFields
+  }
   /// Replaces `{{name}}` with property values (missing → ""), matching the web UI.
   /// `{{{…}}}` short codes and map-viewport properties are left to the app.
   public func render(_ properties: [String: String]) -> String {
@@ -68,7 +84,7 @@ public struct Instruction: Sendable, Equatable {
 }
 /// Mobile offers only tasks that are completed in place: valid, unbundled choice tasks that are
 /// still actionable. Standard, tag-fix and change-file tasks are unsupported.
-public enum MobileSupport: Sendable, Equatable { case inPlace, unsupported }
+public enum MobileSupport: Hashable, Sendable { case inPlace, unsupported }
 
 // Same expressions as the MapRoulette web UI templating.
 private func regex(_ pattern: String) -> NSRegularExpression {
@@ -98,9 +114,11 @@ private struct Malformed: Error {}
 
 extension MapRouletteTask {
   /// Decodes the task kind. The task payload wins over the challenge's cooperativeType. Choice
-  /// payloads are validated strictly: any broken rule gives `.unknown`. Pass the client's
-  /// `allowElementDeletion` so delete outcomes match what `submitChoice` sends.
-  public func work(allowElementDeletion: Bool = false) -> TaskWork {
+  /// payloads are validated strictly: any broken rule gives `.unknown`. Delete outcomes decode
+  /// without deletion; `MapRouletteClient.work(_:)` applies the client's `allowElementDeletion`.
+  public func work() -> TaskWork { work(allowElementDeletion: false) }
+
+  func work(allowElementDeletion: Bool) -> TaskWork {
     guard let raw = cooperativeWork, case .object(let o) = raw else { return .standard }
     do {
       var meta: [String: JSONValue]? = nil
@@ -192,11 +210,6 @@ extension MapRouletteTask {
     else { return .unsupported }
     return .inPlace
   }
-
-  /// Statuses to offer as bare status writes. Always empty since choice challenges: non-choice
-  /// tasks are unsupported on mobile and choice tasks resolve through `submitChoice` (offer
-  /// `choiceOutcomes` instead). Kept for source compatibility.
-  public func allowedResolutions() -> Set<TaskResolution> { [] }
 
   /// Whether to offer Skip (`POST task/{id}/skip`): only for `.inPlace` tasks.
   public func canSkip() -> Bool { mobileSupport() == .inPlace }

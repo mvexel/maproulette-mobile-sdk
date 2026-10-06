@@ -28,15 +28,15 @@ import org.maproulette.sdk.TaskResolution
 import org.maproulette.sdk.TaskWork
 import org.maproulette.sdk.WriteProblem
 import org.maproulette.sdk.canSkip
-import org.maproulette.sdk.choiceOutcomes
 import org.maproulette.sdk.mobileSupport
 import org.maproulette.sdk.verifyResolution
 import org.maproulette.sdk.work
 
 /** The SDK operations the task screen uses; a fake replaces it in unit tests. */
 interface TaskOps {
-    /** The app's demo setting; outcomes shown must be decoded with it (the SDK rejects others). */
-    val allowElementDeletion: Boolean
+    /** Outcomes decoded with the client's deletion setting (the SDK rejects others, except their
+     * [ChoiceOutcome.withoutDeletion] form). */
+    fun choiceOutcomes(task: Task): List<ChoiceOutcome>
     suspend fun getTask(id: TaskId): Task
     suspend fun getChallenge(task: Task): Challenge
     suspend fun checkChoice(id: TaskId): ChoiceEligibility
@@ -45,24 +45,17 @@ interface TaskOps {
 }
 
 /**
- * Bound to one account's clients: a controller never sends through a later account's client.
- * [configured] uses the deletion setting; [noDeletion] has deletion off and sends every
- * non-deleting outcome, including "gone" offered without deletion after `element_in_use`.
+ * Bound to one account's client: a controller never sends through a later account's client.
+ * The client's deletion setting is the cap; "gone" without deletion (after `element_in_use`, or
+ * when the check disallows deletion) is sent as [ChoiceOutcome.withoutDeletion].
  */
-class ClientTaskOps(private val configured: MapRouletteClient, private val noDeletion: MapRouletteClient) : TaskOps {
-    init {
-        require(!noDeletion.allowElementDeletion)
-    }
-
-    override val allowElementDeletion get() = configured.allowElementDeletion
-    override suspend fun getTask(id: TaskId) = configured.getTask(id)
-    override suspend fun getChallenge(task: Task) = configured.getChallenge(task.challengeId)
-    override suspend fun checkChoice(id: TaskId) = configured.checkChoice(id)
-    override suspend fun submitChoice(task: Task, submission: ChoiceSubmission): ChoiceResult {
-        val client = if (submission is ChoiceSubmission.Outcome && !submission.outcome.deletesElement) noDeletion else configured
-        return client.submitChoice(task, submission)
-    }
-    override suspend fun skipTask(id: TaskId) = configured.skipTask(id)
+class ClientTaskOps(private val client: MapRouletteClient) : TaskOps {
+    override fun choiceOutcomes(task: Task) = client.choiceOutcomes(task)
+    override suspend fun getTask(id: TaskId) = client.getTask(id)
+    override suspend fun getChallenge(task: Task) = client.getChallenge(task.challengeId)
+    override suspend fun checkChoice(id: TaskId) = client.checkChoice(id)
+    override suspend fun submitChoice(task: Task, submission: ChoiceSubmission) = client.submitChoice(task, submission)
+    override suspend fun skipTask(id: TaskId) = client.skipTask(id)
 }
 
 sealed interface ChoiceAction {
@@ -89,7 +82,7 @@ data class ChoiceForm(
     val notDeletable: Set<String> = emptySet(),
 )
 
-/** Screen states (docs/task-completion.md §11, docs/mobile-choice-challenges.md §7 app rules). */
+/** Screen states (docs/design/task-completion.md §11, docs/design/mobile-choice-challenges.md §7 app rules). */
 sealed interface TaskScreen {
     data object Loading : TaskScreen
     data class LoadFailed(val message: String) : TaskScreen
@@ -175,7 +168,7 @@ class TaskWorkController(
     }
 
     private suspend fun opened(task: Task, challenge: Challenge): TaskScreen {
-        val work = task.work(ops.allowElementDeletion)
+        val work = task.work()
         if (task.mobileSupport() != MobileSupport.IN_PLACE || work !is TaskWork.Choice) {
             return TaskScreen.NotAvailable(task, challenge, TaskText.unavailableReason(task))
         }
@@ -194,7 +187,7 @@ class TaskWorkController(
             changed = true // The server now hides it from discovery.
             return TaskScreen.NoLongerNeeded(task, challenge)
         }
-        return TaskScreen.Answering(task, challenge, form(task, work, ops.allowElementDeletion, eligibility.deleteAllowed))
+        return TaskScreen.Answering(task, challenge, form(work, ops.choiceOutcomes(task), eligibility.deleteAllowed))
     }
 
     /** [optionId] null means "Can't tell": the question is left out of the submission. */
@@ -233,7 +226,7 @@ class TaskWorkController(
     /** After `element_in_use`: the same outcome without deletion (Not an issue), once the user confirms. */
     fun sendWithoutDeletion() {
         val current = state.value as? TaskScreen.ElementInUse ?: return
-        val plain = withoutDeletion(current.task, current.outcome) ?: return
+        val plain = withoutDeletion(current.outcome) ?: return
         if (writer == null) return
         submit(current.task, current.challenge, current.form, ChoiceAction.Outcome(plain))
     }
@@ -321,7 +314,7 @@ class TaskWorkController(
         }
         return when (val problem = error.problem) {
             is ChoiceProblem.TaskIneligible -> TaskScreen.NoLongerNeeded(task, challenge)
-            ChoiceProblem.ElementInUse -> if (action is ChoiceAction.Outcome && withoutDeletion(task, action.outcome) != null) {
+            ChoiceProblem.ElementInUse -> if (action is ChoiceAction.Outcome && withoutDeletion(action.outcome) != null) {
                 TaskScreen.ElementInUse(task, challenge, form, action.outcome)
             } else answering("OpenStreetMap refused the change because the element is in use. Nothing was changed.")
             ChoiceProblem.OsmReauthRequired -> TaskScreen.SignInRequired(task, challenge,
@@ -376,7 +369,7 @@ class TaskWorkController(
         TaskScreen.Done(task, challenge, action, me, changesetId, readFailed = true)
     }
 
-    /** Applies docs/task-completion.md §5 to a fresh read. Never resends and never releases: an edit may still be uploading. */
+    /** Applies docs/design/task-completion.md §5 to a fresh read. Never resends and never releases: an edit may still be uploading. */
     private suspend fun verify(pending: TaskScreen.CheckAgain, me: Long) {
         mutableState.value = pending.copy(checking = true)
         val fresh = try {
@@ -438,21 +431,17 @@ class TaskWorkController(
     }
 
     companion object {
-        /** The form for an eligible task: declared outcomes plus Too hard, decoded with the deletion
-         * setting. When the check does not allow deletion (the node is in a way or relation), a delete
-         * outcome is offered without deletion instead (Not an issue) and listed in [ChoiceForm.notDeletable]. */
-        fun form(task: Task, work: TaskWork.Choice, allowElementDeletion: Boolean, deleteAllowed: Boolean): ChoiceForm {
-            val outcomes = task.choiceOutcomes(allowElementDeletion).map {
-                if (it.deletesElement && !deleteAllowed) withoutDeletion(task, it) ?: it else it
-            }
-            val blocked = if (allowElementDeletion && !deleteAllowed) task.choiceOutcomes(true).filter { it.deletesElement }.map { it.id }.toSet()
-                else emptySet()
-            return ChoiceForm(work, outcomes, notDeletable = blocked)
+        /** The form for an eligible task: [outcomes] are the client's (declared plus Too hard, decoded
+         * with the deletion setting). When the check does not allow deletion (the node is in a way or
+         * relation), a delete outcome is offered without deletion instead (Not an issue) and listed in
+         * [ChoiceForm.notDeletable]. */
+        fun form(work: TaskWork.Choice, outcomes: List<ChoiceOutcome>, deleteAllowed: Boolean): ChoiceForm {
+            val blocked = if (deleteAllowed) emptySet() else outcomes.filter { it.deletesElement }.map { it.id }.toSet()
+            return ChoiceForm(work, outcomes.map { if (deleteAllowed) it else it.withoutDeletion() }, notDeletable = blocked)
         }
 
-        /** The deleting [outcome] decoded without deletion (Not an issue), or null if it is not a delete. */
-        fun withoutDeletion(task: Task, outcome: ChoiceOutcome): ChoiceOutcome? =
-            if (!outcome.deletesElement) null
-            else task.choiceOutcomes(allowElementDeletion = false).firstOrNull { it.id == outcome.id }
+        /** The deleting [outcome] without deletion (Not an issue), or null if it is not a delete. */
+        fun withoutDeletion(outcome: ChoiceOutcome): ChoiceOutcome? =
+            if (outcome.deletesElement) outcome.withoutDeletion() else null
     }
 }

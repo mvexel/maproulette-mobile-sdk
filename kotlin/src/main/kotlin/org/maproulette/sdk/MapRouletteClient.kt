@@ -6,46 +6,49 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.serialization.json.*
 import okhttp3.HttpUrl.Companion.toHttpUrl
 
-/** MapRoulette client: reads plus the bare task-lifecycle writes (start, refresh, release, skip and
- * status 1/2/5/6) and choice submission. No storage, implicit pagination or automatic retries;
- * writes are never resent, except the identical choice submission that [submitChoice] documents.
- * [allowElementDeletion] (default false) lets choice "gone" outcomes delete the OSM element; when
- * false they resolve to Not an issue and no delete is ever sent. */
+/** MapRoulette client: reads, [skipTask] and choice submission, plus the low-level task-lifecycle
+ * writes (start, refresh, release and status 1/2/5/6) behind [LowLevelTaskLifecycle]. No storage,
+ * implicit pagination or automatic retries; writes are never resent, except the identical choice
+ * submission that [submitChoice] documents. Writes go only to environments whose
+ * [MapRouletteEnvironment.allowsWrites] is true; others fail with IllegalStateException before sending.
+ *
+ * Credential providers run before every request, so a rotated or signed-out credential takes effect
+ * immediately. Supply at most one: a request fails with IllegalArgumentException when both return a
+ * value. Pass them by name; a trailing lambda is the API key.
+ *
+ * @param transport the HTTP transport, e.g. an [OkHttpTransport]; the caller closes it.
+ * @param allowElementDeletion whether choice "gone" outcomes may delete the OSM element (default
+ *   false). This is a cap: when false, no delete is ever sent and "gone" resolves to Not an issue. When
+ *   true, use [choiceOutcomes] and, per task, [ChoiceOutcome.withoutDeletion] to submit "gone" without
+ *   deleting. */
 class MapRouletteClient(
-    serviceUrl: String = "https://maproulette.org/api/v2/",
+    /** The deployment this client talks to. */
+    val environment: MapRouletteEnvironment = MapRouletteEnvironment.PRODUCTION,
     private val transport: Transport,
-    private val apiKey: suspend () -> String? = { null },
-    private val accessToken: suspend () -> String? = { null },
     val allowElementDeletion: Boolean = false,
+    private val accessToken: suspend () -> String? = { null },
+    private val apiKey: suspend () -> String? = { null },
 ) {
-    /** Retains the original positional/trailing-lambda API-key constructor. */
-    constructor(
-        serviceUrl: String = "https://maproulette.org/api/v2/",
-        transport: Transport,
-        apiKey: suspend () -> String?,
-    ) : this(serviceUrl, transport, apiKey, { null })
-
-    private val base = serviceUrl.toHttpUrl()
-        .also {
-            require(
-                it.scheme == "https" ||
-                    (it.scheme == "http" && it.host in listOf("localhost", "127.0.0.1", "::1")),
-            )
-            require(it.username.isEmpty() && it.password.isEmpty() && it.query == null && it.fragment == null)
-        }
-        .newBuilder()
-        .apply {
-            if (!serviceUrl.endsWith('/')) addPathSegment("")
-        }
-        .build()
+    // MapRouletteEnvironment validated the URL and ensured the trailing slash.
+    private val base = environment.serviceUrl.toHttpUrl()
     private val owner = Any()
 
+    /** The task's kind, decoded with this client's [allowElementDeletion]. */
+    fun work(task: Task): TaskWork = task.work(allowElementDeletion)
+
+    /** The task's declared outcomes plus the built-in Too hard, decoded with this client's
+     * [allowElementDeletion]; empty when the task is not a valid choice task. Every outcome, and its
+     * [ChoiceOutcome.withoutDeletion] form, can be passed to [submitChoice]. */
+    fun choiceOutcomes(task: Task): List<ChoiceOutcome> = task.choiceOutcomes(allowElementDeletion)
+
+    /** Searches challenges, ordered by id. Anonymous reads work. [pageSize] must be 1..100; pass
+     * `page.next` as [after] for the next page, with the same filter and page size. */
     suspend fun searchChallenges(
         filter: ChallengeFilter = ChallengeFilter(),
         pageSize: Int = 50,
-        after: Continuation? = null,
+        after: PageCursor? = null,
     ): Page<Challenge> {
-        require(filter.tags.all { it.isNotBlank() && ',' !in it })
+        require(filter.tags.all { it.isNotBlank() && ',' !in it }) { "challenge tags must be non-blank and contain no comma" }
         val params = linkedMapOf(
             "ct" to filter.tags.joinToString(","),
             "cLocal" to filter.localSurvey.wire.toString(),
@@ -59,6 +62,7 @@ class MapRouletteClient(
         return page("challenges/extendedFind", params, pageSize, after, offset = true, parse = ::challenge)
     }
 
+    /** Reads one challenge. NOT_FOUND when it does not exist or is not visible to the caller. */
     suspend fun getChallenge(id: ChallengeId): Challenge {
         val body = request("challenge/${id.value}")
         return decode {
@@ -66,6 +70,7 @@ class MapRouletteClient(
         }
     }
 
+    /** Reads a challenge's labels (not OSM tags). */
     suspend fun getChallengeTags(id: ChallengeId): List<ChallengeTag> {
         val body = request("challenge/${id.value}/tags")
         return decode {
@@ -75,10 +80,11 @@ class MapRouletteClient(
         }
     }
 
+    /** Lists a challenge's tasks in server order. [pageSize] must be 1..100; continue with `next`. */
     suspend fun listTasks(
         id: ChallengeId,
         pageSize: Int = 50,
-        after: Continuation? = null,
+        after: PageCursor? = null,
     ): Page<Task> {
         val result = page(
             "challenge/${id.value}/tasks", linkedMapOf(), pageSize, after,
@@ -90,6 +96,7 @@ class MapRouletteClient(
         return result
     }
 
+    /** Reads one task, including its lock holder and completion fields. */
     suspend fun getTask(id: TaskId): Task {
         val body = request("task/${id.value}")
         return decode {
@@ -97,12 +104,16 @@ class MapRouletteClient(
         }
     }
 
+    /** Tasks whose location is inside the filter's bounds, ordered by id, with `total`. [pageSize] must
+     * be 1..100; continue with `next`. */
     suspend fun findTasksInBounds(
         filter: TaskFilter,
         pageSize: Int = 50,
-        after: Continuation? = null,
+        after: PageCursor? = null,
     ): Page<TaskSummary> {
-        require(filter.statuses == null || (filter.statuses.isNotEmpty() && filter.statuses.all { it >= 0 }))
+        require(filter.statuses == null || (filter.statuses.isNotEmpty() && filter.statuses.all { it >= 0 })) {
+            STATUSES_REASON
+        }
         val params = linkedMapOf(
             "cLocal" to "1",
             "ca" to filter.includeArchived.toString(),
@@ -129,8 +140,10 @@ class MapRouletteClient(
      * This read-only backend operation uses PUT and includes tasks locked by other users.
      * All-challenge discovery includes only enabled challenges/projects; selected IDs bypass that filter. */
     suspend fun findTaskMarkers(filter: TaskFilter, limit: Int = 100): List<TaskSummary> {
-        require(limit in 1..1000)
-        require(filter.statuses == null || (filter.statuses.isNotEmpty() && filter.statuses.all { it >= 0 }))
+        require(limit in 1..1000) { "limit must be 1..1000" }
+        require(filter.statuses == null || (filter.statuses.isNotEmpty() && filter.statuses.all { it >= 0 })) {
+            STATUSES_REASON
+        }
         val params = linkedMapOf(
             "cLocal" to "1", "ca" to filter.includeArchived.toString(),
             "tStatus" to (filter.statuses?.joinToString(",") ?: "-1"),
@@ -154,20 +167,27 @@ class MapRouletteClient(
         }
     }
 
+    // Low-level lifecycle writes. Mobile apps complete tasks with submitChoice and skipTask; these
+    // exist for tooling and future flows, behind @OptIn(LowLevelTaskLifecycle::class).
+
     /** Locks the task for the caller (`GET task/{id}/start`). A repeat by the owner refreshes the lock.
      * Failures carry [WriteProblem.LockedByOtherUser] (403) or [WriteProblem.AlreadyHoldingTask] (409). */
+    @LowLevelTaskLifecycle
     suspend fun startTask(id: TaskId): TaskLock = lock(id, "start", Write.START)
 
     /** Refreshes a held lock. Only for long edit flows; [commitResolution] does not need it. */
+    @LowLevelTaskLifecycle
     suspend fun refreshTaskLock(id: TaskId): TaskLock = lock(id, "refreshLock", Write.REFRESH)
 
     /** Releases the caller's lock. The server returns success even when the caller holds no lock, so
      * success does not prove ownership. */
+    @LowLevelTaskLifecycle
     suspend fun releaseTask(id: TaskId) {
         write(Write.RELEASE, "task/${id.value}/release", HttpMethod.GET)
     }
 
-    /** Skips the task without changing its status and releases the caller's lock if held.
+    /** Supported mobile path, with [submitChoice]. Offer it only when `task.canSkip()`.
+     * Skips the task without changing its status and releases the caller's lock if held.
      * Not idempotent (the server counts every skip): after [WriteProblem.OutcomeUnknown], re-read
      * instead of resending. */
     suspend fun skipTask(id: TaskId) {
@@ -177,6 +197,7 @@ class MapRouletteClient(
     /** Bare status write (`PUT task/{id}/{code}`, no query or body). The server releases the lock.
      * Call it inside a fresh [startTask], or use [commitResolution]. Never resend after
      * [WriteProblem.OutcomeUnknown] without [verifyResolution]. */
+    @LowLevelTaskLifecycle
     suspend fun resolveTask(id: TaskId, resolution: TaskResolution) {
         write(Write.RESOLVE, "task/${id.value}/${resolution.code}", HttpMethod.PUT)
     }
@@ -185,6 +206,7 @@ class MapRouletteClient(
      * released once (best effort) before the error is rethrown. If start reports a stale lock of
      * the caller's on another task (409), that task is re-read, released when still locked, and
      * start is retried once. Cancellation propagates without cleanup; the server expires locks. */
+    @LowLevelTaskLifecycle
     suspend fun commitResolution(id: TaskId, resolution: TaskResolution) {
         startForCommit(id)
         try {
@@ -195,6 +217,7 @@ class MapRouletteClient(
         }
     }
 
+    @OptIn(LowLevelTaskLifecycle::class)
     private suspend fun startForCommit(id: TaskId) {
         try {
             startReleasingUnknown(id)
@@ -221,6 +244,7 @@ class MapRouletteClient(
     }
 
     // A start with an unknown outcome may hold the lock: release it once before rethrowing.
+    @OptIn(LowLevelTaskLifecycle::class)
     private suspend fun startReleasingUnknown(id: TaskId) {
         try {
             startTask(id)
@@ -230,6 +254,7 @@ class MapRouletteClient(
         }
     }
 
+    @OptIn(LowLevelTaskLifecycle::class)
     private suspend fun releaseQuietly(id: TaskId) {
         try {
             releaseTask(id)
@@ -264,7 +289,8 @@ class MapRouletteClient(
     /** Submits a choice task's answers or outcome with late locking: start, then
      * `POST task/{id}/choice`. The server applies the OSM edit (answers, or an enabled delete), sets the
      * status and releases the lock. The submission is checked against [task]'s payload before anything
-     * is sent (IllegalArgumentException); decode outcomes with this client's [allowElementDeletion].
+     * is sent (IllegalArgumentException); take outcomes from [choiceOutcomes] (or their
+     * [ChoiceOutcome.withoutDeletion] form).
      *
      * Failures carry a [ChoiceProblem] or [WriteProblem]; the lock is then released (best effort),
      * except after StatusPending or OutcomeUnknown. The identical submission is resent at most once,
@@ -277,6 +303,7 @@ class MapRouletteClient(
      * that nothing was applied (e.g. lock_required because the first attempt finished meanwhile), the
      * first error (OutcomeUnknown, or StatusPending with its changeset) is thrown and the lock kept. */
     suspend fun submitChoice(task: Task, submission: ChoiceSubmission): ChoiceResult {
+        requireWrites()
         val target = task.validateChoice(submission, allowElementDeletion)
         val id = task.id
         val body = choiceBody(submission)
@@ -380,7 +407,14 @@ class MapRouletteClient(
 
     private enum class Write { START, REFRESH, RELEASE, SKIP, RESOLVE, CHOICE }
 
+    private fun requireWrites() {
+        check(environment.allowsWrites) {
+            "task writes are disabled for $environment; before 1.0 this SDK writes only to staging (mr-api.osm.lol) or loopback"
+        }
+    }
+
     private suspend fun write(operation: Write, path: String, method: HttpMethod, body: String? = null): HttpResponse {
+        requireWrites()
         val response = try {
             send(path, method = method, body = body)
         } catch (e: MapRouletteException) {
@@ -460,6 +494,9 @@ class MapRouletteClient(
         }
     }
 
+    /** The caller's identity. Needs a credential: an API key reads `user/whoami`, a bearer token reads
+     * `oauth/mobile/me` (fork backend) and reports the grant's scopes. AUTHENTICATION when the
+     * credential is missing or rejected. */
     suspend fun getCurrentUser(): UserIdentity {
         currentCoroutineContext().ensureActive()
         val credentials = readCredentials()
@@ -487,9 +524,9 @@ class MapRouletteClient(
     private suspend fun readCredentials(): Credentials {
         val key = apiKey()
         val token = accessToken()
-        require(key == null || token == null) { "Configure one authentication mechanism per request" }
-        key?.let { require(it.isNotBlank() && '\r' !in it && '\n' !in it) }
-        token?.let { require(it.matches(Regex("[A-Za-z0-9._~+/-]+=*"))) { "Invalid bearer credential" } }
+        require(key == null || token == null) { "supply an API key or an access token, not both" }
+        key?.let { require(it.isNotBlank() && '\r' !in it && '\n' !in it) { "API key is blank or contains a line break" } }
+        token?.let { require(it.matches(Regex("[A-Za-z0-9._~+/-]+=*"))) { "access token is not a valid bearer token" } }
         return Credentials(key, token)
     }
 
@@ -497,14 +534,14 @@ class MapRouletteClient(
         path: String,
         params: LinkedHashMap<String, String>,
         size: Int,
-        after: Continuation?,
+        after: PageCursor?,
         offset: Boolean,
         parse: (JsonElement) -> T,
         envelope: Boolean = false,
     ): Page<T> {
-        require(size in 1..100)
+        require(size in 1..100) { "pageSize must be 1..100" }
 
-        // Include the filters and page size in the token identity so a continuation
+        // Include the filters and page size in the cursor identity so a cursor
         // cannot accidentally advance another query on the same client.
         val key = base.newBuilder()
             .addPathSegments(path)
@@ -515,7 +552,7 @@ class MapRouletteClient(
             .build()
             .toString()
         require(after == null || (after.owner === owner && after.key == key)) {
-            "Continuation does not belong to this query"
+            "page cursor belongs to another client, operation, filter or page size"
         }
         val position = after?.position ?: 0
         params["limit"] = size.toString()
@@ -531,7 +568,7 @@ class MapRouletteClient(
             // A full page indicates another request may be needed, not a known total.
             val next = if (rows.size == size) {
                 val increment = if (offset) rows.size else 1
-                Continuation(owner, key, Math.addExact(position, increment))
+                PageCursor(owner, key, Math.addExact(position, increment))
             } else {
                 null
             }
@@ -582,7 +619,7 @@ class MapRouletteClient(
             .build()
         val headers = mutableMapOf(
             "Accept" to "application/json",
-            "User-Agent" to "MapRoulette-Mobile-SDK/0.1",
+            "User-Agent" to "MapRoulette-Mobile-SDK/${MapRouletteSdk.VERSION}",
         )
         if (body != null) headers["Content-Type"] = "application/json"
         val authentication = credentials ?: readCredentials()
@@ -627,6 +664,8 @@ private fun WriteProblem?.provesNotApplied() = when (this) {
 // 502 osm_unavailable: OSM unreachable. 503 osm_edits_unavailable: stored OSM tokens unusable.
 private fun osmUnavailable(status: Int, error: String?) =
     (status == 502 && error == "osm_unavailable") || (status == 503 && error == "osm_edits_unavailable")
+
+private const val STATUSES_REASON = "statuses must be null or a non-empty list of codes >= 0"
 
 private val choiceOnlyParams = mapOf("cct" to "3", "excludeStale" to "true")
 

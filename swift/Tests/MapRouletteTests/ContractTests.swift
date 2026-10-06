@@ -30,7 +30,7 @@ private func errorKind(_ expected: ErrorKind, _ operation: () async throws -> Vo
 }
 
 @Test func challengeShapesOptionalFieldsAndTags() async throws {
-    let wire = try Fake("challenge_direct"); let client = try MapRouletteClient(transport: wire)
+    let wire = try Fake("challenge_direct"); let client = MapRouletteClient(transport: wire)
     let direct = try await client.getChallenge(ChallengeID(42))
     #expect(direct.projectID.value == 7); #expect(direct.description == nil); #expect(direct.tags == nil)
     await wire.set(HTTPResponse(status: 200, body: try fixture("challenges_search")))
@@ -43,7 +43,7 @@ private func errorKind(_ expected: ErrorKind, _ operation: () async throws -> Vo
 }
 
 @Test func challengeOffsetsEncodingAndContinuationBinding() async throws {
-    let wire = try Fake("challenges_search"); let client = try MapRouletteClient(transport: wire)
+    let wire = try Fake("challenges_search"); let client = MapRouletteClient(transport: wire)
     let filter = ChallengeFilter(tags: ["bike & repair", "café"], text: "backrest?")
     let first = try await client.searchChallenges(filter: filter, pageSize: 2)
     _ = try await client.searchChallenges(filter: filter, pageSize: 2, after: first.next)
@@ -52,7 +52,7 @@ private func errorKind(_ expected: ErrorKind, _ operation: () async throws -> Vo
     #expect(query(request, "cs") == "backrest?"); #expect(query(request, "cLocal") == "1")
     #expect(query(request, "ca") == "false"); #expect(query(request, "ce") == "true")
     try await errorKind(.validation) { _ = try await client.searchChallenges(filter: filter, pageSize: 1, after: first.next) }
-    let another = try MapRouletteClient(transport: wire)
+    let another = MapRouletteClient(transport: wire)
     try await errorKind(.validation) { _ = try await another.searchChallenges(filter: filter, pageSize: 2, after: first.next) }
     await wire.set(HTTPResponse(status: 200, body: Data("[]".utf8)))
     let empty = try await client.searchChallenges(filter: filter, pageSize: 2, after: first.next)
@@ -60,7 +60,7 @@ private func errorKind(_ expected: ErrorKind, _ operation: () async throws -> Vo
 }
 
 @Test func taskGeometryUnknownStatusAndPageNumber() async throws {
-    let wire = try Fake("task"); let client = try MapRouletteClient(transport: wire)
+    let wire = try Fake("task"); let client = MapRouletteClient(transport: wire)
     let task = try await client.getTask(TaskID(101)); let raw = try json(fixture("task"))
     #expect(task.status?.code == 73); #expect(task.status?.knownName == nil)
     #expect(task.geometry == field(raw, "geometries")); #expect(task.cooperativeWork == field(raw, "cooperativeWork"))
@@ -73,7 +73,7 @@ private func errorKind(_ expected: ErrorKind, _ operation: () async throws -> Vo
 }
 
 @Test func spatialEnvelopeFiltersAndChallengeIsolation() async throws {
-    let wire = try Fake("task_summaries"); let client = try MapRouletteClient(transport: wire)
+    let wire = try Fake("task_summaries"); let client = MapRouletteClient(transport: wire)
     var filter = try TaskFilter(challengeIDs: [ChallengeID(42)], bounds: Bounds(west: 4, south: 52, east: 5, north: 53), statuses: nil)
     let first = try await client.findTasksInBounds(filter: filter, pageSize: 2)
     #expect(first.total == 12); #expect(first.items[1].status == nil); #expect(first.items[1].point == nil)
@@ -92,7 +92,7 @@ private func errorKind(_ expected: ErrorKind, _ operation: () async throws -> Vo
 
 @Test func spatialSearchAcrossAllChallengesOmitsChallengeFilter() async throws {
     let wire = try Fake("task_summaries_multiple_challenges")
-    let client = try MapRouletteClient(transport: wire)
+    let client = MapRouletteClient(transport: wire)
     let filter = try TaskFilter(bounds: Bounds(west: 4, south: 52, east: 5, north: 53))
     let first = try await client.findTasksInBounds(filter: filter, pageSize: 2)
     #expect(first.items.map { $0.challengeID.value } == [42, 99])
@@ -116,7 +116,7 @@ private func errorKind(_ expected: ErrorKind, _ operation: () async throws -> Vo
 
 @Test func errorsAndCredentialRedaction() async throws {
     let wire = try Fake("identity")
-    let client = try MapRouletteClient(transport: wire, apiKey: { "fixture-secret-do-not-expose" })
+    let client = MapRouletteClient(transport: wire, apiKey: { "fixture-secret-do-not-expose" })
     let identity = try await client.getCurrentUser()
     #expect(identity.id == 900); #expect(!identity.guest)
     #expect(!String(describing: identity).contains("secret"))
@@ -146,9 +146,9 @@ private actor UserCredential {
 @Test func credentialsBelongToEachUserAndAnonymousRequestsStayAnonymous() async throws {
     let wire = try Fake("challenge_direct")
     let credential = UserCredential("synthetic-first-user-key")
-    let first = try MapRouletteClient(transport: wire, apiKey: { await credential.key })
-    let second = try MapRouletteClient(transport: wire, apiKey: { "synthetic-second-user-key" })
-    let anonymous = try MapRouletteClient(transport: wire)
+    let first = MapRouletteClient(transport: wire, apiKey: { await credential.key })
+    let second = MapRouletteClient(transport: wire, apiKey: { "synthetic-second-user-key" })
+    let anonymous = MapRouletteClient(transport: wire)
     _ = try await first.getChallenge(ChallengeID(42))
     _ = try await second.getChallenge(ChallengeID(42))
     _ = try await anonymous.getChallenge(ChallengeID(42))
@@ -175,7 +175,7 @@ private actor SuspendedTransport: Transport {
     }
 }
 @Test func cancellationIsNotNetworkFailure() async throws {
-    let wire = SuspendedTransport(); let client = try MapRouletteClient(transport: wire)
+    let wire = SuspendedTransport(); let client = MapRouletteClient(transport: wire)
     let operation = Task { try await client.getTask(TaskID(101)) }
     while !(await wire.started) { await Task.yield() }
     operation.cancel()
@@ -185,7 +185,7 @@ private actor SuspendedTransport: Transport {
 }
 
 @Test func malformedIdentitiesAndCredentialValidation() async throws {
-    let wire = try Fake("challenge_direct"); let client = try MapRouletteClient(transport: wire)
+    let wire = try Fake("challenge_direct"); let client = MapRouletteClient(transport: wire)
     try await errorKind(.protocolFailure) { _ = try await client.getChallenge(ChallengeID(99)) }
     await wire.set(HTTPResponse(status: 200, body: try fixture("task")))
     try await errorKind(.protocolFailure) { _ = try await client.getTask(TaskID(99)) }
@@ -193,12 +193,12 @@ private actor SuspendedTransport: Transport {
     try await errorKind(.protocolFailure) { _ = try await client.listTasks(ChallengeID(99), pageSize: 2) }
     await wire.set(HTTPResponse(status: 200, body: Data("{\"id\":900,\"guest\":\"false\"}".utf8)))
     try await errorKind(.protocolFailure) { _ = try await client.getCurrentUser() }
-    let invalidCredential = try MapRouletteClient(transport: wire, apiKey: { "\nsecret" })
+    let invalidCredential = MapRouletteClient(transport: wire, apiKey: { "\nsecret" })
     try await errorKind(.validation) { _ = try await invalidCredential.getTask(TaskID(101)) }
 }
 
 @Test func boundedMarkersUseReadOnlyPutWithoutPagination() async throws {
-    let wire = try Fake("markers"); let client = try MapRouletteClient(transport: wire)
+    let wire = try Fake("markers"); let client = MapRouletteClient(transport: wire)
     let filter = try TaskFilter(bounds: Bounds(west: 4, south: 52, east: 5, north: 53))
     let markers = try await client.findTaskMarkers(filter: filter, limit: 2)
     #expect(markers.map { $0.challengeID.value } == [42, 99])
@@ -236,8 +236,9 @@ private actor CredentialProbe {
     let wire = try Fake("identity_mobile")
     let token = CredentialProbe("synthetic-first-access-token")
     let key = CredentialProbe(nil)
-    let client = try MapRouletteClient(serviceURL: URL(string: "https://example.org:9443/nested/api/v2/")!,
-        transport: wire, accessToken: { await token.read() }, apiKey: { await key.read() })
+    let client = MapRouletteClient(
+        environment: try MapRouletteEnvironment(serviceURL: URL(string: "https://example.org:9443/nested/api/v2/")!),
+        transport: wire, apiKey: { await key.read() }, accessToken: { await token.read() })
     let identity = try await client.getCurrentUser()
     #expect(identity.id == 900); #expect(!identity.guest)
     let request = await wire.last()
@@ -264,9 +265,9 @@ private actor CredentialProbe {
     #expect(await token.calls == 3); #expect(await key.calls == 3)
 }
 
-@Test func legacyTrailingClosureKeepsAPIKeySemantics() async throws {
+@Test func unlabeledTrailingClosureIsTheAPIKey() async throws {
     let wire = try Fake("identity")
-    let client = try MapRouletteClient(transport: wire) { "legacy-trailing-key" }
+    let client = MapRouletteClient(transport: wire) { "legacy-trailing-key" }
     _ = try await client.getCurrentUser()
     #expect(await wire.last().url.path == "/api/v2/user/whoami")
     #expect(await wire.last().headers["apiKey"] == "legacy-trailing-key")
@@ -277,17 +278,17 @@ private actor CredentialProbe {
     let wire = try Fake("identity_mobile")
     let key = CredentialProbe("legacy-secret")
     let token = CredentialProbe("synthetic-access-token")
-    let conflict = try MapRouletteClient(transport: wire,
-        accessToken: { await token.read() }, apiKey: { await key.read() })
+    let conflict = MapRouletteClient(transport: wire,
+        apiKey: { await key.read() }, accessToken: { await token.read() })
     try await errorKind(.validation) { _ = try await conflict.getCurrentUser() }
     #expect(await wire.requests.isEmpty)
     #expect(await token.calls == 1); #expect(await key.calls == 1)
     for invalid in ["", " ", "token with spaces", "token\n", "token\r", "token:wrong"] {
-        let client = try MapRouletteClient(transport: wire, accessToken: { invalid })
+        let client = MapRouletteClient(transport: wire, accessToken: { invalid })
         try await errorKind(.validation) { _ = try await client.getCurrentUser() }
     }
     #expect(await wire.requests.isEmpty)
-    let client = try MapRouletteClient(transport: wire, accessToken: { "synthetic-access-token" })
+    let client = MapRouletteClient(transport: wire, accessToken: { "synthetic-access-token" })
     for (status, kind) in [(401, ErrorKind.authentication), (403, .permission), (404, .notFound), (302, .http)] {
         await wire.set(HTTPResponse(status: status, body: Data("secret response".utf8)))
         let count = await wire.requests.count
@@ -300,7 +301,7 @@ private actor CredentialProbe {
 
 @Test func malformedMobileIdentitiesFailAndProviderErrorsRemainDistinct() async throws {
     let wire = try Fake("identity_mobile")
-    let client = try MapRouletteClient(transport: wire, accessToken: { "synthetic-access-token" })
+    let client = MapRouletteClient(transport: wire, accessToken: { "synthetic-access-token" })
     let original = try JSONSerialization.jsonObject(with: fixture("identity_mobile")) as! [String:Any]
     for (key, value) in [("id", 0 as Any), ("osmId", "12345" as Any),
                          ("displayName", NSNull() as Any), ("scope", "tasks:write" as Any)] {
@@ -309,7 +310,7 @@ private actor CredentialProbe {
         try await errorKind(.protocolFailure) { _ = try await client.getCurrentUser() }
     }
     enum ProviderFailure: Error { case unavailable }
-    let failing = try MapRouletteClient(transport: wire, accessToken: { throw ProviderFailure.unavailable })
+    let failing = MapRouletteClient(transport: wire, accessToken: { throw ProviderFailure.unavailable })
     let count = await wire.requests.count
     do { _ = try await failing.getCurrentUser(); Issue.record("Expected provider failure") }
     catch ProviderFailure.unavailable { }
@@ -319,8 +320,8 @@ private actor CredentialProbe {
 @Test func bearerProvidersRemainIsolatedAcrossClients() async throws {
     let wire = try Fake("challenge_direct")
     let credential = CredentialProbe("first-user-token")
-    let first = try MapRouletteClient(transport: wire, accessToken: { await credential.read() })
-    let second = try MapRouletteClient(transport: wire, accessToken: { "second-user-token" })
+    let first = MapRouletteClient(transport: wire, accessToken: { await credential.read() })
+    let second = MapRouletteClient(transport: wire, accessToken: { "second-user-token" })
     _ = try await first.getChallenge(ChallengeID(42))
     _ = try await second.getChallenge(ChallengeID(42))
     await credential.set(nil)

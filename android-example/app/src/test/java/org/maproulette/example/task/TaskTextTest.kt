@@ -9,13 +9,12 @@ import org.junit.Test
 import org.maproulette.example.auth.AppSession
 import org.maproulette.sdk.ChoiceOption
 import org.maproulette.sdk.TaskWork
-import org.maproulette.sdk.choiceOutcomes
 import org.maproulette.sdk.work
 
 class TaskTextTest {
     private val work = task().work() as TaskWork.Choice
     private fun form(answers: Map<String, String>, deletion: Boolean = false) =
-        ChoiceForm(work, task().choiceOutcomes(deletion), answers)
+        ChoiceForm(work, outcomes(task(), deletion), answers)
 
     @Test
     fun statusWording() {
@@ -48,8 +47,8 @@ class TaskTextTest {
 
     @Test
     fun outcomeSummariesSayWhetherOsmIsEdited() {
-        val goneOff = task().choiceOutcomes(false).single { it.id == "gone" }
-        val goneOn = task().choiceOutcomes(true).single { it.id == "gone" }
+        val goneOff = outcomes(task(), false).single { it.id == "gone" }
+        val goneOn = outcomes(task(), true).single { it.id == "gone" }
         val off = TaskText.outcomeSummary(goneOff, work.element, 42, 7, TaskText.DEV_OSM)
         assertTrue(off, off.contains("“Not an issue”") && off.contains("does not edit OpenStreetMap"))
         val on = TaskText.outcomeSummary(goneOn, work.element, 42, 7, TaskText.DEV_OSM)

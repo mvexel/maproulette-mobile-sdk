@@ -51,7 +51,7 @@ import org.maproulette.sdk.TaskId
 import org.maproulette.sdk.TaskWork
 import org.maproulette.sdk.work
 
-/** Multiple-choice task screen with late locking (docs/mobile-choice-challenges.md §7). Viewing never locks. */
+/** Multiple-choice task screen with late locking (docs/design/mobile-choice-challenges.md §7). Viewing never locks. */
 class TaskActivity : Activity() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private lateinit var session: AppSession
@@ -145,7 +145,7 @@ class TaskActivity : Activity() {
         val view = session.view.value
         val writer = view.userId.takeIf { session.writesConfigured && view.signedIn && view.canWriteTasks }
             ?.let { Writer(it, view.canEditOsm) }
-        val ops = ClientTaskOps(sessionClient.client, sessionClient.noDeletionClient)
+        val ops = ClientTaskOps(sessionClient.client)
         val next = TaskWorkController(ops, writer, scope) { if (BuildConfig.DEBUG) Log.w("MapRouletteTask", it) }
         controller = next
         rendered = null
@@ -284,7 +284,7 @@ class TaskActivity : Activity() {
                 showTask(state.task, state.challenge)
                 val element = TaskText.element(state.form.work.element)
                 notice.text = "$element is part of a way or relation in OpenStreetMap, so it was not deleted. Nothing was changed."
-                val plain = TaskWorkController.withoutDeletion(state.task, state.outcome)
+                val plain = TaskWorkController.withoutDeletion(state.outcome)
                 if (plain != null) {
                     body.addView(button("Send “${state.outcome.label}” without deleting\n${TaskText.outcomeExplanation(plain, state.form.work.element, notDeletable = true)}") {
                         val user = session.view.value.userId ?: return@button

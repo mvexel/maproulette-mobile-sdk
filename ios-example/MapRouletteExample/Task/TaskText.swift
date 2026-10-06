@@ -1,7 +1,7 @@
 import Foundation
 import MapRoulette
 
-/// User-facing wording for choice tasks (docs/mobile-choice-challenges.md §7). Matches the Android demo.
+/// User-facing wording for choice tasks (docs/design/mobile-choice-challenges.md §7). Matches the Android demo.
 enum TaskText {
   static let skip = "Skip"
   static let skipExplanation = "Leave it for someone else. The task stays open."

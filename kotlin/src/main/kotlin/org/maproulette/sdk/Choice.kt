@@ -30,13 +30,25 @@ data class ChoiceOutcome(
     val description: String?,
     val resolution: TaskResolution,
     val deletesElement: Boolean,
-)
+) {
+    /** The same outcome without the OSM delete: "gone" recorded as Not an issue. Use it per task, e.g.
+     * when [MapRouletteClient.checkChoice] reports `deleteAllowed == false` or a delete failed with
+     * [ChoiceProblem.ElementInUse]. [MapRouletteClient.submitChoice] accepts it under a
+     * deletion-enabled client. Outcomes that do not delete are returned unchanged. */
+    fun withoutDeletion(): ChoiceOutcome =
+        if (deletesElement) copy(resolution = TaskResolution.NOT_AN_ISSUE, deletesElement = false) else this
+
+    companion object {
+        /** Id of the built-in Too hard outcome, for localizing its label ("Too hard" is a fallback). */
+        const val TOO_HARD_ID: String = "too-hard"
+    }
+}
 
 sealed interface ChoiceSubmission {
     /** Question id → option id; non-empty. Questions left out are "Can't tell". */
     data class Answers(val byQuestion: Map<String, String>) : ChoiceSubmission
 
-    /** One of [Task.choiceOutcomes], decoded with the same deletion setting as the client. */
+    /** One of [MapRouletteClient.choiceOutcomes], or its [ChoiceOutcome.withoutDeletion] form. */
     data class Outcome(val outcome: ChoiceOutcome) : ChoiceSubmission
 }
 
@@ -57,16 +69,16 @@ data class ChoiceEligibility(
     val reason: IneligibleReason?,
 )
 
-internal const val TOO_HARD_ID = "too-hard"
+internal const val TOO_HARD_ID = ChoiceOutcome.TOO_HARD_ID
 
 /** Declared outcomes plus the built-in Too hard; empty when the task is not a valid choice task.
- * Pass the client's `allowElementDeletion`. */
-fun Task.choiceOutcomes(allowElementDeletion: Boolean = false): List<ChoiceOutcome> {
+ * Apps use [MapRouletteClient.choiceOutcomes], which applies the client's setting. */
+internal fun Task.choiceOutcomes(allowElementDeletion: Boolean): List<ChoiceOutcome> {
     val work = work(allowElementDeletion) as? TaskWork.Choice ?: return emptyList()
     return work.outcomes + ChoiceOutcome(TOO_HARD_ID, "Too hard", null, TaskResolution.TOO_HARD, false)
 }
 
-/** Strict v1 decoding (docs/mobile-choice-challenges.md §2). Any broken rule throws
+/** Strict v1 decoding (docs/design/mobile-choice-challenges.md §2). Any broken rule throws
  * IllegalArgumentException; unknown fields are ignored. The 16 KiB size rule is server-only. */
 internal fun choiceWork(raw: JsonObject, allowElementDeletion: Boolean): TaskWork.Choice {
     val meta = raw.obj("meta")
@@ -189,8 +201,10 @@ internal fun Task.validateChoice(submission: ChoiceSubmission, allowElementDelet
             TaskResolution.FIXED
         }
         is ChoiceSubmission.Outcome -> {
-            // Must equal what this client decodes, so a UI built with another deletion setting fails here.
-            require(submission.outcome in choiceOutcomes(allowElementDeletion)) {
+            // Must equal what this client decodes (or its no-delete form), so a UI built with another
+            // deletion setting fails here.
+            val allowed = choiceOutcomes(allowElementDeletion)
+            require(submission.outcome in allowed || submission.outcome in allowed.map { it.withoutDeletion() }) {
                 "Unknown outcome, or decoded with a different allowElementDeletion setting"
             }
             submission.outcome.resolution

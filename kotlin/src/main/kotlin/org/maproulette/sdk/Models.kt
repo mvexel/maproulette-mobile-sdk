@@ -5,22 +5,28 @@ import kotlinx.serialization.json.JsonObject
 @JvmInline
 value class ChallengeId(val value: Long) {
     init {
-        require(value > 0)
+        require(value > 0) { "ChallengeId must be positive" }
     }
+
+    override fun toString(): String = value.toString()
 }
 
 @JvmInline
 value class TaskId(val value: Long) {
     init {
-        require(value > 0)
+        require(value > 0) { "TaskId must be positive" }
     }
+
+    override fun toString(): String = value.toString()
 }
 
 @JvmInline
 value class ProjectId(val value: Long) {
     init {
-        require(value > 0)
+        require(value > 0) { "ProjectId must be positive" }
     }
+
+    override fun toString(): String = value.toString()
 }
 
 enum class LocalSurvey(val wire: Int) {
@@ -45,11 +51,11 @@ data class Bounds(
     val north: Double,
 ) {
     init {
-        require(listOf(west, south, east, north).all { it.isFinite() })
         require(
-            west >= -180 && east <= 180 && west < east &&
+            listOf(west, south, east, north).all { it.isFinite() } &&
+                west >= -180 && east <= 180 && west < east &&
                 south >= -90 && north <= 90 && south < north,
-        )
+        ) { "bounds must be finite, within -180..180 / -90..90, with west < east and south < north" }
     }
 
     internal fun path() = "$west/$south/$east/$north"
@@ -142,8 +148,9 @@ data class UserIdentity(val id: Long, val guest: Boolean, val scopes: Set<String
         get() = scopes?.contains("osm:tagfix") == true && canWriteTasks
 }
 
-/** In-memory token bound to one client, operation, filter and page size. */
-class Continuation internal constructor(
+/** Opaque, in-memory cursor for the next page, bound to one client, operation, filter and page size.
+ * Passing it to another client or query fails with IllegalArgumentException. */
+class PageCursor internal constructor(
     internal val owner: Any,
     internal val key: String,
     internal val position: Int,
@@ -151,10 +158,11 @@ class Continuation internal constructor(
 
 data class Page<T>(
     val items: List<T>,
-    val next: Continuation?,
+    val next: PageCursor?,
     val total: Long? = null,
 )
 
+/** May gain values in a minor release before 1.0; include an `else` branch when matching. */
 enum class ErrorKind {
     AUTHENTICATION,
     PERMISSION,

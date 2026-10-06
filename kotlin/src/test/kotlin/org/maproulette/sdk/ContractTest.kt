@@ -126,7 +126,7 @@ class ContractTest {
     @Test fun markerPutReachesRealTransportWithJsonBody() = runBlocking<Unit> {
         MockWebServer().use { server -> OkHttpTransport().use { transport ->
             server.start(); server.enqueue(MockResponse().setBody(body("markers")))
-            val client = MapRouletteClient(serviceUrl = server.url("/api/v2/").toString(), transport = transport)
+            val client = MapRouletteClient(MapRouletteEnvironment(server.url("/api/v2/").toString()), transport = transport)
             client.findTaskMarkers(TaskFilter(bounds = Bounds(4.0, 52.0, 5.0, 53.0)))
             val received = assertNotNull(server.takeRequest(2, TimeUnit.SECONDS))
             assertEquals("PUT", received.method); assertEquals("{}", received.body.readUtf8())
@@ -213,7 +213,7 @@ class ContractTest {
     @Test fun bearerIdentityUsesOneCredentialSnapshotAndOriginRoot() = runBlocking<Unit> {
         val wire = fake("identity_mobile")
         var keyCalls = 0; var tokenCalls = 0
-        val client = MapRouletteClient(serviceUrl = "https://example.invalid:9443/prefix/api/v2/",
+        val client = MapRouletteClient(MapRouletteEnvironment("https://example.invalid:9443/prefix/api/v2/"),
             transport = wire, apiKey = { keyCalls++; null }, accessToken = { tokenCalls++; "synthetic-access-token" })
         assertEquals(UserIdentity(900, false, setOf("tasks:read")), client.getCurrentUser())
         assertEquals(1, keyCalls); assertEquals(1, tokenCalls)
@@ -252,7 +252,7 @@ class ContractTest {
         }
     }
 
-    @Test fun conflictingOrMalformedCredentialsFailBeforeHttpAndLegacyLambdasKeepMeaning() = runBlocking<Unit> {
+    @Test fun conflictingOrMalformedCredentialsFailBeforeHttpAndATrailingLambdaIsTheApiKey() = runBlocking<Unit> {
         val wire = fake("challenge_direct")
         val conflict = MapRouletteClient(transport = wire, apiKey = { "legacy" }, accessToken = { "bearer" })
         assertFailsWith<IllegalArgumentException> { conflict.getCurrentUser() }
@@ -262,17 +262,15 @@ class ContractTest {
             assertFailsWith<IllegalArgumentException> { client.getChallenge(ChallengeId(42)) }
         }
         assertTrue(wire.requests.isEmpty())
-        MapRouletteClient(transport = wire) { "trailing-legacy-key" }.getChallenge(ChallengeId(42))
-        assertEquals("trailing-legacy-key", wire.requests.last().headers["apiKey"])
+        MapRouletteClient(transport = wire) { "trailing-key" }.getChallenge(ChallengeId(42))
+        assertEquals("trailing-key", wire.requests.last().headers["apiKey"])
         assertNull(wire.requests.last().headers["Authorization"])
-        MapRouletteClient("https://maproulette.org/api/v2/", wire, { "positional-legacy-key" }).getChallenge(ChallengeId(42))
-        assertEquals("positional-legacy-key", wire.requests.last().headers["apiKey"])
     }
 
     @Test fun bearerAndMeRouteReachWireAndRedirectsCannotLeakCredentials() = runBlocking<Unit> {
         MockWebServer().use { server -> MockWebServer().use { destination -> OkHttpTransport().use { transport ->
             server.start(); destination.start()
-            val client = MapRouletteClient(serviceUrl = server.url("/api/v2/").toString(), transport = transport,
+            val client = MapRouletteClient(MapRouletteEnvironment(server.url("/api/v2/").toString()), transport = transport,
                 accessToken = { "wire-bearer" })
             server.enqueue(MockResponse().setBody(body("identity_mobile")))
             assertEquals(UserIdentity(900, false, setOf("tasks:read")), client.getCurrentUser())

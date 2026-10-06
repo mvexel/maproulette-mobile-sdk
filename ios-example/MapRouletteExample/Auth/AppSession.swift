@@ -17,11 +17,9 @@ struct SessionView: Equatable, Sendable {
 
 struct SessionFailure: Error {}
 
-/// The SDK clients of one session generation. `client` uses the deletion setting at creation;
-/// `noDeletionClient` always has deletion off.
+/// The SDK client of one session generation, with the deletion setting at creation.
 struct SessionClient: Sendable {
   let client: MapRouletteClient
-  let noDeletionClient: MapRouletteClient
 }
 
 /// App-owned sign-in, token storage and refresh. All mutable state is on the main actor.
@@ -235,7 +233,7 @@ struct SessionClient: Sendable {
       stage = "account lookup"
       let token = next.accessToken
       let identity = try await MapRouletteClient(
-        serviceURL: endpoints.api, accessToken: { token }
+        environment: MapRouletteEnvironment(serviceURL: endpoints.api), accessToken: { token }
       ).getCurrentUser()
       try checkGeneration(expected)
       guard !identity.guest, identity.id > 0, identity.scopes == next.scopes else {
@@ -359,21 +357,21 @@ struct SessionClient: Sendable {
     let deletion = allowElementDeletion
     #if DEBUG
       if let demo {
-        func client(_ deletion: Bool) -> MapRouletteClient {
-          try! MapRouletteClient(
-            serviceURL: endpoints.api, transport: demo, allowElementDeletion: deletion,
-            accessToken: { "demo" })
-        }
-        return SessionClient(client: client(deletion), noDeletionClient: client(false))
+        // The in-process mock never leaves the device; the staging environment only lets the
+        // SDK send its writes to it.
+        return SessionClient(
+          client: MapRouletteClient(
+            environment: .staging, transport: demo, allowElementDeletion: deletion,
+            accessToken: { "demo" }))
       }
     #endif
     let transport = GuardedTransport(session: self, expected: expected, inner: URLSessionTransport())
-    func client(_ deletion: Bool) -> MapRouletteClient {
-      try! MapRouletteClient(
-        serviceURL: endpoints.api, transport: transport, allowElementDeletion: deletion,
-        accessToken: { [weak self] in try await self?.accessToken(expected) })
-    }
-    return SessionClient(client: client(deletion), noDeletionClient: client(false))
+    // AuthEndpoints validated the origin, so this cannot fail.
+    let environment = try! MapRouletteEnvironment(serviceURL: endpoints.api)
+    return SessionClient(
+      client: MapRouletteClient(
+        environment: environment, transport: transport, allowElementDeletion: deletion,
+        accessToken: { [weak self] in try await self?.accessToken(expected) }))
   }
 
   /// Enforced below the UI: a lifecycle write leaves the device only for an allowlisted backend

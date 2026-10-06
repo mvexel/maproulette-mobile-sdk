@@ -1,5 +1,5 @@
 {
- "_comment": "Synthetic multiple-choice (cooperativeWork type 3) fixtures shared by the Kotlin and Swift suites; see docs/mobile-choice-challenges.md. Task 101, caller 900, other user 901. Error bodies follow the planned fork backend and the revised D3 (task_ineligible, choice_stale/excludeStale).",
+ "_comment": "Synthetic multiple-choice (cooperativeWork type 3) fixtures shared by the Kotlin and Swift suites; see docs/design/mobile-choice-challenges.md. Task 101, caller 900, other user 901. Error bodies follow the planned fork backend and the revised D3 (task_ineligible, choice_stale/excludeStale).",
  "task": {
   "id": 101,
   "parent": 42,
@@ -5149,6 +5149,28 @@
     "outcome": "not-a-bench"
    },
    "body": "{\"outcome\":\"not-a-bench\"}"
+  },
+  {
+   "name": "gone_without_deletion_on_deletion_client",
+   "_comment": "ChoiceOutcome.withoutDeletion(): a per-task 'gone' recorded as Not an issue (2) under a deletion-enabled client.",
+   "deletion": true,
+   "submission": {
+    "outcome": "gone",
+    "withoutDeletion": true
+   },
+   "resolution": 2,
+   "body": "{\"outcome\":\"gone\"}"
+  },
+  {
+   "name": "gone_from_plain_ui_on_deletion_client",
+   "_comment": "An outcome decoded without deletion equals its withoutDeletion() form, so a deletion-enabled client accepts it.",
+   "deletion": true,
+   "submission": {
+    "outcome": "gone",
+    "decodedWithDeletion": false
+   },
+   "resolution": 2,
+   "body": "{\"outcome\":\"gone\"}"
   }
  ],
  "invalid_submissions": [
@@ -5195,14 +5217,6 @@
     "decodedWithDeletion": true
    },
    "clientDeletion": false
-  },
-  {
-   "name": "delete_outcome_from_plain_ui_on_client_with_deletion",
-   "submission": {
-    "outcome": "gone",
-    "decodedWithDeletion": false
-   },
-   "clientDeletion": true
   },
   {
    "name": "not_a_choice_task",

@@ -7,7 +7,7 @@ let me: Int64 = 7
 let other: Int64 = 8
 let taskID = try! TaskID(42)
 
-/// The pilot bench payload (docs/mobile-choice-challenges.md §3), shortened to two questions.
+/// The pilot bench payload (docs/design/mobile-choice-challenges.md §3), shortened to two questions.
 nonisolated(unsafe) let bench: [String: Any] = try! JSONSerialization.jsonObject(
   with: Data(
     """
@@ -27,11 +27,15 @@ struct Fixed: Transport {
 }
 
 private func decodingClient(_ value: Any) throws -> MapRouletteClient {
-  try MapRouletteClient(
-    transport: Fixed(body: JSONSerialization.data(withJSONObject: value)), accessToken: { nil })
+  MapRouletteClient(transport: Fixed(body: try JSONSerialization.data(withJSONObject: value)))
 }
 
-/// A task decoded by the SDK (the model has no public initializer).
+/// The outcomes a client with this deletion setting offers.
+func outcomes(_ task: MapRouletteTask, deletion: Bool = false) -> [ChoiceOutcome] {
+  MapRouletteClient(allowElementDeletion: deletion).choiceOutcomes(task)
+}
+
+/// A task decoded by the SDK, so the payload goes through the real decoder.
 func makeTask(
   status: Int = 0, lockedBy: Int64? = nil, completedBy: Int64? = nil, payload: [String: Any]? = bench,
   bundleID: Int64? = nil, instruction: String? = nil, changesetID: Int64? = nil
@@ -66,6 +70,9 @@ enum Read {
 /// Records every call; each operation's behavior is replaceable per test. No network.
 @MainActor final class FakeOps: TaskOps {
   nonisolated let allowElementDeletion: Bool
+  nonisolated func choiceOutcomes(_ task: MapRouletteTask) -> [ChoiceOutcome] {
+    outcomes(task, deletion: allowElementDeletion)
+  }
   let challenge: Challenge
   var calls: [String] = []
   var submissions: [ChoiceSubmission] = []

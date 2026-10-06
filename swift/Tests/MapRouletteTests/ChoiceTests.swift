@@ -31,7 +31,7 @@ private func response(_ row: Any) -> HTTPResponse? {
     return HTTPResponse(status: pair[0] as! Int, body: pair[1] is NSNull ? Data() : data(pair[1]))
 }
 private func client(_ script: Script, deletion: Bool = false) throws -> MapRouletteClient {
-    try MapRouletteClient(transport: script, allowElementDeletion: deletion, accessToken: { "synthetic-access-token" })
+    MapRouletteClient(environment: .staging, transport: script, allowElementDeletion: deletion, accessToken: { "synthetic-access-token" })
 }
 private func taskJSON(_ payload: Any?, _ extra: [String: Any] = [:]) -> [String: Any] {
     var task = fixtures["task"] as! [String: Any]
@@ -105,9 +105,9 @@ private func submission(_ task: MapRouletteTask, _ row: [String: Any], deletion:
     if let answers = s["answers"] as? [String: String] { return .answers(answers) }
     let id = s["outcome"] as! String
     let decodedWith = s["decodedWithDeletion"] as? Bool ?? deletion
-    return .outcome(
-        task.choiceOutcomes(allowElementDeletion: decodedWith).first { $0.id == id }
-            ?? ChoiceOutcome(id: id, label: "Synthetic", description: nil, resolution: .notAnIssue, deletesElement: false))
+    let outcome = MapRouletteClient(allowElementDeletion: decodedWith).choiceOutcomes(task).first { $0.id == id }
+        ?? ChoiceOutcome(id: id, label: "Synthetic", description: nil, resolution: .notAnIssue, deletesElement: false)
+    return .outcome(s["withoutDeletion"] as? Bool == true ? outcome.withoutDeletion() : outcome)
 }
 
 @Test func slcExampleDecodesWithDeletionOffAndOn() async throws {
@@ -122,8 +122,16 @@ private func submission(_ task: MapRouletteTask, _ row: [String: Any], deletion:
         #expect(same(all.map(outcomeJSON), expected))
         #expect(Array(all.dropLast()) == outcomes)
     }
-    #expect(task.choiceOutcomes() == task.choiceOutcomes(allowElementDeletion: false))
-    #expect(try await decode(taskJSON(nil)).choiceOutcomes().isEmpty)
+    // The public surface: the client applies its own deletion setting.
+    for deletion in [false, true] {
+        let client = MapRouletteClient(allowElementDeletion: deletion)
+        #expect(client.choiceOutcomes(task) == task.choiceOutcomes(allowElementDeletion: deletion))
+        #expect(client.work(task) == task.work(allowElementDeletion: deletion))
+        // withoutDeletion() of every outcome equals the deletion-off decoding.
+        #expect(client.choiceOutcomes(task).map { $0.withoutDeletion() } == task.choiceOutcomes(allowElementDeletion: false))
+    }
+    #expect(task.work() == task.work(allowElementDeletion: false))
+    #expect(MapRouletteClient().choiceOutcomes(try await decode(taskJSON(nil))).isEmpty)
 }
 
 @Test func payloadValidationRules() async throws {
@@ -141,7 +149,7 @@ private func submission(_ task: MapRouletteTask, _ row: [String: Any], deletion:
             #expect(raw == task.cooperativeWork)
         }
         #expect(task.mobileSupport() == .unsupported, "\(row["name"]!)")
-        #expect(task.choiceOutcomes().isEmpty)
+        #expect(MapRouletteClient().choiceOutcomes(task).isEmpty)
         rules.insert(row["rule"] as! Int)
     }
     #expect(rules == [1, 2, 3, 4, 5])
@@ -157,7 +165,6 @@ private func submission(_ task: MapRouletteTask, _ row: [String: Any], deletion:
         let name = row["name"] as! String
         #expect((task.mobileSupport() == .inPlace ? "inPlace" : "unsupported") == row["support"] as! String, "\(name)")
         #expect(task.canSkip() == row["skip"] as! Bool, "\(name)")
-        #expect(task.allowedResolutions().isEmpty, "\(name)")
     }
 }
 
@@ -172,6 +179,9 @@ private func submission(_ task: MapRouletteTask, _ row: [String: Any], deletion:
         #expect(await script.calls() == ["GET /api/v2/task/101/start", "POST /api/v2/task/101/choice"], "\(name)")
         let requests = await script.requests
         #expect(requests[1].body.map { String(decoding: $0, as: UTF8.self) } == row["body"] as? String, "\(name)")
+        if let resolution = row["resolution"] as? Int, case .outcome(let outcome) = submission(task, row, deletion: deletion) {
+            #expect(outcome.resolution.rawValue == resolution, "\(name)")
+        }
         #expect(requests[1].headers["Content-Type"] == "application/json")
         #expect(requests[1].headers["Authorization"] == "Bearer synthetic-access-token"); #expect(requests[1].headers["apiKey"] == nil)
         #expect(requests[0].body == nil)

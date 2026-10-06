@@ -79,7 +79,7 @@ import Testing
     let c = await controller(o)
     guard case .checkFailed = c.state else { Issue.record("\(c.state.name)"); return }
     #expect(!c.changed, "not stale: the map keeps it")
-    c.perform(.outcome(try await makeTask().choiceOutcomes()[0]))
+    c.perform(.outcome(outcomes(try await makeTask())[0]))
     c.perform(.skip)
     await c.idle()
     #expect(o.submissions.isEmpty)
@@ -424,7 +424,7 @@ import Testing
     #expect(o.calls == ["get", "challenge", "check", "submit"])
   }
 
-  @Test func clientOpsSendDeletesOnlyThroughTheDeletionClient() async throws {
+  @Test func oneDeletionClientSendsGoneWithAndWithoutDeletion() async throws {
     actor Recorder: Transport {
       var bodies: [String] = []
       func execute(_ request: HTTPRequest) async throws -> HTTPResponse {
@@ -440,15 +440,14 @@ import Testing
       }
     }
     let recorder = Recorder()
-    func client(_ deletion: Bool) throws -> MapRouletteClient {
-      try MapRouletteClient(transport: recorder, allowElementDeletion: deletion, accessToken: { "token" })
-    }
-    let clientOps = ClientTaskOps(configured: try client(true), noDeletion: try client(false))
+    let clientOps = ClientTaskOps(
+      MapRouletteClient(
+        environment: .staging, transport: recorder, allowElementDeletion: true, accessToken: { "token" }))
     let t = try await makeTask()
-    let gone = try #require(t.choiceOutcomes(allowElementDeletion: true).first { $0.id == "gone" })
-    let notABench = try #require(t.choiceOutcomes(allowElementDeletion: true).first { $0.id == "not-a-bench" })
+    let gone = try #require(clientOps.choiceOutcomes(t).first { $0.id == "gone" })
+    let notABench = try #require(clientOps.choiceOutcomes(t).first { $0.id == "not-a-bench" })
     _ = try await clientOps.submitChoice(t, .outcome(notABench))
-    _ = try await clientOps.submitChoice(t, .outcome(try #require(TaskWorkController.withoutDeletion(t, gone))))
+    _ = try await clientOps.submitChoice(t, .outcome(try #require(TaskWorkController.withoutDeletion(gone))))
     _ = try await clientOps.submitChoice(t, .outcome(gone))
     _ = try await clientOps.submitChoice(t, .answers(["backrest": "no"]))
     #expect(

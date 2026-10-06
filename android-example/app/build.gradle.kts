@@ -64,7 +64,8 @@ dependencies {
     // Ephemeral Custom Tabs (private sign-in tab, so each sign-in can pick an OSM account).
     implementation("androidx.browser:browser:1.9.0")
     implementation("org.maplibre.gl:android-sdk:13.6.1")
-    implementation("org.maproulette:maproulette-mobile-sdk:0.1.0-SNAPSHOT")
+    // Substituted by the included ../kotlin build; apps use the JitPack coordinate.
+    implementation("com.github.mvexel:maproulette-mobile-sdk:0.1.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")

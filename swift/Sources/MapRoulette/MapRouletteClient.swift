@@ -1,55 +1,65 @@
 import Foundation
 
-/// Reads plus the bare task-lifecycle writes (start, refresh, release, skip and status 1/2/5/6)
-/// and choice submission. No implicit pagination, retries or persistence; writes are never resent,
-/// except the identical choice submission that `submitChoice` documents.
+/// Reads, skip and choice submission, plus the low-level task-lifecycle writes (start, refresh,
+/// release and status 1/2/5/6) behind `@_spi(LowLevelTaskLifecycle)`. No implicit pagination,
+/// retries or persistence; writes are never resent, except the identical choice submission that
+/// `submitChoice` documents. Writes go only to environments whose `allowsWrites` is true.
 public final class MapRouletteClient: Sendable {
-  /// Lets choice "gone" outcomes delete the OSM element (default false). When false they resolve
-  /// to Not an issue and no delete is ever sent.
+  /// The deployment this client talks to.
+  public let environment: MapRouletteEnvironment
+  /// Whether choice "gone" outcomes may delete the OSM element (default false). This is a cap:
+  /// when false, no delete is ever sent and "gone" resolves to Not an issue. When true, use
+  /// `choiceOutcomes(_:)` and, per task, `ChoiceOutcome.withoutDeletion()` to submit "gone"
+  /// without deleting.
   public let allowElementDeletion: Bool
   private let base: URL
   private let transport: any Transport
   private let apiKey: @Sendable () async throws -> String?
   private let accessToken: @Sendable () async throws -> String?
   private let owner = UUID()
-  /// Existing API-key initializer retained so unlabeled trailing closures keep their meaning.
-  public convenience init(
-    serviceURL: URL = URL(string: "https://maproulette.org/api/v2/")!,
-    transport: any Transport = URLSessionTransport(),
-    apiKey: @escaping @Sendable () async throws -> String? = { nil }
-  ) throws {
-    try self.init(
-      serviceURL: serviceURL, transport: transport, accessToken: { nil }, apiKey: apiKey)
-  }
 
-  /// Inject a current per-user access token. Supplying both credential types is rejected.
+  /// Credential providers run before every request, so a rotated or signed-out credential takes
+  /// effect immediately. Supply at most one of them: a request fails with `.validation` when both
+  /// return a value. Pass them by label.
   public init(
-    serviceURL: URL = URL(string: "https://maproulette.org/api/v2/")!,
+    environment: MapRouletteEnvironment = .production,
     transport: any Transport = URLSessionTransport(),
     allowElementDeletion: Bool = false,
-    accessToken: @escaping @Sendable () async throws -> String?,
-    apiKey: @escaping @Sendable () async throws -> String? = { nil }
-  ) throws {
-    guard let c = URLComponents(url: serviceURL, resolvingAgainstBaseURL: false),
-      c.scheme == "https"
-        || (c.scheme == "http"
-          && ["localhost", "127.0.0.1", "[::1]", "::1"].contains(c.host ?? "")),
-      c.host?.isEmpty == false, c.user == nil, c.password == nil, c.query == nil, c.fragment == nil
-    else { throw MapRouletteError(.validation) }
-    base = serviceURL
+    apiKey: @escaping @Sendable () async throws -> String? = { nil },
+    accessToken: @escaping @Sendable () async throws -> String? = { nil }
+  ) {
+    self.environment = environment
+    base = environment.serviceURL
     self.transport = transport
     self.apiKey = apiKey
     self.accessToken = accessToken
     self.allowElementDeletion = allowElementDeletion
   }
+
+  /// The task's kind, decoded with this client's `allowElementDeletion`.
+  public func work(_ task: MapRouletteTask) -> TaskWork {
+    task.work(allowElementDeletion: allowElementDeletion)
+  }
+
+  /// The task's declared outcomes plus the built-in Too hard, decoded with this client's
+  /// `allowElementDeletion`; empty when the task is not a valid choice task. Every outcome, and
+  /// its `withoutDeletion()` form, can be passed to `submitChoice`.
+  public func choiceOutcomes(_ task: MapRouletteTask) -> [ChoiceOutcome] {
+    task.choiceOutcomes(allowElementDeletion: allowElementDeletion)
+  }
+
+  /// Searches challenges, ordered by id. Anonymous reads work; `pageSize` must be 1...100.
+  /// Pass `page.next` as `after` for the next page, with the same filter and page size.
   public func searchChallenges(
-    filter: ChallengeFilter = ChallengeFilter(), pageSize: Int = 50, after: Continuation? = nil
+    filter: ChallengeFilter = ChallengeFilter(), pageSize: Int = 50, after: PageCursor? = nil
   ) async throws -> Page<Challenge> {
     guard
       filter.tags.allSatisfy({
         !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !$0.contains(",")
       })
-    else { throw MapRouletteError(.validation) }
+    else {
+      throw MapRouletteError(.validation, reason: "challenge tags must be non-blank and contain no comma")
+    }
     var params = [
       "ct": filter.tags.joined(separator: ","), "cLocal": String(filter.localSurvey.rawValue),
       "ca": String(filter.includeArchived), "ce": String(filter.onlyEnabled),
@@ -60,18 +70,21 @@ public final class MapRouletteClient: Sendable {
       path: "challenges/extendedFind", params: params, size: pageSize, after: after, offset: true,
       parse: challenge)
   }
+  /// Reads one challenge. `.notFound` when it does not exist or is not visible to the caller.
   public func getChallenge(_ id: ChallengeID) async throws -> Challenge {
     let result = try challenge(await request("challenge/\(id.value)"))
     guard result.id == id else { throw MapRouletteError(.protocolFailure) }
     return result
   }
+  /// Reads a challenge's labels (not OSM tags).
   public func getChallengeTags(_ id: ChallengeID) async throws -> [ChallengeTag] {
     try await request("challenge/\(id.value)/tags").array().map { value in
       let o = try value.object()
       return try ChallengeTag(id: o.required("id").integer(), name: o.required("name").string())
     }
   }
-  public func listTasks(_ id: ChallengeID, pageSize: Int = 50, after: Continuation? = nil)
+  /// Lists a challenge's tasks in server order. `pageSize` must be 1...100; continue with `next`.
+  public func listTasks(_ id: ChallengeID, pageSize: Int = 50, after: PageCursor? = nil)
     async throws -> Page<MapRouletteTask>
   {
     let result = try await page(
@@ -82,11 +95,15 @@ public final class MapRouletteClient: Sendable {
     }
     return result
   }
+  /// Reads one task, including its lock holder and completion fields.
   public func getTask(_ id: TaskID) async throws -> MapRouletteTask {
     let result = try task(await request("task/\(id.value)"))
     guard result.id == id else { throw MapRouletteError(.protocolFailure) }
     return result
   }
+  /// The caller's identity. Needs a credential: an API key reads `user/whoami`, a bearer token
+  /// reads `oauth/mobile/me` (fork backend) and reports the grant's scopes. `.authentication`
+  /// when the credential is missing or rejected.
   public func getCurrentUser() async throws -> UserIdentity {
     let credential = try await credentials()
     let mobile = credential.bearer != nil
@@ -108,12 +125,14 @@ public final class MapRouletteClient: Sendable {
     }
     return try UserIdentity(id: o.required("id").integer(), guest: o.required("guest").boolean())
   }
-  public func findTasksInBounds(filter: TaskFilter, pageSize: Int = 50, after: Continuation? = nil)
+  /// Tasks whose location is inside `filter.bounds`, ordered by id, with `total`. `pageSize`
+  /// must be 1...100; continue with `next`.
+  public func findTasksInBounds(filter: TaskFilter, pageSize: Int = 50, after: PageCursor? = nil)
     async throws -> Page<TaskSummary>
   {
     guard
       filter.statuses.map({ !$0.isEmpty && $0.allSatisfy { $0 >= 0 && $0 <= Int32.max } }) ?? true
-    else { throw MapRouletteError(.validation) }
+    else { throw MapRouletteError(.validation, reason: statusesReason) }
     let b = filter.bounds
     var params = [
       "cLocal": "1",
@@ -140,9 +159,12 @@ public final class MapRouletteClient: Sendable {
   /// This read-only backend operation uses PUT and includes tasks locked by other users.
   /// All-challenge discovery filters to enabled challenges/projects; selected IDs bypass that filter.
   public func findTaskMarkers(filter: TaskFilter, limit: Int = 100) async throws -> [TaskSummary] {
-    guard (1...1000).contains(limit),
+    guard (1...1000).contains(limit) else {
+      throw MapRouletteError(.validation, reason: "limit must be 1...1000")
+    }
+    guard
       filter.statuses.map({ !$0.isEmpty && $0.allSatisfy { $0 >= 0 && $0 <= Int32.max } }) ?? true
-    else { throw MapRouletteError(.validation) }
+    else { throw MapRouletteError(.validation, reason: statusesReason) }
     var params = [
       "cLocal": "1", "ca": String(filter.includeArchived),
       "tStatus": filter.statuses?.map(String.init).joined(separator: ",") ?? "-1",
@@ -170,19 +192,26 @@ public final class MapRouletteClient: Sendable {
     return markers
   }
 
+  // Low-level lifecycle writes. Mobile apps complete tasks with `submitChoice` and `skipTask`;
+  // these exist for tooling and future flows, behind `@_spi(LowLevelTaskLifecycle) import`.
+
   /// Locks the task for the caller (`GET task/{id}/start`). A repeat by the owner refreshes it.
   /// Failures carry `.lockedByOtherUser` (403) or `.alreadyHoldingTask` (409).
+  @_spi(LowLevelTaskLifecycle)
   public func startTask(_ id: TaskID) async throws -> TaskLock {
     try await lock(id, action: "start", .start)
   }
   /// Refreshes a held lock. Only for long edit flows; `commitResolution` does not need it.
+  @_spi(LowLevelTaskLifecycle)
   public func refreshTaskLock(_ id: TaskID) async throws -> TaskLock {
     try await lock(id, action: "refreshLock", .refresh)
   }
   /// Releases the caller's lock. Succeeds even when the caller holds no lock; not proof of ownership.
+  @_spi(LowLevelTaskLifecycle)
   public func releaseTask(_ id: TaskID) async throws {
     _ = try await write(.release, "task/\(id.value)/release", .get)
   }
+  /// Supported mobile path, with `submitChoice`. Offer it only when `task.canSkip()`.
   /// Skips without changing status and releases the caller's lock if held. Not idempotent (the
   /// server counts every skip): after `.outcomeUnknown`, re-read instead of resending.
   public func skipTask(_ id: TaskID) async throws {
@@ -191,6 +220,7 @@ public final class MapRouletteClient: Sendable {
   /// Bare status write (`PUT task/{id}/{code}`, no query or body). The server releases the lock.
   /// Call it inside a fresh `startTask`, or use `commitResolution`. Never resend after
   /// `.outcomeUnknown` without `verifyResolution`.
+  @_spi(LowLevelTaskLifecycle)
   public func resolveTask(_ id: TaskID, as resolution: TaskResolution) async throws {
     _ = try await write(.resolve, "task/\(id.value)/\(resolution.rawValue)", .put)
   }
@@ -198,6 +228,7 @@ public final class MapRouletteClient: Sendable {
   /// released once (best effort) before the error is rethrown. If start reports a stale lock of
   /// the caller's on another task (409), that task is re-read, released when still locked, and
   /// start is retried once. Cancellation propagates without cleanup; the server expires locks.
+  @_spi(LowLevelTaskLifecycle)
   public func commitResolution(_ id: TaskID, as resolution: TaskResolution) async throws {
     try await startForCommit(id)
     do {
@@ -265,6 +296,7 @@ public final class MapRouletteClient: Sendable {
   public func submitChoice(_ task: MapRouletteTask, _ submission: ChoiceSubmission) async throws
     -> ChoiceResult
   {
+    try requireWrites()
     let target = try task.validateChoice(submission, allowElementDeletion: allowElementDeletion)
     let id = task.id
     let body = Data(choiceBody(submission).utf8)
@@ -394,6 +426,7 @@ public final class MapRouletteClient: Sendable {
   private func write(
     _ operation: Write, _ path: String, _ method: HTTPMethod, body: Data? = nil
   ) async throws -> HTTPResponse {
+    try requireWrites()
     let response: HTTPResponse
     do {
       response = try await send(path, method: method, body: body)
@@ -402,6 +435,14 @@ public final class MapRouletteClient: Sendable {
     }
     if (200...299).contains(response.status) { return response }
     throw failure(response, problem: writeProblem(operation, response))
+  }
+
+  private func requireWrites() throws {
+    guard environment.allowsWrites else {
+      throw MapRouletteError(
+        .validation,
+        reason: "task writes are disabled for \(environment); before 1.0 this SDK writes only to staging (mr-api.osm.lol) or loopback")
+    }
   }
 
   // Bodies are inspected only for the lock/scope details below and never retained.
@@ -485,17 +526,21 @@ public final class MapRouletteClient: Sendable {
   }
 
   private func page<T: Sendable>(
-    path: String, params: [String: String], size: Int, after: Continuation?, offset: Bool,
+    path: String, params: [String: String], size: Int, after: PageCursor?, offset: Bool,
     envelope: Bool = false, parse: (JSONValue) throws -> T
   ) async throws -> Page<T> {
-    guard (1...100).contains(size) else { throw MapRouletteError(.validation) }
+    guard (1...100).contains(size) else {
+      throw MapRouletteError(.validation, reason: "pageSize must be 1...100")
+    }
     let key =
       path + "?"
       + params.sorted { $0.key < $1.key }.map {
         "\($0.key.count):\($0.key)\($0.value.count):\($0.value)"
       }.joined() + "&size=\(size)"
     guard after == nil || (after?.owner == owner && after?.key == key) else {
-      throw MapRouletteError(.validation)
+      throw MapRouletteError(
+        .validation,
+        reason: "page cursor belongs to another client, operation, filter or page size")
     }
     let position = after?.position ?? 0
     var query = params
@@ -519,36 +564,38 @@ public final class MapRouletteClient: Sendable {
     guard !nextPosition.overflow else { throw MapRouletteError(.protocolFailure) }
     let next =
       rows.count == size
-      ? Continuation(owner: owner, key: key, position: nextPosition.partialValue) : nil
+      ? PageCursor(owner: owner, key: key, position: nextPosition.partialValue) : nil
     return try Page(items: rows.map(parse), next: next, total: total)
   }
-  private struct Credentials {
+  private struct Credential {
     let key: String?
     let bearer: String?
   }
 
-  private func credentials() async throws -> Credentials {
+  private func credentials() async throws -> Credential {
     try Task.checkCancellation()
     let key = try await apiKey()
     let bearer = try await accessToken()
-    guard key == nil || bearer == nil else { throw MapRouletteError(.validation) }
+    guard key == nil || bearer == nil else {
+      throw MapRouletteError(.validation, reason: "supply an API key or an access token, not both")
+    }
     for value in [key, bearer].compactMap({ $0 }) {
       guard !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
         !value.contains("\r"), !value.contains("\n")
-      else { throw MapRouletteError(.validation) }
+      else { throw MapRouletteError(.validation, reason: "credential is blank or contains a line break") }
     }
     if let bearer {
       guard bearer.range(of: "^[A-Za-z0-9._~+/-]+=*$", options: .regularExpression) != nil else {
-        throw MapRouletteError(.validation)
+        throw MapRouletteError(.validation, reason: "access token is not a valid bearer token")
       }
     }
     try Task.checkCancellation()
-    return Credentials(key: key, bearer: bearer)
+    return Credential(key: key, bearer: bearer)
   }
 
   private func request(
     _ path: String, params: [String: String] = [:], method: HTTPMethod = .get,
-    body: Data? = nil, credential suppliedCredential: Credentials? = nil,
+    body: Data? = nil, credential suppliedCredential: Credential? = nil,
     originRelative: Bool = false
   ) async throws -> JSONValue {
     let response = try await send(
@@ -579,11 +626,11 @@ public final class MapRouletteClient: Sendable {
 
   private func send(
     _ path: String, params: [String: String] = [:], method: HTTPMethod = .get,
-    body: Data? = nil, credential suppliedCredential: Credentials? = nil,
+    body: Data? = nil, credential suppliedCredential: Credential? = nil,
     originRelative: Bool = false
   ) async throws -> HTTPResponse {
     try Task.checkCancellation()
-    let credential: Credentials
+    let credential: Credential
     if let supplied = suppliedCredential {
       credential = supplied
     } else {
@@ -592,15 +639,17 @@ public final class MapRouletteClient: Sendable {
     guard
       var url = URLComponents(
         url: base.appendingPathComponent(path), resolvingAgainstBaseURL: false)
-    else { throw MapRouletteError(.validation) }
+    else { throw MapRouletteError(.validation, reason: "request URL could not be built") }
     // Replace only the path: scheme, host and explicit port remain the configured service origin.
     if originRelative { url.path = "/" + path }
     let items = params.filter { !$0.value.isEmpty }.sorted { $0.key < $1.key }.map {
       URLQueryItem(name: $0.key, value: $0.value)
     }
     if !items.isEmpty { url.queryItems = items }
-    guard let target = url.url else { throw MapRouletteError(.validation) }
-    var headers = ["Accept": "application/json", "User-Agent": "MapRoulette-Mobile-SDK/0.1"]
+    guard let target = url.url else {
+      throw MapRouletteError(.validation, reason: "request URL could not be built")
+    }
+    var headers = ["Accept": "application/json", "User-Agent": "MapRoulette-Mobile-SDK/\(MapRouletteSDK.version)"]
     if body != nil { headers["Content-Type"] = "application/json" }
     if let key = credential.key { headers["apiKey"] = key }
     if let bearer = credential.bearer { headers["Authorization"] = "Bearer " + bearer }
@@ -729,6 +778,7 @@ private func provesNotApplied(_ problem: WriteProblem?) -> Bool {
   default: false
   }
 }
+private let statusesReason = "statuses must be nil or a non-empty list of codes 0...Int32.max"
 private let choiceOnlyParams = ["cct": "3", "excludeStale": "true"]
 private func ineligibleReason(_ wire: String?) -> IneligibleReason {
   switch wire {

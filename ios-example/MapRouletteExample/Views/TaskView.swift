@@ -2,7 +2,7 @@ import AuthenticationServices
 import MapRoulette
 import SwiftUI
 
-/// Multiple-choice task screen with late locking (docs/mobile-choice-challenges.md §7). Viewing never locks.
+/// Multiple-choice task screen with late locking (docs/design/mobile-choice-challenges.md §7). Viewing never locks.
 struct TaskView: View {
   @Environment(AppSession.self) private var session
   @Environment(TaskChanges.self) private var changes
@@ -77,7 +77,7 @@ struct TaskView: View {
     let writer =
       session.writesConfigured && view.signedIn && view.canWriteTasks
       ? view.userID.map { Writer(me: $0, canEditOsm: view.canEditOsm) } : nil
-    controller = TaskWorkController(ops: ClientTaskOps(session.newClient()), writer: writer)
+    controller = TaskWorkController(ops: ClientTaskOps(session.newClient().client), writer: writer)
   }
 
   /// Account switch or sign-out: discard the old account's state and any late result.
@@ -278,7 +278,7 @@ struct TaskView: View {
       }
     case .elementInUse(let loaded, let form, let outcome):
       Section {
-        if let plain = TaskWorkController.withoutDeletion(loaded.task, outcome), let me = session.view.userID {
+        if let plain = TaskWorkController.withoutDeletion(outcome), let me = session.view.userID {
           Button {
             confirmation = Confirmation(
               title: "Send “\(outcome.label)” without deleting?",

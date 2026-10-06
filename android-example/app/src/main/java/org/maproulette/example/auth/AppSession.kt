@@ -33,6 +33,7 @@ import kotlinx.serialization.json.jsonObject
 import org.maproulette.example.BuildConfig
 import org.maproulette.sdk.ErrorKind
 import org.maproulette.sdk.MapRouletteClient
+import org.maproulette.sdk.MapRouletteEnvironment
 import org.maproulette.sdk.MapRouletteException
 import org.maproulette.sdk.OkHttpTransport
 import org.maproulette.sdk.Transport
@@ -219,7 +220,7 @@ class AppSession private constructor(context: Context) {
                     stage = "account lookup"
                     val identity = withContext(Dispatchers.IO) {
                         OkHttpTransport().use { transport ->
-                            MapRouletteClient(serviceUrl = endpoints.api, transport = transport,
+                            MapRouletteClient(MapRouletteEnvironment(endpoints.api), transport = transport,
                                 accessToken = { token.accessToken }).getCurrentUser()
                         }
                     }
@@ -370,16 +371,14 @@ class AppSession private constructor(context: Context) {
             }
             response
         }
-        fun client(deletion: Boolean) = MapRouletteClient(serviceUrl = endpoints.api, transport = boundTransport,
-            accessToken = { accessToken(expected) }, allowElementDeletion = deletion)
-        val client = client(allowDeletion)
-        return SessionClient(client, if (allowDeletion) client(false) else client, transport).also { clients.add(it) }
+        val client = MapRouletteClient(MapRouletteEnvironment(endpoints.api), transport = boundTransport,
+            accessToken = { accessToken(expected) }, allowElementDeletion = allowDeletion)
+        return SessionClient(client, transport).also { clients.add(it) }
     }
 
-    /** [client] uses the deletion setting at creation; [noDeletionClient] always has deletion off. */
+    /** [client] uses the deletion setting at creation. */
     inner class SessionClient internal constructor(
         val client: MapRouletteClient,
-        val noDeletionClient: MapRouletteClient,
         private val transport: OkHttpTransport,
     ) : Closeable {
         override fun close() {
