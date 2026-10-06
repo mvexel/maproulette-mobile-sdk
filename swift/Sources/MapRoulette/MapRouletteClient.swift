@@ -1,8 +1,12 @@
 import Foundation
 
-/// Reads plus the bare task-lifecycle writes (start, refresh, release, skip and status 1/2/5/6).
-/// No implicit pagination, retries or persistence; writes are never resent.
+/// Reads plus the bare task-lifecycle writes (start, refresh, release, skip and status 1/2/5/6)
+/// and choice submission. No implicit pagination, retries or persistence; writes are never resent,
+/// except the identical choice submission that `submitChoice` documents.
 public final class MapRouletteClient: Sendable {
+  /// Lets choice "gone" outcomes delete the OSM element (default false). When false they resolve
+  /// to Not an issue and no delete is ever sent.
+  public let allowElementDeletion: Bool
   private let base: URL
   private let transport: any Transport
   private let apiKey: @Sendable () async throws -> String?
@@ -22,6 +26,7 @@ public final class MapRouletteClient: Sendable {
   public init(
     serviceURL: URL = URL(string: "https://maproulette.org/api/v2/")!,
     transport: any Transport = URLSessionTransport(),
+    allowElementDeletion: Bool = false,
     accessToken: @escaping @Sendable () async throws -> String?,
     apiKey: @escaping @Sendable () async throws -> String? = { nil }
   ) throws {
@@ -35,6 +40,7 @@ public final class MapRouletteClient: Sendable {
     self.transport = transport
     self.apiKey = apiKey
     self.accessToken = accessToken
+    self.allowElementDeletion = allowElementDeletion
   }
   public func searchChallenges(
     filter: ChallengeFilter = ChallengeFilter(), pageSize: Int = 50, after: Continuation? = nil
@@ -118,6 +124,7 @@ public final class MapRouletteClient: Sendable {
     if !filter.challengeIDs.isEmpty {
       params["cid"] = filter.challengeIDs.map { String($0.value) }.joined(separator: ",")
     }
+    if filter.choiceOnly { params.merge(choiceOnlyParams) { $1 } }
     let result = try await page(
       path: "tasks/box/\(b.west)/\(b.south)/\(b.east)/\(b.north)", params: params, size: pageSize,
       after: after, offset: false, envelope: true, parse: summary)
@@ -144,6 +151,7 @@ public final class MapRouletteClient: Sendable {
     if !filter.challengeIDs.isEmpty {
       params["cid"] = filter.challengeIDs.map { String($0.value) }.joined(separator: ",")
     }
+    if filter.choiceOnly { params.merge(choiceOnlyParams) { $1 } }
     let b = filter.bounds
     if filter.challengeIDs.isEmpty {
       params["ce"] = "true"
@@ -238,7 +246,133 @@ public final class MapRouletteClient: Sendable {
     try? await releaseTask(id)
   }
 
-  private enum Write { case start, refresh, release, skip, resolve }
+  /// Submits a choice task's answers or outcome with late locking: start, then
+  /// `POST task/{id}/choice`. The server applies the OSM edit (answers, or an enabled delete), sets
+  /// the status and releases the lock. The submission is checked against `task`'s payload before
+  /// anything is sent (`.validation`); decode outcomes with this client's `allowElementDeletion`.
+  ///
+  /// Failures carry a `.choice` or other `WriteProblem`; the lock is then released (best effort),
+  /// except after `.statusPending` or `.outcomeUnknown`. The identical submission is resent at most
+  /// once, only where the server's idempotency makes it safe: after `.statusPending`, and after an
+  /// unknown outcome of a non-editing outcome when a fresh read shows it did not land and the caller
+  /// still holds the lock. An edit (answers or a delete) is never resent after an unknown outcome,
+  /// because the first request may still be uploading: `.outcomeUnknown` is thrown with the lock
+  /// kept; submit the same submission again later (the server resumes it without a second upload).
+  /// When the read shows the submission landed, the result comes from the read. If the resend then fails
+  /// without proving that nothing was applied (e.g. lock_required because the first attempt
+  /// finished meanwhile), the first error (`.outcomeUnknown`, or `.statusPending` with its
+  /// changeset) is thrown and the lock kept.
+  public func submitChoice(_ task: MapRouletteTask, _ submission: ChoiceSubmission) async throws
+    -> ChoiceResult
+  {
+    let target = try task.validateChoice(submission, allowElementDeletion: allowElementDeletion)
+    let id = task.id
+    let body = Data(choiceBody(submission).utf8)
+    let edits: Bool
+    switch submission {
+    case .answers: edits = true
+    case .outcome(let outcome): edits = outcome.deletesElement
+    }
+    try await startForCommit(id)
+    let first: MapRouletteError
+    do {
+      return try await postChoice(id, body)
+    } catch let error as MapRouletteError {
+      first = error
+    }
+    if case .choice(.statusPending) = first.problem {
+    } else if first.problem == .outcomeUnknown {
+      switch try await recover(task, target) {
+      case .applied(let changeset):
+        return ChoiceResult(status: TaskStatus(code: target.rawValue), changesetID: changeset)
+      // An edit may still be uploading on the server; resending could race it.
+      case .resend: if edits { throw first }
+      case .unknown: throw first
+      }
+    } else {
+      await releaseQuietly(id)
+      throw first
+    }
+    // The first attempt may have landed (unknown) or did land in OSM (statusPending).
+    do {
+      return try await postChoice(id, body)
+    } catch let second as MapRouletteError {
+      if case .choice(.statusPending) = second.problem { throw second }
+      if first.problem == .outcomeUnknown, provesNotApplied(second.problem) {
+        await releaseQuietly(id)
+        throw second
+      }
+      // E.g. lock_required because the first attempt finished meanwhile: keep the first error
+      // (statusPending keeps its changeset ID) and keep the lock for a later identical resend.
+      throw first
+    }
+  }
+
+  /// Fresh server-side OSM eligibility check (`GET task/{id}/choice/check`, `tasks:read`). It
+  /// changes nothing the caller owns; the server may record a system ineligible flag that hides
+  /// the task from mobile discovery. A 502 carries `.choice(.osmUnavailable)`.
+  public func checkChoice(_ id: TaskID) async throws -> ChoiceEligibility {
+    let response = try await send("task/\(id.value)/choice/check")
+    guard response.status == 200 else {
+      let unavailable = response.status == 502 && errorField(response, "error") == "osm_unavailable"
+      throw failure(response, problem: unavailable ? .choice(.osmUnavailable) : nil)
+    }
+    do {
+      let o = try JSONDecoder().decode(JSONValue.self, from: response.body).object()
+      let deleteAllowed = try o.optional("deleteAllowed")?.boolean() ?? false
+      if try o.required("eligible").boolean() {
+        return ChoiceEligibility(eligible: true, deleteAllowed: deleteAllowed, reason: nil)
+      }
+      return ChoiceEligibility(
+        eligible: false, deleteAllowed: false,
+        reason: ineligibleReason(try o.optional("reason")?.string()))
+    } catch {
+      throw MapRouletteError(.protocolFailure)
+    }
+  }
+
+  private func postChoice(_ id: TaskID, _ body: Data) async throws -> ChoiceResult {
+    let response = try await write(.choice, "task/\(id.value)/choice", .post, body: body)
+    do {
+      guard response.status == 200 else { throw MapRouletteError(.protocolFailure) }
+      let o = try JSONDecoder().decode(JSONValue.self, from: response.body).object()
+      let status = try o.required("status").integer()
+      guard status >= 0, status <= Int32.max else { throw MapRouletteError(.protocolFailure) }
+      return ChoiceResult(
+        status: TaskStatus(code: Int(status)),
+        changesetID: (try o.optional("changesetId")?.integer()).flatMap { $0 > 0 ? $0 : nil })
+    } catch {
+      // The submission may have been applied even though the response could not be read.
+      throw MapRouletteError(.protocolFailure, status: response.status, problem: .outcomeUnknown)
+    }
+  }
+
+  private enum Recovery { case applied(Int64?), resend, unknown }
+
+  // Fresh identity and task reads after an interrupted submission. A lock still held by the caller
+  // means it did not land (the server releases on success). Applied needs the target status, no
+  // lock, not completed by someone else, and a status that differs from the one before submitting
+  // (Too hard can be submitted on a Too hard task). Anything else, including a failed read, stays
+  // unknown. Cancellation propagates.
+  private func recover(_ task: MapRouletteTask, _ target: TaskResolution) async throws -> Recovery {
+    do {
+      let me = try await getCurrentUser().id
+      let fresh = try await getTask(task.id)
+      if fresh.lockedBy == me { return .resend }
+      if fresh.status?.code == target.rawValue, fresh.lockedBy == nil,
+        task.status?.code != target.rawValue, fresh.completedBy == nil || fresh.completedBy == me
+      {
+        return .applied(fresh.changesetID)
+      }
+      return .unknown
+    } catch is CancellationError {
+      throw CancellationError()
+    } catch {
+      return .unknown
+    }
+  }
+
+  private enum Write { case start, refresh, release, skip, resolve, choice }
 
   private func lock(_ id: TaskID, action: String, _ operation: Write) async throws -> TaskLock {
     let response = try await write(operation, "task/\(id.value)/\(action)", .get)
@@ -256,12 +390,12 @@ public final class MapRouletteClient: Sendable {
     }
   }
 
-  private func write(_ operation: Write, _ path: String, _ method: HTTPMethod) async throws
-    -> HTTPResponse
-  {
+  private func write(
+    _ operation: Write, _ path: String, _ method: HTTPMethod, body: Data? = nil
+  ) async throws -> HTTPResponse {
     let response: HTTPResponse
     do {
-      response = try await send(path, method: method)
+      response = try await send(path, method: method, body: body)
     } catch let error as MapRouletteError where error.kind == .network {
       throw MapRouletteError(.network, problem: .outcomeUnknown)
     }
@@ -276,6 +410,7 @@ public final class MapRouletteClient: Sendable {
       if case .string(let value) = body?[name] { return value }
       return nil
     }
+    if operation == .choice { return choiceProblem(response.status, body, field) }
     switch response.status {
     case 400:
       return operation == .resolve && field("error") != "invalid_request" ? .invalidTransition : nil
@@ -303,6 +438,47 @@ public final class MapRouletteClient: Sendable {
       return .outcomeUnknown
     default:
       return nil
+    }
+  }
+
+  private func errorField(_ response: HTTPResponse, _ name: String) -> String? {
+    guard let body = try? JSONDecoder().decode(JSONValue.self, from: response.body).object(),
+      case .string(let value) = body[name]
+    else { return nil }
+    return value
+  }
+
+  private func choiceProblem(
+    _ status: Int, _ body: [String: JSONValue]?, _ field: (String) -> String?
+  ) -> WriteProblem? {
+    let error = field("error")
+    switch status {
+    case 401: return error == "osm_reauth_required" ? .choice(.osmReauthRequired) : nil
+    case 403:
+      guard error == "insufficient_scope" else { return nil }
+      return field("scope") == "osm:tagfix" ? .choice(.osmScopeRequired) : .insufficientScope
+    case 409:
+      switch error {
+      case "lock_required": return .lockLost
+      case "invalid_transition": return .invalidTransition
+      case "submission_pending": return .choice(.submissionPending)
+      case "element_in_use": return .choice(.elementInUse)
+      // The server's diagnostic `detail` is deliberately not exposed.
+      case "task_ineligible": return .choice(.taskIneligible(reason: ineligibleReason(field("reason"))))
+      default: return nil
+      }
+    case 422:
+      switch error {
+      case "invalid_submission": return .choice(.invalidSubmission(detail: field("detail")))
+      case "unsupported_task": return .choice(.unsupportedTask)
+      default: return nil
+      }
+    case 500:
+      guard error == "status_pending" else { return .outcomeUnknown }
+      return .choice(.statusPending(changesetID: try? body?.optional("changesetId")?.integer()))
+    case 502: return error == "osm_unavailable" ? .choice(.osmUnavailable) : .outcomeUnknown
+    case 500...599: return .outcomeUnknown
+    default: return nil
     }
   }
 
@@ -536,7 +712,29 @@ private func task(_ value: JSONValue) throws -> MapRouletteTask {
       }
     },
     reviewStatus: o.optional("reviewStatus").map { try Int(exactly: $0.integer()).unwrap() },
-    bundleID: o.optional("bundleId")?.integer())
+    bundleID: o.optional("bundleId")?.integer(),
+    // The backend may store -1 for "no changeset".
+    changesetID: (try o.optional("changesetId")?.integer()).flatMap { $0 > 0 ? $0 : nil })
+}
+// Errors after which the server has re-evaluated the submission with the caller's lock and
+// applied nothing.
+private func provesNotApplied(_ problem: WriteProblem?) -> Bool {
+  switch problem {
+  case .choice(.taskIneligible)?, .choice(.invalidSubmission)?, .choice(.elementInUse)?,
+    .choice(.osmReauthRequired)?, .choice(.osmScopeRequired)?, .choice(.osmUnavailable)?,
+    .choice(.unsupportedTask)?, .insufficientScope?:
+    true
+  default: false
+  }
+}
+private let choiceOnlyParams = ["cct": "3", "excludeStale": "true"]
+private func ineligibleReason(_ wire: String?) -> IneligibleReason {
+  switch wire {
+  case "element_gone": .elementGone
+  case "match_failed": .matchFailed
+  case "key_changed": .keyChanged
+  default: .unknown
+  }
 }
 private func summary(_ value: JSONValue) throws -> TaskSummary {
   let o = try value.object()

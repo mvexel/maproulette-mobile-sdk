@@ -56,12 +56,15 @@ data class Bounds(
 }
 
 /** Filters task locations. Empty challengeIds means all challenges visible to the caller.
- * null statuses means all statuses; empty statuses is invalid. */
+ * null statuses means all statuses; empty statuses is invalid. [choiceOnly] sends
+ * `cct=3&excludeStale=true` (fork backend): only choice challenges, without tasks found
+ * stale. Servers without the filter ignore it, so still check [Task.mobileSupport]. */
 data class TaskFilter(
     val challengeIds: List<ChallengeId> = emptyList(),
     val bounds: Bounds,
     val statuses: List<Int>? = listOf(0, 3, 6),
     val includeArchived: Boolean = false,
+    val choiceOnly: Boolean = false,
 )
 
 data class Challenge(
@@ -115,6 +118,8 @@ data class Task(
     val mappedOn: String? = null,
     val reviewStatus: Int? = null,
     val bundleId: Long? = null,
+    /** OSM changeset recorded for the task's completion, if any. */
+    val changesetId: Long? = null,
 )
 
 data class TaskSummary(
@@ -130,6 +135,11 @@ data class UserIdentity(val id: Long, val guest: Boolean, val scopes: Set<String
     /** Bearer grants need `tasks:write`; an API key acts with the user's full authority. */
     val canWriteTasks: Boolean
         get() = scopes?.contains("tasks:write") ?: !guest
+
+    /** Whether the grant has `osm:tagfix`, needed for choice answers and deletes (OSM edits). API-key
+     * identities report false: the choice route accepts only mobile bearer credentials. */
+    val canEditOsm: Boolean
+        get() = scopes?.contains("osm:tagfix") == true && canWriteTasks
 }
 
 /** In-memory token bound to one client, operation, filter and page size. */
@@ -193,6 +203,42 @@ sealed interface WriteProblem {
     /** The request may have been applied (network failure, 5xx or unreadable success). Re-read the
      * task before acting; never resend a skip or status write blindly. */
     data object OutcomeUnknown : WriteProblem
+}
+
+/** Failures specific to choice submission and checks (`POST task/{id}/choice`, `choice/check`). */
+sealed interface ChoiceProblem : WriteProblem {
+    /** 409 task_ineligible: the OSM element changed since the payload was written. Nothing was
+     * uploaded and no status was written; the server hides the task from mobile discovery. Say
+     * "This one no longer needs answering" and move on; never offer a conflict choice. */
+    data class TaskIneligible(val reason: IneligibleReason) : ChoiceProblem
+
+    /** 409 element_in_use: a delete was refused because the node belongs to a way or relation.
+     * The app may offer the same outcome without deletion, after the user confirms. */
+    data object ElementInUse : ChoiceProblem
+
+    /** 401 osm_reauth_required: OSM rejected the stored OSM token. Re-consent with `osm:tagfix`;
+     * the MapRoulette session stays valid. */
+    data object OsmReauthRequired : ChoiceProblem
+
+    /** 403 insufficient_scope for `osm:tagfix`: the grant cannot edit OSM. Sign in again to grant it. */
+    data object OsmScopeRequired : ChoiceProblem
+
+    /** 502 osm_unavailable: OSM could not be reached; nothing was applied. Try again later. */
+    data object OsmUnavailable : ChoiceProblem
+
+    /** 409 submission_pending: another submission for this task is unfinished. */
+    data object SubmissionPending : ChoiceProblem
+
+    /** 500 status_pending: the OSM edit is uploaded but the status write failed and the SDK's one
+     * identical resend did not finish it. The lock is kept; resubmitting the same submission (after
+     * a new start if the lock expired) finishes it without a second upload. */
+    data class StatusPending(val changesetId: Long?) : ChoiceProblem
+
+    /** 422 invalid_submission: an id is not in the stored payload. [detail] is the server's text. */
+    data class InvalidSubmission(val detail: String?) : ChoiceProblem
+
+    /** 422 unsupported_task: the stored payload fails server validation. */
+    data object UnsupportedTask : ChoiceProblem
 }
 
 /** Interpretation of a fresh task read after an interrupted status write (see [verifyResolution]). */

@@ -438,6 +438,11 @@ reimplement them. `TaskStatus` keeps its existing names.
 The transport gains PUT and POST with an empty body, plus a no-retry flag
 for writes. Writes are never retried automatically by the SDK.
 
+**Changed 2026-10-06 (choice challenges):** `mobileSupport()` is now
+`IN_PLACE | UNSUPPORTED`, `allowedResolutions()` is always empty, and choice
+tasks complete through `submitChoice`. See
+[mobile-choice-challenges.md](mobile-choice-challenges.md) and the README.
+
 **As implemented (2026-10-05).** Both SDKs follow this section with these
 differences: the detail type is `WriteProblem` (adds `InsufficientScope` and
 `OutcomeUnknown`; HTTP `kind` is unchanged, so a status-write 400 is `http` +
@@ -653,39 +658,63 @@ of scope.
 
 ## Live verification
 
-Done on staging without changing any data: `/ping` returns 200.
-Anonymous `start`, `release`, `refreshLock`, status PUT and skip POST all
-return 401 `NotAuthorized` (tested on nonexistent task 999999999). A
-well-formed bogus bearer on start or a status PUT returns
-`403 {"error":"insufficient_scope"}`, because the gate rejects the route
-before checking the token. A bogus bearer on a read returns
-`401 invalid_token`.
+### 2026-10-06: staging on backend `15bc9f8`
 
-**Blocked: probes that change state.** These need a staging credential
-that can write: an `apiKey` for a staging MapRoulette user (and for a
-second user to test lock conflicts). A mobile bearer token cannot write
-under the current gate. Staging has no web UI where a user could copy an
-API key. No credential was minted and nothing was created on staging.
+The tests ran against `https://mr-api.osm.lol` after a Komodo redeploy from
+the public fork. Before the redeploy, Restic snapshot `e153fa86` was taken and
+includes the database dump. The redeploy kept bench challenge 1 (168 tasks),
+users 1 and 2 and evolution 129.
 
-Planned probe script, to run only against `https://mr-api.osm.lol`, on a
-new disposable project and challenge with three or more point tasks
-(never on bench challenge 1):
+Credentials were temporary mobile grants, minted as token hashes by
+`tmp/probe/setup.sh` and expiring after 2 hours:
 
-1. User A: start T1 → 200. Read T1: `lockedBy == A`.
-2. User A: start T2 → 409 with `lockedTaskId == T1`.
-3. User B: start T1 → 403. User B: `PUT T1/1` → 403.
-4. User A: refresh T1 → 200. User A: `PUT T1/1` → 204. Read T1: status 1,
-   `lockedBy` null, check `completedBy` (staleness).
-5. User A: `PUT T1/2` (a change by the same user) → 204 or 400. User B:
-   `PUT T1/2` → 400. User B: `PUT T1/1` → 204? This last call confirms the
-   weakness where another user can rewrite the same status.
-6. User A: start T2, then release → 200. Release again → 200. Read:
-   `lockedBy` null.
-7. User A: start T3, skip → 204. Read: status 0, `skip_count` +1, unlocked.
-8. User A: `PUT T3/4` → expected 204, which confirms the Deleted
-   escalation. Run this only on the disposable challenge.
-9. Clean up: delete the disposable challenge and project, then record
-   their IDs in the work log.
+- user 1 `tasks:read tasks:write`;
+- user 1 `tasks:read`;
+- user 2 `tasks:read tasks:write`. User 2 is the second development-OSM
+  account.
+
+No API key was created or changed. The tests used only the disposable
+challenge **2** (project `mobile-probe-disposable`, tasks 169–173). All 51
+checks matched the expected result.
+
+| # | Probe | Prediction | Actual |
+| --- | --- | --- | --- |
+| 1 | A start T1; read | 200, `lockedBy == A` | 200, `lockedBy 1` |
+| 1b | A start T1 again | 200 (refresh) | 200 |
+| 2 | A start T2 while holding T1 | 409, `lockedTaskId == T1` | 409, `lockedTaskId 169` |
+| 3 | B start T1 / B `PUT T1/1` | 403 / 403 | 403 "Task is currently locked by user …" / 403 "This task is locked by another user…" |
+| 3b | B release T1 (not the owner) | 200, no effect | 200; T1 still locked by A |
+| 4 | A refreshLock (bearer) | 403 (v1 late locking) | 403 `insufficient_scope` |
+| 4b | A `PUT T1/1`; read | 204; status 1, unlocked; `completedBy` possibly stale | 204; status 1, `lockedBy` null, **`completedBy 1`, `mappedOn` set: the cache fix works** |
+| 5 | B `PUT T1/5` (different completed status) | 400 | 400 "Invalid task status supplied." |
+| 5b | B `PUT T1/1` (same status) | 204 (known weakness) | 204; `completedBy` becomes 2 and the read is fresh. **Takeover confirmed** |
+| 6 | A start T2, release, release again | 200, 200, unlocked | 200, 200, 200; unlocked, status 0 |
+| 7 | A skip T3 without lock / with lock | 204, status unchanged, unlocked | 204 / 204; status 0, unlocked. `skip_count` is not in the task JSON, so it was not checked |
+| 7b | A start + `PUT` 2/6/5 on T2/T4/T5 | 204; status set, unlocked, `completedBy` A | all as predicted |
+| 8 | Status 4 (Deleted) | 204 with an API key (escalation) | Not run with an API key. A bearer token gets 403 `insufficient_scope`; the escalation is recorded from source in upstream-issues §1 |
+| 9 | B `PUT T3/1` with no lock (T3 unlocked, status 0) | 204 (no lock required) | 204; `completedBy 2`. **Confirmed** (upstream-issues §4) |
+
+Gate checks:
+
+- A `tasks:read` grant on start, release, skip and `PUT /1` gets
+  `403 insufficient_scope`.
+- A `tasks:write` grant gets `403 insufficient_scope` on:
+  - refreshLock;
+  - `PUT /4`, `/9` and `/3`;
+  - comment;
+  - unlock/request.
+- `?requestReview=false` or a JSON body on a status `PUT` gets
+  `400 invalid_request`.
+- A bogus bearer token on start now gets `401 invalid_token`. The old gate
+  returned 403.
+- None of these rejected requests changed the task.
+
+Observed: the 403 message for another user's lock includes that user's
+display name.
+
+The earlier probes that changed no data (2026-10-05, before the patch) are
+superseded by this run. The disposable challenge stays in place. Run
+`tmp/probe/cleanup.sh` to remove the probe grants and the temporary secrets.
 
 ## Decisions (user, 2026-10-05)
 

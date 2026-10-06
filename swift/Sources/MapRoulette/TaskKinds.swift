@@ -24,6 +24,13 @@ public enum TaskWork: Sendable, Equatable {
   case changeFile(format: String?, encoding: String?)
   /// Unrecognized version/type or malformed payload, preserved as received.
   case unknown(JSONValue)
+  /// Multiple-choice questions about one OSM element (`meta.type` 3,
+  /// docs/mobile-choice-challenges.md). `match` is the identity guard (empty when absent);
+  /// `outcomes` are the declared ones, decoded with the deletion setting passed to `work`. Use
+  /// `choiceOutcomes` to include the built-in Too hard.
+  case choice(
+    element: OSMElementRef, match: [String: String], questions: [ChoiceQuestion],
+    outcomes: [ChoiceOutcome])
 }
 public struct OSMElementRef: Sendable, Hashable {
   public enum ElementType: String, Sendable { case node, way, relation }
@@ -59,7 +66,9 @@ public struct Instruction: Sendable, Equatable {
     return result + text.substring(from: position)
   }
 }
-public enum MobileSupport: Sendable, Equatable { case full, resolveWithoutFix, unsupported }
+/// Mobile offers only tasks that are completed in place: valid, unbundled choice tasks that are
+/// still actionable. Standard, tag-fix and change-file tasks are unsupported.
+public enum MobileSupport: Sendable, Equatable { case inPlace, unsupported }
 
 // Same expressions as the MapRoulette web UI templating.
 private func regex(_ pattern: String) -> NSRegularExpression {
@@ -88,8 +97,10 @@ private func groups(_ expression: NSRegularExpression, _ text: String) -> [Strin
 private struct Malformed: Error {}
 
 extension MapRouletteTask {
-  /// Decodes the task kind. The task payload wins over the challenge's cooperativeType.
-  public func work() -> TaskWork {
+  /// Decodes the task kind. The task payload wins over the challenge's cooperativeType. Choice
+  /// payloads are validated strictly: any broken rule gives `.unknown`. Pass the client's
+  /// `allowElementDeletion` so delete outcomes match what `submitChoice` sends.
+  public func work(allowElementDeletion: Bool = false) -> TaskWork {
     guard let raw = cooperativeWork, case .object(let o) = raw else { return .standard }
     do {
       var meta: [String: JSONValue]? = nil
@@ -103,6 +114,9 @@ extension MapRouletteTask {
         var file: [String: JSONValue] = [:]
         if case .object(let f) = o["file"] { file = f }
         return .changeFile(format: string(file["format"]), encoding: string(file["encoding"]))
+      }
+      if version == 2 && type == 3 {
+        return try choiceWork(o, allowElementDeletion: allowElementDeletion)
       }
       return .unknown(raw)
     } catch {
@@ -170,33 +184,22 @@ extension MapRouletteTask {
     return result
   }
 
-  /// Derived suitability for mobile resolution; the backend stores no such flag.
+  /// Derived suitability for mobile; the backend stores no such flag. `.inPlace` only for a valid,
+  /// unbundled choice task whose status is Created, Skipped or Too hard.
   public func mobileSupport() -> MobileSupport {
-    if bundleID != nil { return .unsupported }
-    switch work() {
-    case .standard: return .full
-    case .changeFile: return .resolveWithoutFix
-    case .tagFix(_, let edits):
-      return edits.contains { if case .unknown = $0.kind { true } else { false } }
-        ? .unsupported : .resolveWithoutFix
-    case .unknown: return .unsupported
-    }
+    guard bundleID == nil, status.map({ actionable.contains($0.code) }) == true,
+      case .choice = work()
+    else { return .unsupported }
+    return .inPlace
   }
 
-  private var isActionable: Bool {
-    status.map { actionable.contains($0.code) } == true && mobileSupport() != .unsupported
-  }
+  /// Statuses to offer as bare status writes. Always empty since choice challenges: non-choice
+  /// tasks are unsupported on mobile and choice tasks resolve through `submitChoice` (offer
+  /// `choiceOutcomes` instead). Kept for source compatibility.
+  public func allowedResolutions() -> Set<TaskResolution> { [] }
 
-  /// Resolutions to offer: none unless the status is Created, Skipped or Too hard. Fixed is
-  /// offered only on standard tasks; tag-fix and change-file tasks need an OSM upload for Fixed.
-  public func allowedResolutions() -> Set<TaskResolution> {
-    guard isActionable else { return [] }
-    let all = Set(TaskResolution.allCases)
-    return mobileSupport() == .full ? all : all.subtracting([.fixed])
-  }
-
-  /// Whether to offer Skip (`POST task/{id}/skip`); same status and kind rules as resolutions.
-  public func canSkip() -> Bool { isActionable }
+  /// Whether to offer Skip (`POST task/{id}/skip`): only for `.inPlace` tasks.
+  public func canSkip() -> Bool { mobileSupport() == .inPlace }
 
   /// Applies the verification rules to a fresh `getTask` read after an interrupted status write.
   /// `me` is the caller's MapRoulette user id. A missing `completedBy` is treated as unknown.

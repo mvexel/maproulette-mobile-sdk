@@ -384,7 +384,7 @@
     }
    },
    "work": "standard",
-   "support": "full"
+   "support": "unsupported"
   },
   {
    "name": "coop_null",
@@ -401,7 +401,7 @@
     "cooperativeWork": null
    },
    "work": "standard",
-   "support": "full"
+   "support": "unsupported"
   },
   {
    "name": "tagfix_v1",
@@ -445,7 +445,7 @@
    },
    "work": "tagFix",
    "version": 1,
-   "support": "resolveWithoutFix",
+   "support": "unsupported",
    "edits": [
     {
      "element": "node/123456",
@@ -520,7 +520,7 @@
    },
    "work": "tagFix",
    "version": 2,
-   "support": "resolveWithoutFix",
+   "support": "unsupported",
    "edits": [
     {
      "element": "way/42",
@@ -570,7 +570,7 @@
    "work": "changeFile",
    "format": "osc",
    "encoding": "base64",
-   "support": "resolveWithoutFix"
+   "support": "unsupported"
   },
   {
    "name": "coop_unknown_version",
@@ -729,35 +729,20 @@
   {
    "kind": "standard",
    "status": 0,
-   "resolutions": [
-    1,
-    2,
-    5,
-    6
-   ],
-   "skip": true
+   "resolutions": [],
+   "skip": false
   },
   {
    "kind": "standard",
    "status": 3,
-   "resolutions": [
-    1,
-    2,
-    5,
-    6
-   ],
-   "skip": true
+   "resolutions": [],
+   "skip": false
   },
   {
    "kind": "standard",
    "status": 6,
-   "resolutions": [
-    1,
-    2,
-    5,
-    6
-   ],
-   "skip": true
+   "resolutions": [],
+   "skip": false
   },
   {
    "kind": "standard",
@@ -786,22 +771,14 @@
   {
    "kind": "tagfix_v1",
    "status": 0,
-   "resolutions": [
-    2,
-    5,
-    6
-   ],
-   "skip": true
+   "resolutions": [],
+   "skip": false
   },
   {
    "kind": "tagfix_v2",
    "status": 3,
-   "resolutions": [
-    2,
-    5,
-    6
-   ],
-   "skip": true
+   "resolutions": [],
+   "skip": false
   },
   {
    "kind": "tagfix_v1",
@@ -812,12 +789,8 @@
   {
    "kind": "changefile_v2",
    "status": 6,
-   "resolutions": [
-    2,
-    5,
-    6
-   ],
-   "skip": true
+   "resolutions": [],
+   "skip": false
   },
   {
    "kind": "bundled",

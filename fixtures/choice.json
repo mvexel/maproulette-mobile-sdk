@@ -1,0 +1,6958 @@
+{
+ "_comment": "Synthetic multiple-choice (cooperativeWork type 3) fixtures shared by the Kotlin and Swift suites; see docs/mobile-choice-challenges.md. Task 101, caller 900, other user 901. Error bodies follow the planned fork backend and the revised D3 (task_ineligible, choice_stale/excludeStale).",
+ "task": {
+  "id": 101,
+  "parent": 42,
+  "name": "node/7",
+  "instruction": "",
+  "status": 0,
+  "geometries": {
+   "type": "FeatureCollection",
+   "features": []
+  }
+ },
+ "slc": {
+  "meta": {
+   "version": 2,
+   "type": 3,
+   "choiceVersion": 1
+  },
+  "element": "node/123",
+  "match": {
+   "amenity": "bench"
+  },
+  "questions": [
+   {
+    "id": "backrest",
+    "prompt": "Does the bench have a backrest?",
+    "description": "Look at the seat from the side.",
+    "expect": {
+     "backrest": null
+    },
+    "options": [
+     {
+      "id": "yes",
+      "label": "Yes",
+      "description": "Seat has back support.",
+      "setTags": {
+       "backrest": "yes"
+      }
+     },
+     {
+      "id": "no",
+      "label": "No",
+      "setTags": {
+       "backrest": "no"
+      }
+     }
+    ]
+   },
+   {
+    "id": "material",
+    "prompt": "What is the seat mainly made of?",
+    "expect": {
+     "material": null
+    },
+    "options": [
+     {
+      "id": "wood",
+      "label": "Wood",
+      "setTags": {
+       "material": "wood"
+      }
+     },
+     {
+      "id": "metal",
+      "label": "Metal",
+      "setTags": {
+       "material": "metal"
+      }
+     },
+     {
+      "id": "concrete",
+      "label": "Concrete",
+      "setTags": {
+       "material": "concrete"
+      }
+     },
+     {
+      "id": "stone",
+      "label": "Stone",
+      "setTags": {
+       "material": "stone"
+      }
+     },
+     {
+      "id": "plastic",
+      "label": "Plastic",
+      "setTags": {
+       "material": "plastic"
+      }
+     }
+    ]
+   },
+   {
+    "id": "capacity",
+    "prompt": "How many adults can sit on it?",
+    "expect": {
+     "capacity": null
+    },
+    "options": [
+     {
+      "id": "c1",
+      "label": "1",
+      "setTags": {
+       "capacity": "1"
+      }
+     },
+     {
+      "id": "c2",
+      "label": "2",
+      "setTags": {
+       "capacity": "2"
+      }
+     },
+     {
+      "id": "c3",
+      "label": "3",
+      "setTags": {
+       "capacity": "3"
+      }
+     },
+     {
+      "id": "c4",
+      "label": "4",
+      "setTags": {
+       "capacity": "4"
+      }
+     },
+     {
+      "id": "c5",
+      "label": "5",
+      "setTags": {
+       "capacity": "5"
+      }
+     },
+     {
+      "id": "c6",
+      "label": "6",
+      "setTags": {
+       "capacity": "6"
+      }
+     }
+    ]
+   }
+  ],
+  "outcomes": [
+   {
+    "id": "not-a-bench",
+    "label": "Not a bench",
+    "description": "Something else is here.",
+    "status": 2
+   },
+   {
+    "id": "gone",
+    "label": "Bench is gone",
+    "delete": true
+   }
+  ]
+ },
+ "slc_expect": {
+  "element": "node/123",
+  "match": {
+   "amenity": "bench"
+  },
+  "questions": [
+   {
+    "id": "backrest",
+    "prompt": "Does the bench have a backrest?",
+    "description": "Look at the seat from the side.",
+    "expect": {
+     "backrest": null
+    },
+    "options": [
+     {
+      "id": "yes",
+      "label": "Yes",
+      "description": "Seat has back support.",
+      "setTags": {
+       "backrest": "yes"
+      },
+      "unsetTags": []
+     },
+     {
+      "id": "no",
+      "label": "No",
+      "description": null,
+      "setTags": {
+       "backrest": "no"
+      },
+      "unsetTags": []
+     }
+    ]
+   },
+   {
+    "id": "material",
+    "prompt": "What is the seat mainly made of?",
+    "description": null,
+    "expect": {
+     "material": null
+    },
+    "options": [
+     {
+      "id": "wood",
+      "label": "Wood",
+      "description": null,
+      "setTags": {
+       "material": "wood"
+      },
+      "unsetTags": []
+     },
+     {
+      "id": "metal",
+      "label": "Metal",
+      "description": null,
+      "setTags": {
+       "material": "metal"
+      },
+      "unsetTags": []
+     },
+     {
+      "id": "concrete",
+      "label": "Concrete",
+      "description": null,
+      "setTags": {
+       "material": "concrete"
+      },
+      "unsetTags": []
+     },
+     {
+      "id": "stone",
+      "label": "Stone",
+      "description": null,
+      "setTags": {
+       "material": "stone"
+      },
+      "unsetTags": []
+     },
+     {
+      "id": "plastic",
+      "label": "Plastic",
+      "description": null,
+      "setTags": {
+       "material": "plastic"
+      },
+      "unsetTags": []
+     }
+    ]
+   },
+   {
+    "id": "capacity",
+    "prompt": "How many adults can sit on it?",
+    "description": null,
+    "expect": {
+     "capacity": null
+    },
+    "options": [
+     {
+      "id": "c1",
+      "label": "1",
+      "description": null,
+      "setTags": {
+       "capacity": "1"
+      },
+      "unsetTags": []
+     },
+     {
+      "id": "c2",
+      "label": "2",
+      "description": null,
+      "setTags": {
+       "capacity": "2"
+      },
+      "unsetTags": []
+     },
+     {
+      "id": "c3",
+      "label": "3",
+      "description": null,
+      "setTags": {
+       "capacity": "3"
+      },
+      "unsetTags": []
+     },
+     {
+      "id": "c4",
+      "label": "4",
+      "description": null,
+      "setTags": {
+       "capacity": "4"
+      },
+      "unsetTags": []
+     },
+     {
+      "id": "c5",
+      "label": "5",
+      "description": null,
+      "setTags": {
+       "capacity": "5"
+      },
+      "unsetTags": []
+     },
+     {
+      "id": "c6",
+      "label": "6",
+      "description": null,
+      "setTags": {
+       "capacity": "6"
+      },
+      "unsetTags": []
+     }
+    ]
+   }
+  ]
+ },
+ "outcomes": {
+  "deletion_off": [
+   {
+    "id": "not-a-bench",
+    "label": "Not a bench",
+    "description": "Something else is here.",
+    "resolution": 2,
+    "deletesElement": false
+   },
+   {
+    "id": "gone",
+    "label": "Bench is gone",
+    "description": null,
+    "resolution": 2,
+    "deletesElement": false
+   },
+   {
+    "id": "too-hard",
+    "label": "Too hard",
+    "description": null,
+    "resolution": 6,
+    "deletesElement": false
+   }
+  ],
+  "deletion_on": [
+   {
+    "id": "not-a-bench",
+    "label": "Not a bench",
+    "description": "Something else is here.",
+    "resolution": 2,
+    "deletesElement": false
+   },
+   {
+    "id": "gone",
+    "label": "Bench is gone",
+    "description": null,
+    "resolution": 1,
+    "deletesElement": true
+   },
+   {
+    "id": "too-hard",
+    "label": "Too hard",
+    "description": null,
+    "resolution": 6,
+    "deletesElement": false
+   }
+  ]
+ },
+ "base": {
+  "meta": {
+   "version": 2,
+   "type": 3,
+   "choiceVersion": 1
+  },
+  "element": "node/7",
+  "match": {
+   "amenity": "bench"
+  },
+  "questions": [
+   {
+    "id": "backrest",
+    "prompt": "backrest?",
+    "expect": {
+     "backrest": null
+    },
+    "options": [
+     {
+      "id": "yes",
+      "label": "Yes",
+      "setTags": {
+       "backrest": "yes"
+      }
+     },
+     {
+      "id": "no",
+      "label": "No",
+      "setTags": {
+       "backrest": "no"
+      }
+     }
+    ]
+   }
+  ],
+  "outcomes": [
+   {
+    "id": "gone",
+    "label": "Gone",
+    "delete": true
+   }
+  ]
+ },
+ "valid": [
+  {
+   "name": "base",
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "unknown_fields_ignored",
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1,
+     "note": "n"
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        },
+        "icon": "i"
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ],
+      "hint": "h"
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ],
+    "extra": {
+     "x": 1
+    }
+   }
+  },
+  {
+   "name": "no_match_no_delete",
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "dup",
+      "label": "Duplicate",
+      "status": 6
+     }
+    ]
+   }
+  },
+  {
+   "name": "outcomes_absent",
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "name": "null_optionals",
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        },
+        "description": null
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ],
+      "description": null
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "way_element",
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "way/9999999999999999",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": []
+   }
+  },
+  {
+   "name": "unset_option",
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": "unknown"
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "remove",
+        "label": "Remove",
+        "unsetTags": [
+         "backrest"
+        ]
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "multi_key_question",
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null,
+       "armrest": null
+      },
+      "options": [
+       {
+        "id": "both",
+        "label": "Both",
+        "setTags": {
+         "backrest": "yes",
+         "armrest": "yes"
+        }
+       },
+       {
+        "id": "back",
+        "label": "Back only",
+        "setTags": {
+         "backrest": "yes"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "limits_max",
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "m1": "a",
+     "m2": "b",
+     "m3": "c",
+     "m4": "d"
+    },
+    "questions": [
+     {
+      "id": "a-------------------------------",
+      "prompt": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+      "expect": {
+       "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk": null
+      },
+      "options": [
+       {
+        "id": "z9999999999999999999999999999999",
+        "label": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+        "setTags": {
+         "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀"
+        },
+        "description": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+       },
+       {
+        "id": "o1",
+        "label": "L",
+        "setTags": {
+         "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk": "v1"
+        }
+       },
+       {
+        "id": "o2",
+        "label": "L",
+        "setTags": {
+         "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk": "v2"
+        }
+       },
+       {
+        "id": "o3",
+        "label": "L",
+        "setTags": {
+         "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk": "v3"
+        }
+       },
+       {
+        "id": "o4",
+        "label": "L",
+        "setTags": {
+         "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk": "v4"
+        }
+       },
+       {
+        "id": "o5",
+        "label": "L",
+        "setTags": {
+         "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk": "v5"
+        }
+       },
+       {
+        "id": "o6",
+        "label": "L",
+        "setTags": {
+         "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk": "v6"
+        }
+       },
+       {
+        "id": "o7",
+        "label": "L",
+        "setTags": {
+         "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk": "v7"
+        }
+       },
+       {
+        "id": "o8",
+        "label": "L",
+        "setTags": {
+         "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk": "v8"
+        }
+       },
+       {
+        "id": "o9",
+        "label": "L",
+        "setTags": {
+         "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk": "v9"
+        }
+       },
+       {
+        "id": "o10",
+        "label": "L",
+        "setTags": {
+         "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk": "v10"
+        }
+       },
+       {
+        "id": "o11",
+        "label": "L",
+        "setTags": {
+         "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk": "v11"
+        }
+       }
+      ],
+      "description": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "G",
+      "delete": true
+     },
+     {
+      "id": "x0",
+      "label": "X",
+      "status": 2
+     },
+     {
+      "id": "x1",
+      "label": "X",
+      "status": 2
+     },
+     {
+      "id": "x2",
+      "label": "X",
+      "status": 2
+     }
+    ]
+   }
+  },
+  {
+   "name": "eight_questions",
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "q0",
+      "prompt": "q0?",
+      "expect": {
+       "k0": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "k0": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "k0": "no"
+        }
+       }
+      ]
+     },
+     {
+      "id": "q1",
+      "prompt": "q1?",
+      "expect": {
+       "k1": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "k1": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "k1": "no"
+        }
+       }
+      ]
+     },
+     {
+      "id": "q2",
+      "prompt": "q2?",
+      "expect": {
+       "k2": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "k2": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "k2": "no"
+        }
+       }
+      ]
+     },
+     {
+      "id": "q3",
+      "prompt": "q3?",
+      "expect": {
+       "k3": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "k3": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "k3": "no"
+        }
+       }
+      ]
+     },
+     {
+      "id": "q4",
+      "prompt": "q4?",
+      "expect": {
+       "k4": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "k4": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "k4": "no"
+        }
+       }
+      ]
+     },
+     {
+      "id": "q5",
+      "prompt": "q5?",
+      "expect": {
+       "k5": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "k5": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "k5": "no"
+        }
+       }
+      ]
+     },
+     {
+      "id": "q6",
+      "prompt": "q6?",
+      "expect": {
+       "k6": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "k6": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "k6": "no"
+        }
+       }
+      ]
+     },
+     {
+      "id": "q7",
+      "prompt": "q7?",
+      "expect": {
+       "k7": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "k7": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "k7": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "integer_as_float",
+   "payload": {
+    "meta": {
+     "version": 2.0,
+     "type": 3.0,
+     "choiceVersion": 1.0
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "nfd_value_is_a_real_edit_of_nfc",
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": "é"
+      },
+      "options": [
+       {
+        "id": "nfd",
+        "label": "NFD",
+        "setTags": {
+         "backrest": "é"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "nfc_nfd_keys_do_not_overlap",
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "a",
+      "prompt": "a?",
+      "expect": {
+       "é": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "é": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "é": "no"
+        }
+       }
+      ]
+     },
+     {
+      "id": "b",
+      "prompt": "b?",
+      "expect": {
+       "é": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "é": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "é": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  }
+ ],
+ "invalid": [
+  {
+   "name": "meta_missing",
+   "rule": 1,
+   "payload": {
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "version_3",
+   "rule": 1,
+   "payload": {
+    "meta": {
+     "version": 3,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "type_9",
+   "rule": 1,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 9,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "choice_version_missing",
+   "rule": 1,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "choice_version_2",
+   "rule": 1,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 2
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "choice_version_string",
+   "rule": 1,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": "1"
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "element_missing",
+   "rule": 2,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "element_zero",
+   "rule": 2,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/0",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "element_leading_zero",
+   "rule": 2,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/01",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "element_too_long",
+   "rule": 2,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/12345678901234567",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "element_type",
+   "rule": 2,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "area/1",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "element_short_type",
+   "rule": 2,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "n123",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "element_trailing_newline",
+   "rule": 2,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7\n",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "element_number",
+   "rule": 2,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": 7,
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "match_empty",
+   "rule": 2,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {},
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "match_five_keys",
+   "rule": 2,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "m0": "x",
+     "m1": "x",
+     "m2": "x",
+     "m3": "x",
+     "m4": "x"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "match_null_value",
+   "rule": 2,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": null
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "match_number_value",
+   "rule": 2,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": 1
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "match_not_object",
+   "rule": 2,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": [
+     "amenity"
+    ],
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "match_overlaps_expect",
+   "rule": 2,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "backrest": "yes"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "questions_missing",
+   "rule": 3,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "questions_empty",
+   "rule": 3,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "questions_nine",
+   "rule": 3,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "q0",
+      "prompt": "q0?",
+      "expect": {
+       "k0": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "k0": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "k0": "no"
+        }
+       }
+      ]
+     },
+     {
+      "id": "q1",
+      "prompt": "q1?",
+      "expect": {
+       "k1": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "k1": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "k1": "no"
+        }
+       }
+      ]
+     },
+     {
+      "id": "q2",
+      "prompt": "q2?",
+      "expect": {
+       "k2": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "k2": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "k2": "no"
+        }
+       }
+      ]
+     },
+     {
+      "id": "q3",
+      "prompt": "q3?",
+      "expect": {
+       "k3": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "k3": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "k3": "no"
+        }
+       }
+      ]
+     },
+     {
+      "id": "q4",
+      "prompt": "q4?",
+      "expect": {
+       "k4": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "k4": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "k4": "no"
+        }
+       }
+      ]
+     },
+     {
+      "id": "q5",
+      "prompt": "q5?",
+      "expect": {
+       "k5": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "k5": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "k5": "no"
+        }
+       }
+      ]
+     },
+     {
+      "id": "q6",
+      "prompt": "q6?",
+      "expect": {
+       "k6": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "k6": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "k6": "no"
+        }
+       }
+      ]
+     },
+     {
+      "id": "q7",
+      "prompt": "q7?",
+      "expect": {
+       "k7": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "k7": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "k7": "no"
+        }
+       }
+      ]
+     },
+     {
+      "id": "q8",
+      "prompt": "q8?",
+      "expect": {
+       "k8": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "k8": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "k8": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "question_id_uppercase",
+   "rule": 3,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "Backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "question_id_leading_dash",
+   "rule": 3,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "-backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "question_id_too_long",
+   "rule": 3,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "question_id_empty",
+   "rule": 3,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "question_id_duplicate",
+   "rule": 3,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "a",
+      "prompt": "a?",
+      "expect": {
+       "k1": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "k1": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "k1": "no"
+        }
+       }
+      ]
+     },
+     {
+      "id": "a",
+      "prompt": "a?",
+      "expect": {
+       "k2": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "k2": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "k2": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "prompt_empty",
+   "rule": 3,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "prompt_too_long",
+   "rule": 3,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "ppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "prompt_too_long_astral",
+   "rule": 3,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "prompt_missing",
+   "rule": 3,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "question_description_too_long",
+   "rule": 3,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ],
+      "description": "ddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "question_description_number",
+   "rule": 3,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ],
+      "description": 1
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "expect_empty",
+   "rule": 3,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {},
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "expect_five_keys",
+   "rule": 3,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "k0": null,
+       "k1": null,
+       "k2": null,
+       "k3": null,
+       "k4": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "expect_number_value",
+   "rule": 3,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": 1
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "expect_overlap",
+   "rule": 3,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "a",
+      "prompt": "a?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     },
+     {
+      "id": "b",
+      "prompt": "b?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "options_one",
+   "rule": 3,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "options_thirteen",
+   "rule": 3,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "o0",
+        "label": "L",
+        "setTags": {
+         "backrest": "v0"
+        }
+       },
+       {
+        "id": "o1",
+        "label": "L",
+        "setTags": {
+         "backrest": "v1"
+        }
+       },
+       {
+        "id": "o2",
+        "label": "L",
+        "setTags": {
+         "backrest": "v2"
+        }
+       },
+       {
+        "id": "o3",
+        "label": "L",
+        "setTags": {
+         "backrest": "v3"
+        }
+       },
+       {
+        "id": "o4",
+        "label": "L",
+        "setTags": {
+         "backrest": "v4"
+        }
+       },
+       {
+        "id": "o5",
+        "label": "L",
+        "setTags": {
+         "backrest": "v5"
+        }
+       },
+       {
+        "id": "o6",
+        "label": "L",
+        "setTags": {
+         "backrest": "v6"
+        }
+       },
+       {
+        "id": "o7",
+        "label": "L",
+        "setTags": {
+         "backrest": "v7"
+        }
+       },
+       {
+        "id": "o8",
+        "label": "L",
+        "setTags": {
+         "backrest": "v8"
+        }
+       },
+       {
+        "id": "o9",
+        "label": "L",
+        "setTags": {
+         "backrest": "v9"
+        }
+       },
+       {
+        "id": "o10",
+        "label": "L",
+        "setTags": {
+         "backrest": "v10"
+        }
+       },
+       {
+        "id": "o11",
+        "label": "L",
+        "setTags": {
+         "backrest": "v11"
+        }
+       },
+       {
+        "id": "o12",
+        "label": "L",
+        "setTags": {
+         "backrest": "v12"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "option_id_duplicate",
+   "rule": 3,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "yes",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "option_id_invalid",
+   "rule": 3,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "Yes!",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "option_label_empty",
+   "rule": 3,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "option_label_too_long",
+   "rule": 3,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "lllllllllllllllllllllllllllllllllllllllllllllllllllllllllllll",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "option_description_too_long",
+   "rule": 3,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        },
+        "description": "ddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "option_no_change",
+   "rule": 3,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes"
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "option_empty_change",
+   "rule": 3,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {},
+        "unsetTags": []
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "option_unguarded_key",
+   "rule": 3,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes",
+         "colour": "red"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "option_unguarded_unset",
+   "rule": 3,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "unsetTags": [
+         "colour"
+        ]
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "option_set_null",
+   "rule": 3,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": null
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "option_set_and_unset_same_key",
+   "rule": 3,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        },
+        "unsetTags": [
+         "backrest"
+        ]
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "option_unset_duplicate",
+   "rule": 3,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": "x"
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "unsetTags": [
+         "backrest",
+         "backrest"
+        ]
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "option_noop_set",
+   "rule": 3,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": "yes"
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "option_noop_unset",
+   "rule": 3,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "unsetTags": [
+         "backrest"
+        ]
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "outcomes_five",
+   "rule": 4,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "x0",
+      "label": "X",
+      "status": 2
+     },
+     {
+      "id": "x1",
+      "label": "X",
+      "status": 2
+     },
+     {
+      "id": "x2",
+      "label": "X",
+      "status": 2
+     },
+     {
+      "id": "x3",
+      "label": "X",
+      "status": 2
+     },
+     {
+      "id": "x4",
+      "label": "X",
+      "status": 2
+     }
+    ]
+   }
+  },
+  {
+   "name": "outcome_too_hard_id",
+   "rule": 4,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "too-hard",
+      "label": "X",
+      "status": 6
+     }
+    ]
+   }
+  },
+  {
+   "name": "outcome_id_duplicate",
+   "rule": 4,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "x",
+      "label": "X",
+      "status": 2
+     },
+     {
+      "id": "x",
+      "label": "Y",
+      "status": 6
+     }
+    ]
+   }
+  },
+  {
+   "name": "outcome_id_invalid",
+   "rule": 4,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "X",
+      "label": "X",
+      "status": 2
+     }
+    ]
+   }
+  },
+  {
+   "name": "outcome_status_1",
+   "rule": 4,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "x",
+      "label": "X",
+      "status": 1
+     }
+    ]
+   }
+  },
+  {
+   "name": "outcome_status_5",
+   "rule": 4,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "x",
+      "label": "X",
+      "status": 5
+     }
+    ]
+   }
+  },
+  {
+   "name": "outcome_neither",
+   "rule": 4,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "x",
+      "label": "X"
+     }
+    ]
+   }
+  },
+  {
+   "name": "outcome_both",
+   "rule": 4,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "x",
+      "label": "X",
+      "status": 2,
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "outcome_delete_false",
+   "rule": 4,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "x",
+      "label": "X",
+      "delete": false
+     }
+    ]
+   }
+  },
+  {
+   "name": "outcome_two_deletes",
+   "rule": 4,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "x",
+      "label": "X",
+      "delete": true
+     },
+     {
+      "id": "y",
+      "label": "Y",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "outcome_delete_on_way",
+   "rule": 4,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "way/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "outcome_delete_without_match",
+   "rule": 4,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "outcome_label_empty",
+   "rule": 4,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "tag_key_too_long",
+   "rule": 5,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "tag_value_too_long",
+   "rule": 5,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "tag_value_empty",
+   "rule": 5,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": ""
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "tag_key_empty",
+   "rule": 5,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "tag_value_control",
+   "rule": 5,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "ye\ts"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "tag_key_control_c1",
+   "rule": 5,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": null
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "expect_value_empty",
+   "rule": 5,
+   "payload": {
+    "meta": {
+     "version": 2,
+     "type": 3,
+     "choiceVersion": 1
+    },
+    "element": "node/7",
+    "match": {
+     "amenity": "bench"
+    },
+    "questions": [
+     {
+      "id": "backrest",
+      "prompt": "backrest?",
+      "expect": {
+       "backrest": ""
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes",
+        "setTags": {
+         "backrest": "yes"
+        }
+       },
+       {
+        "id": "no",
+        "label": "No",
+        "setTags": {
+         "backrest": "no"
+        }
+       }
+      ]
+     }
+    ],
+    "outcomes": [
+     {
+      "id": "gone",
+      "label": "Gone",
+      "delete": true
+     }
+    ]
+   }
+  }
+ ],
+ "support": [
+  {
+   "name": "choice_created",
+   "payload": "slc",
+   "status": 0,
+   "support": "inPlace",
+   "skip": true
+  },
+  {
+   "name": "choice_skipped",
+   "payload": "slc",
+   "status": 3,
+   "support": "inPlace",
+   "skip": true
+  },
+  {
+   "name": "choice_too_hard",
+   "payload": "slc",
+   "status": 6,
+   "support": "inPlace",
+   "skip": true
+  },
+  {
+   "name": "choice_fixed",
+   "payload": "slc",
+   "status": 1,
+   "support": "unsupported",
+   "skip": false
+  },
+  {
+   "name": "choice_no_status",
+   "payload": "slc",
+   "status": null,
+   "support": "unsupported",
+   "skip": false
+  },
+  {
+   "name": "choice_bundled",
+   "payload": "slc",
+   "status": 0,
+   "bundleId": 9,
+   "support": "unsupported",
+   "skip": false
+  },
+  {
+   "name": "choice_invalid",
+   "payload": "invalid",
+   "status": 0,
+   "support": "unsupported",
+   "skip": false
+  },
+  {
+   "name": "standard",
+   "payload": null,
+   "status": 0,
+   "support": "unsupported",
+   "skip": false
+  }
+ ],
+ "submissions": [
+  {
+   "name": "answers_sorted",
+   "deletion": false,
+   "submission": {
+    "answers": {
+     "capacity": "c3",
+     "backrest": "yes"
+    }
+   },
+   "body": "{\"answers\":{\"backrest\":\"yes\",\"capacity\":\"c3\"}}"
+  },
+  {
+   "name": "answers_single",
+   "deletion": false,
+   "submission": {
+    "answers": {
+     "material": "wood"
+    }
+   },
+   "body": "{\"answers\":{\"material\":\"wood\"}}"
+  },
+  {
+   "name": "outcome_plain",
+   "deletion": false,
+   "submission": {
+    "outcome": "not-a-bench"
+   },
+   "body": "{\"outcome\":\"not-a-bench\"}"
+  },
+  {
+   "name": "outcome_too_hard",
+   "deletion": false,
+   "submission": {
+    "outcome": "too-hard"
+   },
+   "body": "{\"outcome\":\"too-hard\"}"
+  },
+  {
+   "name": "gone_deletion_off",
+   "deletion": false,
+   "submission": {
+    "outcome": "gone"
+   },
+   "body": "{\"outcome\":\"gone\"}"
+  },
+  {
+   "name": "gone_deletion_on",
+   "deletion": true,
+   "submission": {
+    "outcome": "gone"
+   },
+   "body": "{\"outcome\":\"gone\",\"delete\":true}"
+  },
+  {
+   "name": "plain_outcome_deletion_on",
+   "deletion": true,
+   "submission": {
+    "outcome": "not-a-bench"
+   },
+   "body": "{\"outcome\":\"not-a-bench\"}"
+  }
+ ],
+ "invalid_submissions": [
+  {
+   "name": "answers_empty",
+   "submission": {
+    "answers": {}
+   }
+  },
+  {
+   "name": "unknown_question",
+   "submission": {
+    "answers": {
+     "colour": "red"
+    }
+   }
+  },
+  {
+   "name": "unknown_option",
+   "submission": {
+    "answers": {
+     "backrest": "maybe"
+    }
+   }
+  },
+  {
+   "name": "option_of_other_question",
+   "submission": {
+    "answers": {
+     "backrest": "wood"
+    }
+   }
+  },
+  {
+   "name": "unknown_outcome",
+   "submission": {
+    "outcome": "already-fixed"
+   }
+  },
+  {
+   "name": "delete_outcome_from_deletion_ui_on_client_without_deletion",
+   "submission": {
+    "outcome": "gone",
+    "decodedWithDeletion": true
+   },
+   "clientDeletion": false
+  },
+  {
+   "name": "delete_outcome_from_plain_ui_on_client_with_deletion",
+   "submission": {
+    "outcome": "gone",
+    "decodedWithDeletion": false
+   },
+   "clientDeletion": true
+  },
+  {
+   "name": "not_a_choice_task",
+   "submission": {
+    "outcome": "too-hard"
+   },
+   "payload": null
+  },
+  {
+   "name": "invalid_payload",
+   "submission": {
+    "outcome": "too-hard"
+   },
+   "payload": "invalid"
+  },
+  {
+   "name": "bundled_task",
+   "submission": {
+    "outcome": "too-hard"
+   },
+   "bundleId": 9
+  }
+ ],
+ "errors": [
+  {
+   "name": "invalid_request",
+   "status": 400,
+   "body": {
+    "error": "invalid_request"
+   },
+   "kind": "http",
+   "problem": null,
+   "release": true
+  },
+  {
+   "name": "invalid_token",
+   "status": 401,
+   "body": {
+    "error": "invalid_token"
+   },
+   "kind": "authentication",
+   "problem": null,
+   "release": true
+  },
+  {
+   "name": "osm_reauth_required",
+   "status": 401,
+   "body": {
+    "error": "osm_reauth_required"
+   },
+   "kind": "authentication",
+   "problem": "osmReauthRequired",
+   "release": true
+  },
+  {
+   "name": "insufficient_scope_osm",
+   "status": 403,
+   "body": {
+    "error": "insufficient_scope",
+    "scope": "osm:tagfix"
+   },
+   "kind": "permission",
+   "problem": "osmScopeRequired",
+   "release": true
+  },
+  {
+   "name": "insufficient_scope_tasks",
+   "status": 403,
+   "body": {
+    "error": "insufficient_scope"
+   },
+   "kind": "permission",
+   "problem": "insufficientScope",
+   "release": true
+  },
+  {
+   "name": "mobile_only",
+   "status": 403,
+   "body": {
+    "error": "mobile_only"
+   },
+   "kind": "permission",
+   "problem": null,
+   "release": true
+  },
+  {
+   "name": "lock_required",
+   "status": 409,
+   "body": {
+    "error": "lock_required"
+   },
+   "kind": "conflict",
+   "problem": "lockLost",
+   "release": true
+  },
+  {
+   "name": "invalid_transition",
+   "status": 409,
+   "body": {
+    "error": "invalid_transition"
+   },
+   "kind": "conflict",
+   "problem": "invalidTransition",
+   "release": true
+  },
+  {
+   "name": "submission_pending",
+   "status": 409,
+   "body": {
+    "error": "submission_pending"
+   },
+   "kind": "conflict",
+   "problem": "submissionPending",
+   "release": true
+  },
+  {
+   "name": "element_in_use",
+   "status": 409,
+   "body": {
+    "error": "element_in_use"
+   },
+   "kind": "conflict",
+   "problem": "elementInUse",
+   "release": true
+  },
+  {
+   "name": "task_ineligible_gone",
+   "status": 409,
+   "body": {
+    "error": "task_ineligible",
+    "reason": "element_gone"
+   },
+   "kind": "conflict",
+   "problem": "taskIneligible",
+   "reason": "elementGone",
+   "release": true
+  },
+  {
+   "name": "task_ineligible_match",
+   "status": 409,
+   "body": {
+    "error": "task_ineligible",
+    "reason": "match_failed"
+   },
+   "kind": "conflict",
+   "problem": "taskIneligible",
+   "reason": "matchFailed",
+   "release": true
+  },
+  {
+   "name": "task_ineligible_key_changed",
+   "status": 409,
+   "body": {
+    "error": "task_ineligible",
+    "reason": "key_changed",
+    "detail": [
+     {
+      "question": "backrest",
+      "key": "backrest",
+      "expected": null,
+      "current": "yes"
+     }
+    ]
+   },
+   "kind": "conflict",
+   "problem": "taskIneligible",
+   "reason": "keyChanged",
+   "release": true
+  },
+  {
+   "name": "task_ineligible_future_reason",
+   "status": 409,
+   "body": {
+    "error": "task_ineligible",
+    "reason": "element_redacted"
+   },
+   "kind": "conflict",
+   "problem": "taskIneligible",
+   "reason": "unknown",
+   "release": true
+  },
+  {
+   "name": "task_ineligible_no_reason",
+   "status": 409,
+   "body": {
+    "error": "task_ineligible"
+   },
+   "kind": "conflict",
+   "problem": "taskIneligible",
+   "reason": "unknown",
+   "release": true
+  },
+  {
+   "name": "conflict_unrecognized",
+   "status": 409,
+   "body": {
+    "error": "something_new"
+   },
+   "kind": "conflict",
+   "problem": null,
+   "release": true
+  },
+  {
+   "name": "invalid_submission",
+   "status": 422,
+   "body": {
+    "error": "invalid_submission",
+    "detail": "unknown option 'maybe' for question 'backrest'"
+   },
+   "kind": "http",
+   "problem": "invalidSubmission",
+   "detail": "unknown option 'maybe' for question 'backrest'",
+   "release": true
+  },
+  {
+   "name": "invalid_submission_no_detail",
+   "status": 422,
+   "body": {
+    "error": "invalid_submission"
+   },
+   "kind": "http",
+   "problem": "invalidSubmission",
+   "detail": null,
+   "release": true
+  },
+  {
+   "name": "unsupported_task",
+   "status": 422,
+   "body": {
+    "error": "unsupported_task"
+   },
+   "kind": "http",
+   "problem": "unsupportedTask",
+   "release": true
+  },
+  {
+   "name": "osm_unavailable",
+   "status": 502,
+   "body": {
+    "error": "osm_unavailable"
+   },
+   "kind": "server",
+   "problem": "osmUnavailable",
+   "release": true
+  },
+  {
+   "name": "rate_limited",
+   "status": 429,
+   "body": null,
+   "kind": "rateLimit",
+   "problem": null,
+   "release": true
+  },
+  {
+   "name": "not_found",
+   "status": 404,
+   "body": null,
+   "kind": "notFound",
+   "problem": null,
+   "release": true
+  }
+ ],
+ "start": {
+  "id": 101,
+  "parent": 42,
+  "name": "node/123",
+  "instruction": "",
+  "status": 0,
+  "geometries": {
+   "type": "FeatureCollection",
+   "features": []
+  },
+  "lockPrimaryTaskId": 101,
+  "lockBundledTasks": []
+ },
+ "me": {
+  "id": 900,
+  "osmId": 12345,
+  "displayName": "Example",
+  "scope": "tasks:read tasks:write osm:tagfix"
+ },
+ "flows": [
+  {
+   "name": "answers_ok",
+   "submission": {
+    "answers": {
+     "backrest": "yes"
+    }
+   },
+   "responses": [
+    [
+     200,
+     {
+      "id": 101,
+      "parent": 42,
+      "name": "node/123",
+      "instruction": "",
+      "status": 0,
+      "geometries": {
+       "type": "FeatureCollection",
+       "features": []
+      },
+      "lockPrimaryTaskId": 101,
+      "lockBundledTasks": []
+     }
+    ],
+    [
+     200,
+     {
+      "status": 1,
+      "changesetId": 42,
+      "applied": {
+       "set": {
+        "backrest": "yes"
+       },
+       "unset": [],
+       "deleted": false
+      }
+     }
+    ]
+   ],
+   "calls": [
+    "GET /api/v2/task/101/start",
+    "POST /api/v2/task/101/choice"
+   ],
+   "result": {
+    "status": 1,
+    "changesetId": 42
+   }
+  },
+  {
+   "name": "outcome_ok",
+   "submission": {
+    "outcome": "not-a-bench"
+   },
+   "responses": [
+    [
+     200,
+     {
+      "id": 101,
+      "parent": 42,
+      "name": "node/123",
+      "instruction": "",
+      "status": 0,
+      "geometries": {
+       "type": "FeatureCollection",
+       "features": []
+      },
+      "lockPrimaryTaskId": 101,
+      "lockBundledTasks": []
+     }
+    ],
+    [
+     200,
+     {
+      "status": 2,
+      "changesetId": null,
+      "applied": {
+       "set": {},
+       "unset": [],
+       "deleted": false
+      }
+     }
+    ]
+   ],
+   "calls": [
+    "GET /api/v2/task/101/start",
+    "POST /api/v2/task/101/choice"
+   ],
+   "result": {
+    "status": 2,
+    "changesetId": null
+   }
+  },
+  {
+   "name": "start_locked_by_other",
+   "submission": {
+    "outcome": "too-hard"
+   },
+   "responses": [
+    [
+     403,
+     {
+      "status": "Forbidden",
+      "message": "Task is currently locked by user other-mapper"
+     }
+    ]
+   ],
+   "calls": [
+    "GET /api/v2/task/101/start"
+   ],
+   "error": {
+    "kind": "permission",
+    "problem": "lockedByOtherUser"
+   }
+  },
+  {
+   "name": "status_pending_retried_once",
+   "submission": {
+    "answers": {
+     "backrest": "yes"
+    }
+   },
+   "responses": [
+    [
+     200,
+     {
+      "id": 101,
+      "parent": 42,
+      "name": "node/123",
+      "instruction": "",
+      "status": 0,
+      "geometries": {
+       "type": "FeatureCollection",
+       "features": []
+      },
+      "lockPrimaryTaskId": 101,
+      "lockBundledTasks": []
+     }
+    ],
+    [
+     500,
+     {
+      "error": "status_pending",
+      "changesetId": 77
+     }
+    ],
+    [
+     200,
+     {
+      "status": 1,
+      "changesetId": 42,
+      "applied": {
+       "set": {
+        "backrest": "yes"
+       },
+       "unset": [],
+       "deleted": false
+      }
+     }
+    ]
+   ],
+   "calls": [
+    "GET /api/v2/task/101/start",
+    "POST /api/v2/task/101/choice",
+    "POST /api/v2/task/101/choice"
+   ],
+   "result": {
+    "status": 1,
+    "changesetId": 42
+   }
+  },
+  {
+   "name": "status_pending_twice",
+   "submission": {
+    "answers": {
+     "backrest": "yes"
+    }
+   },
+   "responses": [
+    [
+     200,
+     {
+      "id": 101,
+      "parent": 42,
+      "name": "node/123",
+      "instruction": "",
+      "status": 0,
+      "geometries": {
+       "type": "FeatureCollection",
+       "features": []
+      },
+      "lockPrimaryTaskId": 101,
+      "lockBundledTasks": []
+     }
+    ],
+    [
+     500,
+     {
+      "error": "status_pending",
+      "changesetId": 77
+     }
+    ],
+    [
+     500,
+     {
+      "error": "status_pending",
+      "changesetId": 77
+     }
+    ]
+   ],
+   "calls": [
+    "GET /api/v2/task/101/start",
+    "POST /api/v2/task/101/choice",
+    "POST /api/v2/task/101/choice"
+   ],
+   "error": {
+    "kind": "server",
+    "problem": "statusPending",
+    "changesetId": 77
+   }
+  },
+  {
+   "name": "status_pending_then_lock_required_keeps_pending",
+   "submission": {
+    "answers": {
+     "backrest": "yes"
+    }
+   },
+   "responses": [
+    [
+     200,
+     {
+      "id": 101,
+      "parent": 42,
+      "name": "node/123",
+      "instruction": "",
+      "status": 0,
+      "geometries": {
+       "type": "FeatureCollection",
+       "features": []
+      },
+      "lockPrimaryTaskId": 101,
+      "lockBundledTasks": []
+     }
+    ],
+    [
+     500,
+     {
+      "error": "status_pending",
+      "changesetId": 77
+     }
+    ],
+    [
+     409,
+     {
+      "error": "lock_required"
+     }
+    ]
+   ],
+   "calls": [
+    "GET /api/v2/task/101/start",
+    "POST /api/v2/task/101/choice",
+    "POST /api/v2/task/101/choice"
+   ],
+   "error": {
+    "kind": "server",
+    "problem": "statusPending",
+    "changesetId": 77
+   }
+  },
+  {
+   "name": "status_pending_then_unknown_keeps_pending",
+   "submission": {
+    "answers": {
+     "backrest": "yes"
+    }
+   },
+   "responses": [
+    [
+     200,
+     {
+      "id": 101,
+      "parent": 42,
+      "name": "node/123",
+      "instruction": "",
+      "status": 0,
+      "geometries": {
+       "type": "FeatureCollection",
+       "features": []
+      },
+      "lockPrimaryTaskId": 101,
+      "lockBundledTasks": []
+     }
+    ],
+    [
+     500,
+     {
+      "error": "status_pending",
+      "changesetId": 77
+     }
+    ],
+    null
+   ],
+   "calls": [
+    "GET /api/v2/task/101/start",
+    "POST /api/v2/task/101/choice",
+    "POST /api/v2/task/101/choice"
+   ],
+   "error": {
+    "kind": "server",
+    "problem": "statusPending",
+    "changesetId": 77
+   }
+  },
+  {
+   "name": "unknown_edit_lock_held_is_not_resent",
+   "submission": {
+    "answers": {
+     "backrest": "yes"
+    }
+   },
+   "responses": [
+    [
+     200,
+     {
+      "id": 101,
+      "parent": 42,
+      "name": "node/123",
+      "instruction": "",
+      "status": 0,
+      "geometries": {
+       "type": "FeatureCollection",
+       "features": []
+      },
+      "lockPrimaryTaskId": 101,
+      "lockBundledTasks": []
+     }
+    ],
+    [
+     504,
+     null
+    ],
+    [
+     200,
+     {
+      "id": 900,
+      "osmId": 12345,
+      "displayName": "Example",
+      "scope": "tasks:read tasks:write osm:tagfix"
+     }
+    ],
+    [
+     200,
+     {
+      "id": 101,
+      "parent": 42,
+      "name": "node/7",
+      "instruction": "",
+      "status": 0,
+      "geometries": {
+       "type": "FeatureCollection",
+       "features": []
+      },
+      "lockedBy": 900,
+      "completedBy": null
+     }
+    ]
+   ],
+   "calls": [
+    "GET /api/v2/task/101/start",
+    "POST /api/v2/task/101/choice",
+    "GET /oauth/mobile/me",
+    "GET /api/v2/task/101"
+   ],
+   "error": {
+    "kind": "server",
+    "problem": "outcomeUnknown"
+   }
+  },
+  {
+   "name": "unknown_delete_lock_held_is_not_resent",
+   "deletion": true,
+   "submission": {
+    "outcome": "gone"
+   },
+   "responses": [
+    [
+     200,
+     {
+      "id": 101,
+      "parent": 42,
+      "name": "node/123",
+      "instruction": "",
+      "status": 0,
+      "geometries": {
+       "type": "FeatureCollection",
+       "features": []
+      },
+      "lockPrimaryTaskId": 101,
+      "lockBundledTasks": []
+     }
+    ],
+    null,
+    [
+     200,
+     {
+      "id": 900,
+      "osmId": 12345,
+      "displayName": "Example",
+      "scope": "tasks:read tasks:write osm:tagfix"
+     }
+    ],
+    [
+     200,
+     {
+      "id": 101,
+      "parent": 42,
+      "name": "node/7",
+      "instruction": "",
+      "status": 0,
+      "geometries": {
+       "type": "FeatureCollection",
+       "features": []
+      },
+      "lockedBy": 900,
+      "completedBy": null
+     }
+    ]
+   ],
+   "calls": [
+    "GET /api/v2/task/101/start",
+    "POST /api/v2/task/101/choice",
+    "GET /oauth/mobile/me",
+    "GET /api/v2/task/101"
+   ],
+   "error": {
+    "kind": "network",
+    "problem": "outcomeUnknown"
+   }
+  },
+  {
+   "name": "unknown_then_resend_lock_required_stays_unknown",
+   "submission": {
+    "outcome": "not-a-bench"
+   },
+   "responses": [
+    [
+     200,
+     {
+      "id": 101,
+      "parent": 42,
+      "name": "node/123",
+      "instruction": "",
+      "status": 0,
+      "geometries": {
+       "type": "FeatureCollection",
+       "features": []
+      },
+      "lockPrimaryTaskId": 101,
+      "lockBundledTasks": []
+     }
+    ],
+    null,
+    [
+     200,
+     {
+      "id": 900,
+      "osmId": 12345,
+      "displayName": "Example",
+      "scope": "tasks:read tasks:write osm:tagfix"
+     }
+    ],
+    [
+     200,
+     {
+      "id": 101,
+      "parent": 42,
+      "name": "node/7",
+      "instruction": "",
+      "status": 0,
+      "geometries": {
+       "type": "FeatureCollection",
+       "features": []
+      },
+      "lockedBy": 900,
+      "completedBy": null
+     }
+    ],
+    [
+     409,
+     {
+      "error": "lock_required"
+     }
+    ]
+   ],
+   "calls": [
+    "GET /api/v2/task/101/start",
+    "POST /api/v2/task/101/choice",
+    "GET /oauth/mobile/me",
+    "GET /api/v2/task/101",
+    "POST /api/v2/task/101/choice"
+   ],
+   "error": {
+    "kind": "network",
+    "problem": "outcomeUnknown"
+   }
+  },
+  {
+   "name": "unknown_then_resend_ineligible_releases",
+   "submission": {
+    "outcome": "not-a-bench"
+   },
+   "responses": [
+    [
+     200,
+     {
+      "id": 101,
+      "parent": 42,
+      "name": "node/123",
+      "instruction": "",
+      "status": 0,
+      "geometries": {
+       "type": "FeatureCollection",
+       "features": []
+      },
+      "lockPrimaryTaskId": 101,
+      "lockBundledTasks": []
+     }
+    ],
+    null,
+    [
+     200,
+     {
+      "id": 900,
+      "osmId": 12345,
+      "displayName": "Example",
+      "scope": "tasks:read tasks:write osm:tagfix"
+     }
+    ],
+    [
+     200,
+     {
+      "id": 101,
+      "parent": 42,
+      "name": "node/7",
+      "instruction": "",
+      "status": 0,
+      "geometries": {
+       "type": "FeatureCollection",
+       "features": []
+      },
+      "lockedBy": 900,
+      "completedBy": null
+     }
+    ],
+    [
+     409,
+     {
+      "error": "task_ineligible",
+      "reason": "element_gone"
+     }
+    ],
+    [
+     200,
+     {
+      "id": 101,
+      "parent": 42,
+      "name": "node/7",
+      "instruction": "",
+      "status": 0,
+      "geometries": {
+       "type": "FeatureCollection",
+       "features": []
+      }
+     }
+    ]
+   ],
+   "calls": [
+    "GET /api/v2/task/101/start",
+    "POST /api/v2/task/101/choice",
+    "GET /oauth/mobile/me",
+    "GET /api/v2/task/101",
+    "POST /api/v2/task/101/choice",
+    "GET /api/v2/task/101/release"
+   ],
+   "error": {
+    "kind": "conflict",
+    "problem": "taskIneligible"
+   }
+  },
+  {
+   "name": "unknown_too_hard_on_too_hard_task_is_not_proven",
+   "taskStatus": 6,
+   "submission": {
+    "outcome": "too-hard"
+   },
+   "responses": [
+    [
+     200,
+     {
+      "id": 101,
+      "parent": 42,
+      "name": "node/123",
+      "instruction": "",
+      "status": 0,
+      "geometries": {
+       "type": "FeatureCollection",
+       "features": []
+      },
+      "lockPrimaryTaskId": 101,
+      "lockBundledTasks": []
+     }
+    ],
+    null,
+    [
+     200,
+     {
+      "id": 900,
+      "osmId": 12345,
+      "displayName": "Example",
+      "scope": "tasks:read tasks:write osm:tagfix"
+     }
+    ],
+    [
+     200,
+     {
+      "id": 101,
+      "parent": 42,
+      "name": "node/7",
+      "instruction": "",
+      "status": 6,
+      "geometries": {
+       "type": "FeatureCollection",
+       "features": []
+      },
+      "lockedBy": null,
+      "completedBy": 900
+     }
+    ]
+   ],
+   "calls": [
+    "GET /api/v2/task/101/start",
+    "POST /api/v2/task/101/choice",
+    "GET /oauth/mobile/me",
+    "GET /api/v2/task/101"
+   ],
+   "error": {
+    "kind": "network",
+    "problem": "outcomeUnknown"
+   }
+  },
+  {
+   "name": "unknown_then_completed_by_other",
+   "submission": {
+    "outcome": "not-a-bench"
+   },
+   "responses": [
+    [
+     200,
+     {
+      "id": 101,
+      "parent": 42,
+      "name": "node/123",
+      "instruction": "",
+      "status": 0,
+      "geometries": {
+       "type": "FeatureCollection",
+       "features": []
+      },
+      "lockPrimaryTaskId": 101,
+      "lockBundledTasks": []
+     }
+    ],
+    null,
+    [
+     200,
+     {
+      "id": 900,
+      "osmId": 12345,
+      "displayName": "Example",
+      "scope": "tasks:read tasks:write osm:tagfix"
+     }
+    ],
+    [
+     200,
+     {
+      "id": 101,
+      "parent": 42,
+      "name": "node/7",
+      "instruction": "",
+      "status": 2,
+      "geometries": {
+       "type": "FeatureCollection",
+       "features": []
+      },
+      "lockedBy": null,
+      "completedBy": 901
+     }
+    ]
+   ],
+   "calls": [
+    "GET /api/v2/task/101/start",
+    "POST /api/v2/task/101/choice",
+    "GET /oauth/mobile/me",
+    "GET /api/v2/task/101"
+   ],
+   "error": {
+    "kind": "network",
+    "problem": "outcomeUnknown"
+   }
+  },
+  {
+   "name": "unknown_then_applied",
+   "submission": {
+    "answers": {
+     "backrest": "yes"
+    }
+   },
+   "responses": [
+    [
+     200,
+     {
+      "id": 101,
+      "parent": 42,
+      "name": "node/123",
+      "instruction": "",
+      "status": 0,
+      "geometries": {
+       "type": "FeatureCollection",
+       "features": []
+      },
+      "lockPrimaryTaskId": 101,
+      "lockBundledTasks": []
+     }
+    ],
+    null,
+    [
+     200,
+     {
+      "id": 900,
+      "osmId": 12345,
+      "displayName": "Example",
+      "scope": "tasks:read tasks:write osm:tagfix"
+     }
+    ],
+    [
+     200,
+     {
+      "id": 101,
+      "parent": 42,
+      "name": "node/7",
+      "instruction": "",
+      "status": 1,
+      "geometries": {
+       "type": "FeatureCollection",
+       "features": []
+      },
+      "lockedBy": null,
+      "completedBy": 900,
+      "changesetId": 42
+     }
+    ]
+   ],
+   "calls": [
+    "GET /api/v2/task/101/start",
+    "POST /api/v2/task/101/choice",
+    "GET /oauth/mobile/me",
+    "GET /api/v2/task/101"
+   ],
+   "result": {
+    "status": 1,
+    "changesetId": 42
+   }
+  },
+  {
+   "name": "unknown_then_lock_held_resend",
+   "submission": {
+    "outcome": "not-a-bench"
+   },
+   "responses": [
+    [
+     200,
+     {
+      "id": 101,
+      "parent": 42,
+      "name": "node/123",
+      "instruction": "",
+      "status": 0,
+      "geometries": {
+       "type": "FeatureCollection",
+       "features": []
+      },
+      "lockPrimaryTaskId": 101,
+      "lockBundledTasks": []
+     }
+    ],
+    [
+     503,
+     null
+    ],
+    [
+     200,
+     {
+      "id": 900,
+      "osmId": 12345,
+      "displayName": "Example",
+      "scope": "tasks:read tasks:write osm:tagfix"
+     }
+    ],
+    [
+     200,
+     {
+      "id": 101,
+      "parent": 42,
+      "name": "node/7",
+      "instruction": "",
+      "status": 0,
+      "geometries": {
+       "type": "FeatureCollection",
+       "features": []
+      },
+      "lockedBy": 900,
+      "completedBy": null
+     }
+    ],
+    [
+     200,
+     {
+      "status": 2,
+      "changesetId": null,
+      "applied": {
+       "set": {},
+       "unset": [],
+       "deleted": false
+      }
+     }
+    ]
+   ],
+   "calls": [
+    "GET /api/v2/task/101/start",
+    "POST /api/v2/task/101/choice",
+    "GET /oauth/mobile/me",
+    "GET /api/v2/task/101",
+    "POST /api/v2/task/101/choice"
+   ],
+   "result": {
+    "status": 2,
+    "changesetId": null
+   }
+  },
+  {
+   "name": "unknown_twice",
+   "submission": {
+    "outcome": "not-a-bench"
+   },
+   "responses": [
+    [
+     200,
+     {
+      "id": 101,
+      "parent": 42,
+      "name": "node/123",
+      "instruction": "",
+      "status": 0,
+      "geometries": {
+       "type": "FeatureCollection",
+       "features": []
+      },
+      "lockPrimaryTaskId": 101,
+      "lockBundledTasks": []
+     }
+    ],
+    null,
+    [
+     200,
+     {
+      "id": 900,
+      "osmId": 12345,
+      "displayName": "Example",
+      "scope": "tasks:read tasks:write osm:tagfix"
+     }
+    ],
+    [
+     200,
+     {
+      "id": 101,
+      "parent": 42,
+      "name": "node/7",
+      "instruction": "",
+      "status": 0,
+      "geometries": {
+       "type": "FeatureCollection",
+       "features": []
+      },
+      "lockedBy": 900,
+      "completedBy": null
+     }
+    ],
+    null
+   ],
+   "calls": [
+    "GET /api/v2/task/101/start",
+    "POST /api/v2/task/101/choice",
+    "GET /oauth/mobile/me",
+    "GET /api/v2/task/101",
+    "POST /api/v2/task/101/choice"
+   ],
+   "error": {
+    "kind": "network",
+    "problem": "outcomeUnknown"
+   }
+  },
+  {
+   "name": "unknown_then_resolved_by_other",
+   "submission": {
+    "answers": {
+     "backrest": "yes"
+    }
+   },
+   "responses": [
+    [
+     200,
+     {
+      "id": 101,
+      "parent": 42,
+      "name": "node/123",
+      "instruction": "",
+      "status": 0,
+      "geometries": {
+       "type": "FeatureCollection",
+       "features": []
+      },
+      "lockPrimaryTaskId": 101,
+      "lockBundledTasks": []
+     }
+    ],
+    null,
+    [
+     200,
+     {
+      "id": 900,
+      "osmId": 12345,
+      "displayName": "Example",
+      "scope": "tasks:read tasks:write osm:tagfix"
+     }
+    ],
+    [
+     200,
+     {
+      "id": 101,
+      "parent": 42,
+      "name": "node/7",
+      "instruction": "",
+      "status": 2,
+      "geometries": {
+       "type": "FeatureCollection",
+       "features": []
+      },
+      "lockedBy": null,
+      "completedBy": 901
+     }
+    ]
+   ],
+   "calls": [
+    "GET /api/v2/task/101/start",
+    "POST /api/v2/task/101/choice",
+    "GET /oauth/mobile/me",
+    "GET /api/v2/task/101"
+   ],
+   "error": {
+    "kind": "network",
+    "problem": "outcomeUnknown"
+   }
+  },
+  {
+   "name": "unknown_then_unlocked_not_applied",
+   "submission": {
+    "answers": {
+     "backrest": "yes"
+    }
+   },
+   "responses": [
+    [
+     200,
+     {
+      "id": 101,
+      "parent": 42,
+      "name": "node/123",
+      "instruction": "",
+      "status": 0,
+      "geometries": {
+       "type": "FeatureCollection",
+       "features": []
+      },
+      "lockPrimaryTaskId": 101,
+      "lockBundledTasks": []
+     }
+    ],
+    null,
+    [
+     200,
+     {
+      "id": 900,
+      "osmId": 12345,
+      "displayName": "Example",
+      "scope": "tasks:read tasks:write osm:tagfix"
+     }
+    ],
+    [
+     200,
+     {
+      "id": 101,
+      "parent": 42,
+      "name": "node/7",
+      "instruction": "",
+      "status": 0,
+      "geometries": {
+       "type": "FeatureCollection",
+       "features": []
+      },
+      "lockedBy": null,
+      "completedBy": null
+     }
+    ]
+   ],
+   "calls": [
+    "GET /api/v2/task/101/start",
+    "POST /api/v2/task/101/choice",
+    "GET /oauth/mobile/me",
+    "GET /api/v2/task/101"
+   ],
+   "error": {
+    "kind": "network",
+    "problem": "outcomeUnknown"
+   }
+  },
+  {
+   "name": "unknown_then_reread_fails",
+   "submission": {
+    "answers": {
+     "backrest": "yes"
+    }
+   },
+   "responses": [
+    [
+     200,
+     {
+      "id": 101,
+      "parent": 42,
+      "name": "node/123",
+      "instruction": "",
+      "status": 0,
+      "geometries": {
+       "type": "FeatureCollection",
+       "features": []
+      },
+      "lockPrimaryTaskId": 101,
+      "lockBundledTasks": []
+     }
+    ],
+    null,
+    null
+   ],
+   "calls": [
+    "GET /api/v2/task/101/start",
+    "POST /api/v2/task/101/choice",
+    "GET /oauth/mobile/me"
+   ],
+   "error": {
+    "kind": "network",
+    "problem": "outcomeUnknown"
+   }
+  },
+  {
+   "name": "unreadable_success_is_unknown",
+   "submission": {
+    "answers": {
+     "backrest": "yes"
+    }
+   },
+   "responses": [
+    [
+     200,
+     {
+      "id": 101,
+      "parent": 42,
+      "name": "node/123",
+      "instruction": "",
+      "status": 0,
+      "geometries": {
+       "type": "FeatureCollection",
+       "features": []
+      },
+      "lockPrimaryTaskId": 101,
+      "lockBundledTasks": []
+     }
+    ],
+    [
+     200,
+     {
+      "status": "one"
+     }
+    ],
+    [
+     200,
+     {
+      "id": 900,
+      "osmId": 12345,
+      "displayName": "Example",
+      "scope": "tasks:read tasks:write osm:tagfix"
+     }
+    ],
+    [
+     200,
+     {
+      "id": 101,
+      "parent": 42,
+      "name": "node/7",
+      "instruction": "",
+      "status": 1,
+      "geometries": {
+       "type": "FeatureCollection",
+       "features": []
+      },
+      "lockedBy": null,
+      "completedBy": 900,
+      "changesetId": 42
+     }
+    ]
+   ],
+   "calls": [
+    "GET /api/v2/task/101/start",
+    "POST /api/v2/task/101/choice",
+    "GET /oauth/mobile/me",
+    "GET /api/v2/task/101"
+   ],
+   "result": {
+    "status": 1,
+    "changesetId": 42
+   }
+  },
+  {
+   "name": "delete_ok",
+   "deletion": true,
+   "submission": {
+    "outcome": "gone"
+   },
+   "responses": [
+    [
+     200,
+     {
+      "id": 101,
+      "parent": 42,
+      "name": "node/123",
+      "instruction": "",
+      "status": 0,
+      "geometries": {
+       "type": "FeatureCollection",
+       "features": []
+      },
+      "lockPrimaryTaskId": 101,
+      "lockBundledTasks": []
+     }
+    ],
+    [
+     200,
+     {
+      "status": 1,
+      "changesetId": 43,
+      "applied": {
+       "set": {},
+       "unset": [],
+       "deleted": true
+      }
+     }
+    ]
+   ],
+   "calls": [
+    "GET /api/v2/task/101/start",
+    "POST /api/v2/task/101/choice"
+   ],
+   "result": {
+    "status": 1,
+    "changesetId": 43
+   }
+  },
+  {
+   "name": "delete_unknown_then_applied",
+   "deletion": true,
+   "submission": {
+    "outcome": "gone"
+   },
+   "responses": [
+    [
+     200,
+     {
+      "id": 101,
+      "parent": 42,
+      "name": "node/123",
+      "instruction": "",
+      "status": 0,
+      "geometries": {
+       "type": "FeatureCollection",
+       "features": []
+      },
+      "lockPrimaryTaskId": 101,
+      "lockBundledTasks": []
+     }
+    ],
+    null,
+    [
+     200,
+     {
+      "id": 900,
+      "osmId": 12345,
+      "displayName": "Example",
+      "scope": "tasks:read tasks:write osm:tagfix"
+     }
+    ],
+    [
+     200,
+     {
+      "id": 101,
+      "parent": 42,
+      "name": "node/7",
+      "instruction": "",
+      "status": 1,
+      "geometries": {
+       "type": "FeatureCollection",
+       "features": []
+      },
+      "lockedBy": null,
+      "completedBy": 900,
+      "changesetId": 43
+     }
+    ]
+   ],
+   "calls": [
+    "GET /api/v2/task/101/start",
+    "POST /api/v2/task/101/choice",
+    "GET /oauth/mobile/me",
+    "GET /api/v2/task/101"
+   ],
+   "result": {
+    "status": 1,
+    "changesetId": 43
+   }
+  }
+ ],
+ "check": [
+  {
+   "name": "eligible",
+   "status": 200,
+   "body": {
+    "eligible": true,
+    "deleteAllowed": true,
+    "elementVersion": 7,
+    "questions": [
+     "backrest"
+    ]
+   },
+   "expect": {
+    "eligible": true,
+    "deleteAllowed": true,
+    "reason": null
+   }
+  },
+  {
+   "name": "eligible_minimal",
+   "status": 200,
+   "body": {
+    "eligible": true
+   },
+   "expect": {
+    "eligible": true,
+    "deleteAllowed": false,
+    "reason": null
+   }
+  },
+  {
+   "name": "gone",
+   "status": 200,
+   "body": {
+    "eligible": false,
+    "reason": "element_gone"
+   },
+   "expect": {
+    "eligible": false,
+    "deleteAllowed": false,
+    "reason": "elementGone"
+   }
+  },
+  {
+   "name": "match_failed",
+   "status": 200,
+   "body": {
+    "eligible": false,
+    "reason": "match_failed",
+    "elementVersion": 9
+   },
+   "expect": {
+    "eligible": false,
+    "deleteAllowed": false,
+    "reason": "matchFailed"
+   }
+  },
+  {
+   "name": "key_changed_with_detail",
+   "status": 200,
+   "body": {
+    "eligible": false,
+    "reason": "key_changed",
+    "detail": [
+     {
+      "question": "backrest",
+      "key": "backrest",
+      "expected": null,
+      "current": "yes"
+     }
+    ]
+   },
+   "expect": {
+    "eligible": false,
+    "deleteAllowed": false,
+    "reason": "keyChanged"
+   }
+  },
+  {
+   "name": "future_reason",
+   "status": 200,
+   "body": {
+    "eligible": false,
+    "reason": "element_redacted"
+   },
+   "expect": {
+    "eligible": false,
+    "deleteAllowed": false,
+    "reason": "unknown"
+   }
+  },
+  {
+   "name": "ineligible_without_reason",
+   "status": 200,
+   "body": {
+    "eligible": false
+   },
+   "expect": {
+    "eligible": false,
+    "deleteAllowed": false,
+    "reason": "unknown"
+   }
+  },
+  {
+   "name": "ineligible_ignores_delete_allowed",
+   "status": 200,
+   "body": {
+    "eligible": false,
+    "reason": "element_gone",
+    "deleteAllowed": true
+   },
+   "expect": {
+    "eligible": false,
+    "deleteAllowed": false,
+    "reason": "elementGone"
+   }
+  },
+  {
+   "name": "eligible_missing",
+   "status": 200,
+   "body": {
+    "deleteAllowed": true
+   },
+   "error": {
+    "kind": "protocol",
+    "problem": null
+   }
+  },
+  {
+   "name": "eligible_string",
+   "status": 200,
+   "body": {
+    "eligible": "true"
+   },
+   "error": {
+    "kind": "protocol",
+    "problem": null
+   }
+  },
+  {
+   "name": "delete_allowed_string",
+   "status": 200,
+   "body": {
+    "eligible": true,
+    "deleteAllowed": "yes"
+   },
+   "error": {
+    "kind": "protocol",
+    "problem": null
+   }
+  },
+  {
+   "name": "not_json",
+   "status": 200,
+   "body": "ok",
+   "error": {
+    "kind": "protocol",
+    "problem": null
+   }
+  },
+  {
+   "name": "osm_unavailable",
+   "status": 502,
+   "body": {
+    "error": "osm_unavailable"
+   },
+   "error": {
+    "kind": "server",
+    "problem": "osmUnavailable"
+   }
+  },
+  {
+   "name": "bad_gateway_other",
+   "status": 502,
+   "body": null,
+   "error": {
+    "kind": "server",
+    "problem": null
+   }
+  },
+  {
+   "name": "insufficient_scope",
+   "status": 403,
+   "body": {
+    "error": "insufficient_scope"
+   },
+   "error": {
+    "kind": "permission",
+    "problem": null
+   }
+  },
+  {
+   "name": "not_found",
+   "status": 404,
+   "body": null,
+   "error": {
+    "kind": "notFound",
+    "problem": null
+   }
+  }
+ ],
+ "identity": [
+  {
+   "scope": "tasks:read tasks:write osm:tagfix",
+   "canWriteTasks": true,
+   "canEditOsm": true
+  },
+  {
+   "scope": "tasks:read tasks:write",
+   "canWriteTasks": true,
+   "canEditOsm": false
+  },
+  {
+   "scope": "tasks:read",
+   "canWriteTasks": false,
+   "canEditOsm": false
+  }
+ ],
+ "markers_query": {
+  "cct": "3",
+  "excludeStale": "true"
+ }
+}

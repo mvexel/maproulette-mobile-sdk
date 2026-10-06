@@ -23,6 +23,16 @@ sealed interface TaskWork {
     /** An OSC change file for an external editor. Content is not decoded. */
     data class ChangeFile(val format: String?, val encoding: String?) : TaskWork
 
+    /** Multiple-choice questions about one OSM element (`meta.type` 3, docs/mobile-choice-challenges.md).
+     * [match] is the identity guard (empty when absent); [outcomes] are the declared ones, decoded with
+     * the deletion setting passed to [work]. Use [choiceOutcomes] to include the built-in Too hard. */
+    data class Choice(
+        val element: OsmElementRef,
+        val match: Map<String, String>,
+        val questions: List<ChoiceQuestion>,
+        val outcomes: List<ChoiceOutcome>,
+    ) : TaskWork
+
     /** Unrecognized version/type or malformed payload, preserved as received. */
     data class Unknown(val raw: JsonObject) : TaskWork
 }
@@ -57,7 +67,9 @@ data class Instruction(val markdown: String, val formFields: List<FormField>) {
         propertyTag.replace(markdown) { it.groupValues[1] + (properties[it.groupValues[2]] ?: "") }
 }
 
-enum class MobileSupport { FULL, RESOLVE_WITHOUT_FIX, UNSUPPORTED }
+/** Mobile offers only tasks that are completed in place: valid, unbundled choice tasks that are
+ * still actionable. Standard, tag-fix and change-file tasks are UNSUPPORTED. */
+enum class MobileSupport { IN_PLACE, UNSUPPORTED }
 
 // Same expressions as the MapRoulette web UI templating. Braces and brackets are escaped
 // everywhere: Android's ICU regex engine rejects an unescaped `}` that the JVM accepts.
@@ -70,8 +82,10 @@ private val featureId = Regex("""^(node|way|relation|n|r|w)?/?\d+$""")
 private val featureType = Regex("""^(node|way|relation|n|r|w)""")
 private val actionable = setOf(0, 3, 6)
 
-/** Decodes the task kind. The task payload wins over the challenge's cooperativeType. */
-fun Task.work(): TaskWork {
+/** Decodes the task kind. The task payload wins over the challenge's cooperativeType. Choice
+ * payloads are validated strictly: any broken rule gives [TaskWork.Unknown]. Pass the client's
+ * `allowElementDeletion` so delete outcomes match what [MapRouletteClient.submitChoice] sends. */
+fun Task.work(allowElementDeletion: Boolean = false): TaskWork {
     val raw = cooperativeWork ?: return TaskWork.Standard
     return try {
         val meta = raw["meta"] as? JsonObject
@@ -82,6 +96,7 @@ fun Task.work(): TaskWork {
             version == 2 && type == 2 -> (raw["file"] as? JsonObject).let {
                 TaskWork.ChangeFile(it?.string("format"), it?.string("encoding"))
             }
+            version == 2 && type == 3 -> choiceWork(raw, allowElementDeletion)
             else -> TaskWork.Unknown(raw)
         }
     } catch (_: IllegalArgumentException) {
@@ -158,31 +173,19 @@ fun Task.templateProperties(): Map<String, String> {
     return result
 }
 
-/** Derived suitability for mobile resolution; the backend stores no such flag. */
-fun Task.mobileSupport(): MobileSupport {
-    if (bundleId != null) return MobileSupport.UNSUPPORTED
-    return when (val work = work()) {
-        TaskWork.Standard -> MobileSupport.FULL
-        is TaskWork.ChangeFile -> MobileSupport.RESOLVE_WITHOUT_FIX
-        is TaskWork.TagFix -> if (work.edits.any { it.kind == EditKind.UNKNOWN }) {
-            MobileSupport.UNSUPPORTED
-        } else MobileSupport.RESOLVE_WITHOUT_FIX
-        is TaskWork.Unknown -> MobileSupport.UNSUPPORTED
-    }
-}
+/** Derived suitability for mobile; the backend stores no such flag. IN_PLACE only for a valid,
+ * unbundled choice task whose status is Created, Skipped or Too hard. */
+fun Task.mobileSupport(): MobileSupport =
+    if (bundleId == null && status?.code in actionable && work() is TaskWork.Choice) MobileSupport.IN_PLACE
+    else MobileSupport.UNSUPPORTED
 
-private fun Task.actionable() = status?.code in actionable && mobileSupport() != MobileSupport.UNSUPPORTED
+/** Statuses to offer as bare status writes. Always empty since choice challenges: non-choice tasks
+ * are UNSUPPORTED on mobile and choice tasks resolve through [MapRouletteClient.submitChoice]
+ * (offer [choiceOutcomes] instead). Kept for source compatibility. */
+fun Task.allowedResolutions(): Set<TaskResolution> = emptySet()
 
-/** Resolutions to offer: none unless the status is Created, Skipped or Too hard. Fixed is offered
- * only on standard tasks; tag-fix and change-file tasks need an OSM upload for Fixed. */
-fun Task.allowedResolutions(): Set<TaskResolution> = when {
-    !actionable() -> emptySet()
-    mobileSupport() == MobileSupport.FULL -> TaskResolution.entries.toSet()
-    else -> TaskResolution.entries.toSet() - TaskResolution.FIXED
-}
-
-/** Whether to offer Skip (`POST task/{id}/skip`); same status and kind rules as [allowedResolutions]. */
-fun Task.canSkip(): Boolean = actionable()
+/** Whether to offer Skip (`POST task/{id}/skip`): only for IN_PLACE tasks. */
+fun Task.canSkip(): Boolean = mobileSupport() == MobileSupport.IN_PLACE
 
 /** Applies the verification rules to a fresh [getTask][MapRouletteClient.getTask] read after an
  * interrupted status write. [me] is the caller's MapRoulette user id. A missing `completedBy` is

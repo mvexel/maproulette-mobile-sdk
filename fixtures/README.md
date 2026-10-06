@@ -6,6 +6,12 @@ mappings, `commitResolution` responses, and table-driven task-kind, instruction,
 `allowedResolutions` and `verifyResolution` cases.
 Its `float_numbers` case keeps raw `1.0`/`1e5` literals: integer fields written as
 floats decode as whole numbers on both platforms and fractions are rejected.
+`choice.json` holds the multiple-choice (type 3) cases: the SLC example and its decoded
+form with deletion off and on, valid edge payloads, one invalid payload per broken rule
+(rules 1–5 of docs/mobile-choice-challenges.md §2), `mobileSupport` cases, exact canonical
+request bodies, submissions rejected before any request, every `POST …/choice` error
+mapping with its release behavior, retry flows, `choice/check` responses, the `osm:tagfix`
+identity flag and the `choiceOnly` query parameters.
 Both native suites load the same file directly; no generated or copied fixture variants.
 IDs and API key text here are invented. These fixtures complement, rather than replace,
 the read-only live probes documented in `docs/api-probes.json` and backend-source evidence.

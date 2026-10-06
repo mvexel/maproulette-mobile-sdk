@@ -85,16 +85,56 @@ the token in the host's provider (the SDK evaluates it per request) or sign in
 again. Cancellation propagates and leaves the outcome unknown; the server
 expires stale locks after 1–2 hours.
 
-Task kinds (`work()`), decoded leniently from the task's `cooperativeWork`:
-`Standard`, `TagFix`, `ChangeFile`, or `Unknown` with the raw payload. Use
-`mobileSupport()`, `allowedResolutions()` and `canSkip()` to decide what to offer:
-standard tasks offer 1/2/5/6 and Skip; tag-fix and change-file tasks offer 2/5/6
-and Skip (Fixed needs a future OSM upload); bundles and unknown kinds are
-unsupported. Only Created, Skipped and Too hard tasks offer actions.
+Task kinds (`work()`), decoded from the task's `cooperativeWork`: `Standard`,
+`TagFix`, `ChangeFile`, `Choice` (multiple-choice, type 3, validated strictly) or
+`Unknown` with the raw payload. Since choice challenges, mobile offers **only**
+tasks completed in place: `mobileSupport()` is `IN_PLACE`/`inPlace` for a valid,
+unbundled choice task with status Created, Skipped or Too hard, and
+`UNSUPPORTED` for everything else, including standard, tag-fix and change-file
+tasks. `canSkip()` follows `mobileSupport()`. `allowedResolutions()` is now always
+empty: choice tasks resolve through `submitChoice`, not a bare status write.
 `resolvedInstruction(challenge)` picks the task or challenge instruction and lists
 its `select`/`checkbox` form fields (display only; answers are not submitted).
 `render(templateProperties())` performs the web UI's `{{property}}`
 substitution; markdown rendering and `#map…` properties belong to the app.
+
+### Multiple-choice tasks
+
+Spec: [mobile choice challenges](docs/mobile-choice-challenges.md). A choice task
+asks questions about one OSM element. The server applies the answers as one OSM
+changeset, writes the status and releases the lock.
+
+| Operation (Kotlin / Swift)       | Request                         | Notes                                                         |
+| -------------------------------- | ------------------------------- | ------------------------------------------------------------- |
+| `checkChoice(id)`                | `GET task/{id}/choice/check`    | Call it when a task opens. Ineligible (or 502): skip the task |
+| `submitChoice(task, submission)` | start → `POST task/{id}/choice` | Late locking; the SDK builds the JSON body                    |
+
+- `choiceOutcomes()` returns the declared outcomes plus the built-in Too hard.
+  "Can't tell" means leaving a question out of `Answers`.
+- `allowElementDeletion` (client option, default false) controls the "gone"
+  outcome. When it is false, "gone" resolves to Not an issue and `delete` is
+  never sent. Decode outcomes with the same setting as the client
+  (`work(allowElementDeletion)` / `choiceOutcomes(allowElementDeletion)`);
+  a mismatch fails validation before any request.
+- Failures carry a `ChoiceProblem` (Swift: `WriteProblem.choice`).
+  `TaskIneligible` means the element changed in OSM: say "This one no longer
+  needs answering" and move on. There is no conflict choice. The other problems
+  are `ElementInUse`, `OsmReauthRequired`, `OsmScopeRequired`,
+  `OsmUnavailable`, `SubmissionPending`, `StatusPending`, `InvalidSubmission`
+  and `UnsupportedTask`. A lock or status conflict reuses `LockLost` and
+  `InvalidTransition`.
+- The lock is released (best effort) after every failure except
+  `StatusPending` and `OutcomeUnknown`. The identical submission is resent at
+  most once, only where server idempotency makes it safe:
+    - after `StatusPending`;
+    - after an unknown outcome, when a fresh read (`getCurrentUser`, `getTask`
+      and `verifyResolution`) shows it did not land and the caller still holds
+      the lock. If the read shows it landed, the result comes from that read.
+- `TaskFilter.choiceOnly` adds `cct=3&excludeStale=true` to the marker and box
+  reads. Servers without the filter ignore it, so still check
+  `mobileSupport()`.
+- `UserIdentity.canEditOsm` reports the `osm:tagfix` scope, which answers and
+  deletes need.
 
 Bearer identities report `scopes`; `UserIdentity.canWriteTasks` is false for a
 read-only grant. Writes must target a disposable development deployment such as

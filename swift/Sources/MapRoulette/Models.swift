@@ -98,20 +98,24 @@ public struct Bounds: Sendable {
   }
 }
 /// Filters task locations. Empty challengeIDs means all challenges visible to the caller.
-/// nil statuses means all statuses; an empty statuses array is invalid.
+/// nil statuses means all statuses; an empty statuses array is invalid. `choiceOnly` sends
+/// `cct=3&excludeStale=true` (fork backend): only choice challenges, without tasks found
+/// stale. Servers without the filter ignore it, so still check `mobileSupport()`.
 public struct TaskFilter: Sendable {
   public var challengeIDs: [ChallengeID]
   public var bounds: Bounds
   public var statuses: [Int]?
   public var includeArchived: Bool
+  public var choiceOnly: Bool
   public init(
     challengeIDs: [ChallengeID] = [], bounds: Bounds, statuses: [Int]? = [0, 3, 6],
-    includeArchived: Bool = false
+    includeArchived: Bool = false, choiceOnly: Bool = false
   ) {
     self.challengeIDs = challengeIDs
     self.bounds = bounds
     self.statuses = statuses
     self.includeArchived = includeArchived
+    self.choiceOnly = choiceOnly
   }
 }
 public struct Challenge: Sendable {
@@ -143,6 +147,8 @@ public struct MapRouletteTask: Sendable {
   public var mappedOn: String? = nil
   public var reviewStatus: Int? = nil
   public var bundleID: Int64? = nil
+  /// OSM changeset recorded for the task's completion, if any.
+  public var changesetID: Int64? = nil
 }
 public struct TaskSummary: Sendable {
   public let id: TaskID, challengeID: ChallengeID
@@ -154,6 +160,9 @@ public struct UserIdentity: Sendable {
   public var scopes: Set<String>? = nil
   /// Bearer grants need `tasks:write`; an API key acts with the user's full authority.
   public var canWriteTasks: Bool { scopes.map { $0.contains("tasks:write") } ?? !guest }
+  /// Whether the grant has `osm:tagfix`, needed for choice answers and deletes (OSM edits).
+  /// API-key identities report false: the choice route accepts only mobile bearer credentials.
+  public var canEditOsm: Bool { scopes?.contains("osm:tagfix") == true && canWriteTasks }
 }
 /// The only statuses the SDK writes. Deleted, Disabled and Skipped-by-status are deliberately absent.
 public enum TaskResolution: Int, Sendable, CaseIterable {
@@ -179,6 +188,8 @@ public enum WriteProblem: Sendable, Equatable {
   /// The request may have been applied (network failure, 5xx or unreadable success). Re-read the
   /// task before acting; never resend a skip or status write blindly.
   case outcomeUnknown
+  /// Choice submission or check failures.
+  case choice(ChoiceProblem)
 }
 /// Interpretation of a fresh task read after an interrupted status write.
 public enum ResolutionCheck: Sendable, Equatable {

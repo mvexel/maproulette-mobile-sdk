@@ -55,6 +55,7 @@ class LifecycleTest {
         WriteProblem.InvalidTransition -> "invalidTransition"
         WriteProblem.InsufficientScope -> "insufficientScope"
         WriteProblem.OutcomeUnknown -> "outcomeUnknown"
+        is ChoiceProblem -> "choice"
     }
 
     @Test fun writeRoutesAreBareWithOneCredential() = runBlocking<Unit> {
@@ -234,7 +235,7 @@ class LifecycleTest {
                 else -> fail("unknown work")
             }
             val support = when (task.mobileSupport()) {
-                MobileSupport.FULL -> "full"; MobileSupport.RESOLVE_WITHOUT_FIX -> "resolveWithoutFix"; MobileSupport.UNSUPPORTED -> "unsupported"
+                MobileSupport.IN_PLACE -> "inPlace"; MobileSupport.UNSUPPORTED -> "unsupported"
             }
             assertEquals(row.text("support"), support, name)
         }

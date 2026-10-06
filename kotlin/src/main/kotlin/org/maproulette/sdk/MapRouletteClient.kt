@@ -7,12 +7,16 @@ import kotlinx.serialization.json.*
 import okhttp3.HttpUrl.Companion.toHttpUrl
 
 /** MapRoulette client: reads plus the bare task-lifecycle writes (start, refresh, release, skip and
- * status 1/2/5/6). No storage, implicit pagination or automatic retries; writes are never resent. */
+ * status 1/2/5/6) and choice submission. No storage, implicit pagination or automatic retries;
+ * writes are never resent, except the identical choice submission that [submitChoice] documents.
+ * [allowElementDeletion] (default false) lets choice "gone" outcomes delete the OSM element; when
+ * false they resolve to Not an issue and no delete is ever sent. */
 class MapRouletteClient(
     serviceUrl: String = "https://maproulette.org/api/v2/",
     private val transport: Transport,
     private val apiKey: suspend () -> String? = { null },
     private val accessToken: suspend () -> String? = { null },
+    val allowElementDeletion: Boolean = false,
 ) {
     /** Retains the original positional/trailing-lambda API-key constructor. */
     constructor(
@@ -110,6 +114,7 @@ class MapRouletteClient(
         if (filter.challengeIds.isNotEmpty()) {
             params["cid"] = filter.challengeIds.joinToString(",") { it.value.toString() }
         }
+        if (filter.choiceOnly) params += choiceOnlyParams
         val result = page(
             "tasks/box/${filter.bounds.path()}", params, pageSize, after,
             offset = false, parse = ::summary, envelope = true,
@@ -134,6 +139,7 @@ class MapRouletteClient(
         if (filter.challengeIds.isNotEmpty()) {
             params["cid"] = filter.challengeIds.joinToString(",") { it.value.toString() }
         }
+        if (filter.choiceOnly) params += choiceOnlyParams
         if (filter.challengeIds.isEmpty()) {
             params["ce"] = "true"
             params["pe"] = "true"
@@ -255,11 +261,128 @@ class MapRouletteClient(
         }
     }
 
-    private enum class Write { START, REFRESH, RELEASE, SKIP, RESOLVE }
+    /** Submits a choice task's answers or outcome with late locking: start, then
+     * `POST task/{id}/choice`. The server applies the OSM edit (answers, or an enabled delete), sets the
+     * status and releases the lock. The submission is checked against [task]'s payload before anything
+     * is sent (IllegalArgumentException); decode outcomes with this client's [allowElementDeletion].
+     *
+     * Failures carry a [ChoiceProblem] or [WriteProblem]; the lock is then released (best effort),
+     * except after StatusPending or OutcomeUnknown. The identical submission is resent at most once,
+     * only where the server's idempotency makes it safe: after StatusPending, and after an unknown
+     * outcome of a non-editing outcome when a fresh read shows it did not land and the caller still
+     * holds the lock. An edit (answers or a delete) is never resent after an unknown outcome, because
+     * the first request may still be uploading: OutcomeUnknown is thrown with the lock kept; submit
+     * the same submission again later (the server resumes it without a second upload). When the read
+     * shows the submission landed, the result comes from the read. If the resend then fails without proving
+     * that nothing was applied (e.g. lock_required because the first attempt finished meanwhile), the
+     * first error (OutcomeUnknown, or StatusPending with its changeset) is thrown and the lock kept. */
+    suspend fun submitChoice(task: Task, submission: ChoiceSubmission): ChoiceResult {
+        val target = task.validateChoice(submission, allowElementDeletion)
+        val id = task.id
+        val body = choiceBody(submission)
+        val edits = submission is ChoiceSubmission.Answers ||
+            (submission as ChoiceSubmission.Outcome).outcome.deletesElement
+        startForCommit(id)
+        val first = try {
+            return postChoice(id, body)
+        } catch (e: MapRouletteException) {
+            e
+        }
+        when {
+            first.problem is ChoiceProblem.StatusPending -> Unit
+            first.problem == WriteProblem.OutcomeUnknown -> when (val recovery = recover(task, target)) {
+                is Recovery.Applied -> return ChoiceResult(TaskStatus(target.code), recovery.changesetId)
+                // An edit may still be uploading on the server; resending could race it.
+                Recovery.Resend -> if (edits) throw first
+                Recovery.Unknown -> throw first
+            }
+            else -> {
+                releaseQuietly(id)
+                throw first
+            }
+        }
+        // The first attempt may have landed (unknown) or did land in OSM (StatusPending).
+        try {
+            return postChoice(id, body)
+        } catch (second: MapRouletteException) {
+            when {
+                second.problem is ChoiceProblem.StatusPending -> throw second
+                first.problem == WriteProblem.OutcomeUnknown && second.problem.provesNotApplied() -> {
+                    releaseQuietly(id)
+                    throw second
+                }
+                // E.g. lock_required because the first attempt finished meanwhile: keep the first error
+                // (StatusPending keeps its changeset id) and keep the lock for a later identical resend.
+                else -> throw first
+            }
+        }
+    }
 
-    private suspend fun write(operation: Write, path: String, method: HttpMethod): HttpResponse {
+    /** Fresh server-side OSM eligibility check (`GET task/{id}/choice/check`, `tasks:read`). It changes
+     * nothing the caller owns; the server may record a system ineligible flag that hides the task from
+     * mobile discovery. A 502 carries [ChoiceProblem.OsmUnavailable]. */
+    suspend fun checkChoice(id: TaskId): ChoiceEligibility {
+        val response = send("task/${id.value}/choice/check")
+        if (response.status != 200) {
+            throw failure(response, ChoiceProblem.OsmUnavailable.takeIf {
+                response.status == 502 && errorBody(response)?.text("error") == "osm_unavailable"
+            })
+        }
+        return decode {
+            val o = Json.parseToJsonElement(response.body).obj()
+            val deleteAllowed = o.bool("deleteAllowed") ?: false
+            if (requireNotNull(o.bool("eligible"))) ChoiceEligibility(true, deleteAllowed, null)
+            else ChoiceEligibility(false, false, ineligibleReason(o.text("reason")))
+        }
+    }
+
+    private suspend fun postChoice(id: TaskId, body: String): ChoiceResult {
+        val response = write(Write.CHOICE, "task/${id.value}/choice", HttpMethod.POST, body)
+        return try {
+            require(response.status == 200)
+            val o = Json.parseToJsonElement(response.body).obj()
+            val status = o.long("status")
+            require(status in 0..Int.MAX_VALUE)
+            ChoiceResult(TaskStatus(status.toInt()), o.optionalLong("changesetId")?.takeIf { it > 0 })
+        } catch (e: CancellationException) {
+            throw e
+        } catch (_: Exception) {
+            // The submission may have been applied even though the response could not be read.
+            throw MapRouletteException(ErrorKind.PROTOCOL, response.status, problem = WriteProblem.OutcomeUnknown)
+        }
+    }
+
+    private sealed interface Recovery {
+        data class Applied(val changesetId: Long?) : Recovery
+        data object Resend : Recovery
+        data object Unknown : Recovery
+    }
+
+    // Fresh identity and task reads after an interrupted submission. A lock still held by the caller
+    // means it did not land (the server releases on success). Applied needs the target status, no lock,
+    // not completed by someone else, and a status that differs from the one before submitting (Too hard
+    // can be submitted on a Too hard task). Anything else, including a failed read, stays unknown.
+    private suspend fun recover(task: Task, target: TaskResolution): Recovery = try {
+        val me = getCurrentUser().id
+        val fresh = getTask(task.id)
+        when {
+            fresh.lockedBy == me -> Recovery.Resend
+            fresh.status?.code == target.code && fresh.lockedBy == null && task.status?.code != target.code &&
+                (fresh.completedBy == null || fresh.completedBy == me) -> Recovery.Applied(fresh.changesetId)
+            else -> Recovery.Unknown
+        }
+    } catch (e: CancellationException) {
+        throw e
+    } catch (_: Exception) {
+        // Credential providers may throw anything; the submission outcome stays unknown either way.
+        Recovery.Unknown
+    }
+
+    private enum class Write { START, REFRESH, RELEASE, SKIP, RESOLVE, CHOICE }
+
+    private suspend fun write(operation: Write, path: String, method: HttpMethod, body: String? = null): HttpResponse {
         val response = try {
-            send(path, method = method)
+            send(path, method = method, body = body)
         } catch (e: MapRouletteException) {
             if (e.kind != ErrorKind.NETWORK) throw e
             throw MapRouletteException(e.kind, e.status, e.retryAfter, WriteProblem.OutcomeUnknown)
@@ -268,14 +391,17 @@ class MapRouletteClient(
         throw failure(response, writeProblem(operation, response))
     }
 
+    private fun errorBody(response: HttpResponse): JsonObject? = try {
+        Json.parseToJsonElement(response.body) as? JsonObject
+    } catch (_: Exception) {
+        null
+    }
+
     // Bodies are inspected only for the lock/scope details below and never retained.
     private fun writeProblem(operation: Write, response: HttpResponse): WriteProblem? {
-        val body = try {
-            Json.parseToJsonElement(response.body) as? JsonObject
-        } catch (_: Exception) {
-            null
-        }
+        val body = errorBody(response)
         fun field(name: String) = (body?.get(name) as? JsonPrimitive)?.takeIf { it.isString }?.content
+        if (operation == Write.CHOICE) return choiceProblem(response.status, body, ::field)
         return when (response.status) {
             400 -> WriteProblem.InvalidTransition.takeIf {
                 operation == Write.RESOLVE && field("error") != "invalid_request"
@@ -296,6 +422,38 @@ class MapRouletteClient(
                     body.text("startedAt"),
                 )
             }.getOrNull() else null
+            in 500..599 -> WriteProblem.OutcomeUnknown
+            else -> null
+        }
+    }
+
+    private fun choiceProblem(status: Int, body: JsonObject?, field: (String) -> String?): WriteProblem? {
+        val error = field("error")
+        return when (status) {
+            401 -> ChoiceProblem.OsmReauthRequired.takeIf { error == "osm_reauth_required" }
+            403 -> when {
+                error != "insufficient_scope" -> null
+                field("scope") == "osm:tagfix" -> ChoiceProblem.OsmScopeRequired
+                else -> WriteProblem.InsufficientScope
+            }
+            409 -> when (error) {
+                "lock_required" -> WriteProblem.LockLost
+                "invalid_transition" -> WriteProblem.InvalidTransition
+                "submission_pending" -> ChoiceProblem.SubmissionPending
+                "element_in_use" -> ChoiceProblem.ElementInUse
+                // The server's diagnostic `detail` is deliberately not exposed.
+                "task_ineligible" -> ChoiceProblem.TaskIneligible(ineligibleReason(field("reason")))
+                else -> null
+            }
+            422 -> when (error) {
+                "invalid_submission" -> ChoiceProblem.InvalidSubmission(field("detail"))
+                "unsupported_task" -> ChoiceProblem.UnsupportedTask
+                else -> null
+            }
+            500 -> if (error == "status_pending") {
+                ChoiceProblem.StatusPending(runCatching { body?.optionalLong("changesetId") }.getOrNull())
+            } else WriteProblem.OutcomeUnknown
+            502 -> if (error == "osm_unavailable") ChoiceProblem.OsmUnavailable else WriteProblem.OutcomeUnknown
             in 500..599 -> WriteProblem.OutcomeUnknown
             else -> null
         }
@@ -457,6 +615,23 @@ class MapRouletteClient(
 
 private fun JsonElement.obj() = jsonObject
 
+// Errors after which the server has re-evaluated the submission with the caller's lock and applied nothing.
+private fun WriteProblem?.provesNotApplied() = when (this) {
+    is ChoiceProblem.TaskIneligible, is ChoiceProblem.InvalidSubmission, ChoiceProblem.ElementInUse,
+    ChoiceProblem.OsmReauthRequired, ChoiceProblem.OsmScopeRequired, ChoiceProblem.OsmUnavailable,
+    ChoiceProblem.UnsupportedTask, WriteProblem.InsufficientScope -> true
+    else -> false
+}
+
+private val choiceOnlyParams = mapOf("cct" to "3", "excludeStale" to "true")
+
+private fun ineligibleReason(wire: String?) = when (wire) {
+    "element_gone" -> IneligibleReason.ELEMENT_GONE
+    "match_failed" -> IneligibleReason.MATCH_FAILED
+    "key_changed" -> IneligibleReason.KEY_CHANGED
+    else -> IneligibleReason.UNKNOWN
+}
+
 // Reject coerced primitive types, while preserving missing/null optional fields.
 private fun JsonObject.str(key: String): String = getValue(key).jsonPrimitive.let {
     require(it.isString)
@@ -545,6 +720,8 @@ private fun task(value: JsonElement): Task {
             it.toInt()
         },
         bundleId = o.optionalLong("bundleId"),
+        // The backend may store -1 for "no changeset".
+        changesetId = o.optionalLong("changesetId")?.takeIf { it > 0 },
     )
 }
 

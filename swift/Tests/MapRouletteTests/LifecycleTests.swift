@@ -59,6 +59,7 @@ private func problemName(_ problem: WriteProblem?) -> String? {
     case .invalidTransition?: "invalidTransition"
     case .insufficientScope?: "insufficientScope"
     case .outcomeUnknown?: "outcomeUnknown"
+    case .choice?: "choice"
     }
 }
 
@@ -245,7 +246,7 @@ private func kindName(_ kind: ElementTagEdit.Kind) -> String {
             Issue.record("\(name): expected \(expected), got \(actual)")
         }
         let support: String = switch task.mobileSupport() {
-        case .full: "full"; case .resolveWithoutFix: "resolveWithoutFix"; case .unsupported: "unsupported"
+        case .inPlace: "inPlace"; case .unsupported: "unsupported"
         }
         #expect(support == row["support"] as! String, "\(name)")
     }
