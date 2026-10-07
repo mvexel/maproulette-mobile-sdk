@@ -10,6 +10,17 @@ minor version, so add a default branch when you switch on them.
 
 ## [Unreleased]
 
+### Changed
+
+- Partial answers closing the task is now the intended behavior (decision D7),
+  no longer a known limitation. A submission that leaves some questions as
+  "Can't tell" sets Fixed, as in upstream MapRoulette. Challenge maintainers
+  re-check live OSM and create new tasks for keys that are still missing. See
+  the [choice-tasks guide](docs/guide/choice-tasks.md#partial-answers-close-the-task).
+- Documentation: the staging checklist lists the example client IDs for
+  development, and the iOS example uses its own staging client,
+  `maproulette-ios-example`.
+
 ## [0.1.0] - 2026-10-06
 
 First release of the Kotlin and Swift SDKs.
