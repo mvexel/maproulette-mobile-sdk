@@ -409,7 +409,7 @@ class MapRouletteClient(
 
     private fun requireWrites() {
         check(environment.allowsWrites) {
-            "task writes are disabled for $environment; before 1.0 this SDK writes only to staging (mr-api.osm.lol) or loopback"
+            "task writes are disabled for $environment; in SDK 0.x writes go only to staging (mr-api.osm.lol), loopback, or an environment created with allowWrites"
         }
     }
 

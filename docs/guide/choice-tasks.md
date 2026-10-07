@@ -9,7 +9,8 @@ releases the lock. The SDK itself never talks to OSM.
 
 What you need:
 
-- The staging environment. Before 1.0 the SDK refuses writes elsewhere, and the
+- A mobile-enabled backend: staging, or your own fork deployment created with
+  `allowWrites = true`. In SDK 0.x the SDK refuses writes elsewhere, and the
   choice routes exist only on the fork backend.
 - A bearer token with `tasks:write` and `osm:tagfix`
   (`getCurrentUser().canEditOsm`). See [Authentication](authentication.md).

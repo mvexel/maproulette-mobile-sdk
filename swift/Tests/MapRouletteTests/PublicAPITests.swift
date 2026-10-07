@@ -66,14 +66,16 @@ private actor Recorder: Transport {
         with: Data(contentsOf: repositoryRoot.appendingPathComponent("fixtures/environments.json"))) as! [String: Any]
     for row in table["cases"] as! [[String: Any]] {
         let url = row["url"] as! String
+        let allowWrites = row["allowWrites"] as? Bool ?? false
         do {
-            let environment = try MapRouletteEnvironment(serviceURL: URL(string: url)!)
+            let environment = try MapRouletteEnvironment(serviceURL: URL(string: url)!, allowWrites: allowWrites)
             #expect(row["valid"] as! Bool, "accepted \(url)")
             #expect(environment.allowsWrites == row["writes"] as? Bool, "\(url)")
             #expect(environment.serviceURL.absoluteString.hasSuffix("/"), "\(url)")
         } catch let error as MapRouletteError {
             #expect(!(row["valid"] as! Bool), "rejected \(url)")
-            #expect(error.kind == .validation && error.reason?.contains("https") == true)
+            let expected = row["error"] as? String ?? "https"
+            #expect(error.kind == .validation && error.reason?.contains(expected) == true, "\(url)")
         }
     }
     // Writes to production fail before any request is sent; reads still work.

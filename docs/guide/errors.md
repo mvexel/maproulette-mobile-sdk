@@ -19,7 +19,7 @@ user as a network problem.
 
 ## By kind
 
-`ErrorKind` may gain cases before 1.0: keep a default branch.
+`ErrorKind` may gain cases in SDK 0.x: keep a default branch.
 
 | Kind (Kotlin / Swift) | Meaning | What the app does |
 | --- | --- | --- |
@@ -40,7 +40,7 @@ The SDK never retries a read. Your app decides when to retry.
 
 Write failures keep their `kind` and add a `problem`. In Kotlin, `problem` is a
 `WriteProblem`; `ChoiceProblem` extends it. In Swift, choice problems are wrapped:
-`WriteProblem.choice(ChoiceProblem)`. Both may gain cases before 1.0.
+`WriteProblem.choice(ChoiceProblem)`. Both may gain cases in SDK 0.x.
 
 | `WriteProblem` | Cause | Tell the user | App action |
 | --- | --- | --- | --- |

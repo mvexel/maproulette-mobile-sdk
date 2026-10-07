@@ -4,13 +4,28 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
-Before 1.0: a minor version (0.x.0) may break the API; a patch version (0.x.y)
+In SDK 0.x: a minor version (0.x.0) may break the API; a patch version (0.x.y)
 does not. `ErrorKind`, `WriteProblem` and `ChoiceProblem` may gain cases in any
 minor version, so add a default branch when you switch on them.
 
 ## [Unreleased]
 
+### Added
+
+- Opt-in writes for your own backend: `MapRouletteEnvironment(serviceUrl,
+  allowWrites = true)` in Kotlin, `MapRouletteEnvironment(serviceURL:allowWrites:)`
+  in Swift. The default stays `false`, so existing calls compile unchanged.
+  `allowsWrites` is now true for staging, loopback hosts, and opted-in hosts.
+  Opting in for `maproulette.org` or a subdomain fails at construction; production
+  stays read-only.
+
 ### Changed
+
+- Documentation: the README's "Environments and backends" section and the
+  getting-started guide say what works where. Reads work against any deployment,
+  anonymously too; only choice tasks can be completed, and only against a
+  mobile-enabled fork backend. The authentication guide has a "Your own backend"
+  section.
 
 - Partial answers closing the task is now the intended behavior (decision D7),
   no longer a known limitation. A submission that leaves some questions as

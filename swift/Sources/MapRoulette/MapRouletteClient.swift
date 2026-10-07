@@ -441,7 +441,7 @@ public final class MapRouletteClient: Sendable {
     guard environment.allowsWrites else {
       throw MapRouletteError(
         .validation,
-        reason: "task writes are disabled for \(environment); before 1.0 this SDK writes only to staging (mr-api.osm.lol) or loopback")
+        reason: "task writes are disabled for \(environment); in SDK 0.x writes go only to staging (mr-api.osm.lol), loopback, or an environment created with allowWrites")
     }
   }
 

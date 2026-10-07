@@ -1,5 +1,5 @@
 {
- "_comment": "Service URL validation and the pre-1.0 write allowlist, shared by the Kotlin and Swift suites. valid: the environment can be created; writes: allowsWrites (only https://mr-api.osm.lol on the default port, and loopback hosts).",
+ "_comment": "Service URL validation and the SDK 0.x write allowlist, shared by the Kotlin and Swift suites. allowWrites: the opt-in passed at construction (default false). valid: the environment can be created; error: a substring of the rejection message (default \"https\"); writes: allowsWrites (https://mr-api.osm.lol on the default port, loopback hosts, and opted-in hosts other than maproulette.org and its subdomains).",
  "cases": [
   {"url": "https://maproulette.org/api/v2/", "valid": true, "writes": false},
   {"url": "https://mr-api.osm.lol/api/v2/", "valid": true, "writes": true},
@@ -22,6 +22,22 @@
   {"url": "https://@mr-api.osm.lol/api/v2/", "valid": false},
   {"url": "ftp://mr-api.osm.lol/api/v2/", "valid": false},
   {"url": "https://example.org:99999/api/v2/", "valid": false},
-  {"url": "nope", "valid": false}
+  {"url": "nope", "valid": false},
+  {"url": "https://mr.example.org/api/v2/", "allowWrites": true, "valid": true, "writes": true},
+  {"url": "https://mr.example.org/api/v2/", "allowWrites": false, "valid": true, "writes": false},
+  {"url": "https://mr.example.org./api/v2/", "allowWrites": true, "valid": true, "writes": true},
+  {"url": "https://MR.EXAMPLE.ORG/api/v2/", "allowWrites": true, "valid": true, "writes": true},
+  {"url": "https://mr.example.org:8443/api/v2/", "allowWrites": true, "valid": true, "writes": true},
+  {"url": "http://localhost:9000/api/v2/", "allowWrites": false, "valid": true, "writes": true},
+  {"url": "http://localhost:9000/api/v2/", "allowWrites": true, "valid": true, "writes": true},
+  {"url": "https://mr-api.osm.lol/api/v2/", "allowWrites": true, "valid": true, "writes": true},
+  {"url": "https://maproulette.org/api/v2/", "allowWrites": true, "valid": false, "error": "maproulette.org"},
+  {"url": "https://staging.maproulette.org/api/v2/", "allowWrites": true, "valid": false, "error": "maproulette.org"},
+  {"url": "https://staging.maproulette.org/api/v2/", "allowWrites": false, "valid": true, "writes": false},
+  {"url": "https://maproulette.org./api/v2/", "allowWrites": true, "valid": false, "error": "maproulette.org"},
+  {"url": "https://MapRoulette.ORG/api/v2/", "allowWrites": true, "valid": false, "error": "maproulette.org"},
+  {"url": "https://maproulette.org:8443/api/v2/", "allowWrites": true, "valid": false, "error": "maproulette.org"},
+  {"url": "https://notmaproulette.org/api/v2/", "allowWrites": true, "valid": true, "writes": true},
+  {"url": "http://maproulette.org/api/v2/", "allowWrites": true, "valid": false}
  ]
 }

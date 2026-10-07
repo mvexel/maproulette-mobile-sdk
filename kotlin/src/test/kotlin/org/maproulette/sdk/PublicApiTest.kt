@@ -26,13 +26,14 @@ class PublicApiTest {
         val table = Json.parseToJsonElement(File(System.getProperty("fixtures"), "environments.json").readText()).jsonObject
         for (row in table.getValue("cases").jsonArray.map { it.jsonObject }) {
             val url = row.getValue("url").jsonPrimitive.content
+            val allowWrites = row["allowWrites"]?.jsonPrimitive?.boolean ?: false
             if (row.getValue("valid").jsonPrimitive.boolean) {
-                val environment = MapRouletteEnvironment(url)
+                val environment = MapRouletteEnvironment(url, allowWrites)
                 assertEquals(row.getValue("writes").jsonPrimitive.boolean, environment.allowsWrites, url)
                 assertTrue(environment.serviceUrl.endsWith("/"), url)
             } else {
-                val error = assertFailsWith<IllegalArgumentException>(url) { MapRouletteEnvironment(url) }
-                assertTrue(error.message!!.contains("https"), url)
+                val error = assertFailsWith<IllegalArgumentException>(url) { MapRouletteEnvironment(url, allowWrites) }
+                assertTrue(error.message!!.contains(row["error"]?.jsonPrimitive?.content ?: "https"), url)
             }
         }
         // Writes to production fail before any request is sent; reads still work.

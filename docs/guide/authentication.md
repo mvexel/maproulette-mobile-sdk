@@ -114,6 +114,20 @@ The sign-in endpoints, relative to the origin:
 The fork backend's setup guide is in the
 [backend repository](https://github.com/mvexel/maproulette-mobile-backend/tree/feat/mobile-oauth).
 
+## Your own backend
+
+To complete tasks against your own deployment instead of staging:
+
+1. Deploy the fork backend; see its
+   [deployment guide](https://github.com/mvexel/maproulette-mobile-backend/blob/feat/mobile-oauth/docs/mobile-staging-deploy.md).
+2. Enable mobile OAuth and register your app as a client in its config, with
+   your redirect URI; see [mobile OAuth](https://github.com/mvexel/maproulette-mobile-backend/blob/feat/mobile-oauth/docs/mobile-oauth.md).
+3. Create the environment with writes enabled:
+   `MapRouletteEnvironment("https://mr.example.org/api/v2/", allowWrites = true)` in Kotlin,
+   `try MapRouletteEnvironment(serviceURL: url, allowWrites: true)` in Swift.
+   Without the opt-in, sign-in and reads work but the SDK refuses every write.
+   The opt-in is refused for `maproulette.org` and its subdomains.
+
 ## Android: AppAuth
 
 The Android demo uses [AppAuth for Android](https://github.com/openid/AppAuth-Android)

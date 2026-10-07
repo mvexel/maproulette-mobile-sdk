@@ -79,7 +79,7 @@ Minor Version" from 0.1.0, and add the `MapRoulette` library to your app target.
 
 ### Versions
 
-Before 1.0, a minor version (0.2.0) may break the API. A patch version (0.1.1)
+In SDK 0.x, a minor version (0.2.0) may break the API. A patch version (0.1.1)
 does not. In SwiftPM, `from: "0.1.0"` also accepts 0.2.0 and later. To get
 patch releases only, use `.upToNextMinor(from: "0.1.0")`. In Gradle, the
 version is exact.
@@ -92,32 +92,46 @@ The SDK sends `User-Agent: MapRoulette-Mobile-SDK/<version>`. The version is
 
 ## 4. Pick an environment
 
-| Environment | Kotlin | Swift |
-| --- | --- | --- |
-| Production, `https://maproulette.org/api/v2/` | `MapRouletteEnvironment.PRODUCTION` | `.production` |
-| Staging, `https://mr-api.osm.lol/api/v2/` | `MapRouletteEnvironment.STAGING` | `.staging` |
-| Custom | `MapRouletteEnvironment(serviceUrl)` | `try MapRouletteEnvironment(serviceURL:)` |
+| Environment | Kotlin | Swift | Writes |
+| --- | --- | --- | --- |
+| Production, `https://maproulette.org/api/v2/` | `MapRouletteEnvironment.PRODUCTION` | `.production` | Refused |
+| Staging, `https://mr-api.osm.lol/api/v2/` | `MapRouletteEnvironment.STAGING` | `.staging` | Allowed |
+| Custom | `MapRouletteEnvironment(serviceUrl)` | `try MapRouletteEnvironment(serviceURL:)` | Loopback only |
+| Your own backend | `MapRouletteEnvironment(serviceUrl, allowWrites = true)` | `try MapRouletteEnvironment(serviceURL:allowWrites:)` | Allowed |
 
 Production is the default. A custom URL must be https, or http on a loopback
 host, with no credentials, query or fragment.
 
-Reads work everywhere. Writes do not. Before 1.0, the SDK sends task writes
-only where `environment.allowsWrites` is true: the staging origin
-`https://mr-api.osm.lol` and loopback hosts. Everywhere else, `skipTask`,
-`submitChoice` and the low-level lifecycle calls fail before anything is sent.
-Kotlin throws `IllegalStateException`; Swift throws `MapRouletteError` with
-kind `.validation` and a `reason`.
+Reads work everywhere, anonymously too, and cover every task kind. Writes do
+not. In SDK 0.x, the SDK sends task writes only where
+`environment.allowsWrites` is true: the staging origin `https://mr-api.osm.lol`,
+loopback hosts, and custom environments created with `allowWrites = true`.
+Everywhere else, `skipTask`, `submitChoice` and the low-level lifecycle calls
+fail before anything is sent. Kotlin throws `IllegalStateException`; Swift
+throws `MapRouletteError` with kind `.validation` and a `reason`.
 
-Why: while the SDK is pre-release, writes may only go to a disposable
-deployment. Also, production does not have the mobile routes this SDK needs
+Production maproulette.org is always refused. Passing `allowWrites = true` for
+`maproulette.org` or any `*.maproulette.org` host fails when you create the
+environment: Kotlin throws `IllegalArgumentException`, Swift throws a
+`.validation` error. Production does not have the mobile routes this SDK needs
 for writing: bearer sign-in (`/oauth/mobile/*`) and the choice routes exist only
 on the [fork backend](https://github.com/mvexel/maproulette-mobile-backend/tree/feat/mobile-oauth).
-Staging runs that fork against the development OSM server
-(`master.apis.dev.openstreetmap.org`), with its own database. Staging users and
-challenges are separate from production ones.
+
+Completing tasks needs a running, configured fork with mobile OAuth enabled and
+your app registered as a client. The fork's docs cover
+[configuration and client registration](https://github.com/mvexel/maproulette-mobile-backend/blob/feat/mobile-oauth/docs/mobile-oauth.md),
+[deployment](https://github.com/mvexel/maproulette-mobile-backend/blob/feat/mobile-oauth/docs/mobile-staging-deploy.md) and
+[what it changes compared to upstream](https://github.com/mvexel/maproulette-mobile-backend/blob/feat/mobile-oauth/docs/fork-changes.md).
+To run your own, see [Your own backend](authentication.md#your-own-backend).
+
+To evaluate the SDK, use staging. It runs the fork against the development OSM
+server (`master.apis.dev.openstreetmap.org`), with its own database, and accepts
+the [example client IDs](authentication.md#staging-checklist-bearer-sign-in).
+Staging users and challenges are separate from production ones.
 
 A good setup: read from production while you build discovery screens, and
-point a debug build at staging when you work on task completion.
+point a debug build at staging (or your own backend) when you work on task
+completion.
 
 ## 5. First call in five minutes
 
@@ -247,7 +261,10 @@ let markers = try await client.findTaskMarkers(
 
 ### Which tasks can a mobile app complete?
 
-Only multiple-choice tasks. Use two gates:
+Only multiple-choice tasks, and only against a mobile-enabled backend (see
+[§4](#4-pick-an-environment)). The SDK reads every task kind, so regular tasks
+(standard, tag fix, change file) can be listed, shown and mapped, but this
+version cannot complete them. Use two gates:
 
 1. `choiceOnly = true` in `TaskFilter` asks the server for choice challenges
    only, without stale tasks. Servers without this filter (production today)
