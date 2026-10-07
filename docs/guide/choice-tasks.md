@@ -146,18 +146,18 @@ Always decode outcomes through the client (`client.work(task)`,
 `client.choiceOutcomes(task)`). `task.work()` on its own decodes with deletion
 off, so its outcomes do not match a deletion-enabled client.
 
-## Known limitation: partial answers close the task
+## Partial answers close the task
 
 "Can't tell" leaves a question out of the submission. If the user answers at
-least one question, the answers are uploaded and the task becomes Fixed (1).
-That closes the task. The questions the user left as "Can't tell" are never
-offered again, and their tags stay missing in OSM. MapRoulette has no "partly
-done" status.
+least one question, the answers are uploaded and the task becomes Fixed (1),
+which closes it. The questions left as "Can't tell" are not offered again from
+this task. This follows upstream MapRoulette, where a task has one final status.
 
-Until this is fixed, tell users that submitting closes the task. For example,
-let "Submit answers" confirm which questions are still "Can't tell". The design
-record has the details and possible fixes:
-[multiple-choice challenges, section 10](../design/mobile-choice-challenges.md#10-known-limitations-todo).
+Before submitting, tell users which questions are still "Can't tell" and that
+submitting closes the task. Challenge maintainers pick up the rest by
+re-checking live OSM and creating new tasks for elements whose keys are still
+missing. See
+[multiple-choice challenges, section 10](../design/mobile-choice-challenges.md#10-partial-answers-d7-decided-2026-10-07).
 
 ## Skipping
 

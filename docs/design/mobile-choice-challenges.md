@@ -26,6 +26,7 @@ Sources:
 | D4 | One OSM element per task. **Several questions** about that element. The answers are applied as **one changeset**. |
 | D5 | Deleting the element ("gone") is a task-level outcome. It is **opt-in in the SDK** and off by default. Without opt-in, "gone" maps to Not an issue (2). |
 | D6 | Mobile hides every task that is not a choice task. The fork also gets the cheap `cct` filter on the marker, box and cluster endpoints. |
+| D7 (2026-10-07) | A partial submission (some questions "Can't tell") closes the task as Fixed (1). The challenge maintainer re-checks live OSM and recreates tasks for keys that are still missing. Per-question eligibility is rejected for now, to stay close to upstream MapRoulette (§10). |
 
 ## 1. Background (evidence)
 
@@ -128,7 +129,7 @@ The payload is stored as the task's `cooperativeWork`.
     keys.
   - "Can't tell" is not listed in the payload. The client always offers
     it, and it means the question is left out of the submission. A
-    partial submission still closes the task (see §10).
+    partial submission closes the task (D7, §10).
 - **`outcomes`** are task-level results that are not edits.
   - A plain outcome has a `status` of 2 or 6.
   - A `delete: true` outcome is "the element is gone". It never has a
@@ -739,16 +740,25 @@ The SDKs follow this section, with these differences:
    and with the other task kinds hidden.
 4. **Live:** the §8 steps, then device acceptance on dev OSM.
 
-## 10. Known limitations (TODO)
+## 10. Partial answers (D7, decided 2026-10-07)
 
-- **Partial answers close the task.** "Can't tell" leaves a question out
-  of the submission. If at least one question is answered, the answered
-  tags are uploaded and the task becomes Fixed (1), which closes it. The
-  questions the user skipped are never offered again, and their keys stay
-  missing in OSM. MapRoulette has no "partly done" status. Possible fixes,
-  not yet decided:
-  - Keep the task open after a partial submission, which needs a
-    non-final status or a fork-side record of the answered questions.
-  - Regenerate a narrower task for the unanswered questions. The SLC
-    generator already includes only keys that are absent, so re-running
-    it would pick them up.
+**Decision:** a partial submission closes the task, which keeps the
+upstream MapRoulette model of one task, one final status.
+
+- "Can't tell" leaves a question out of the submission. If at least one
+  question is answered, the answered tags are uploaded and the task
+  becomes Fixed (1). The questions left as "Can't tell" are not offered
+  again from this task.
+- **Follow-up is the challenge maintainer's job.** Re-check live OSM and
+  create new tasks for elements whose keys are still missing. The SLC
+  generator already includes a question only when all of its keys are
+  absent, so re-running it on fresh data produces exactly the remaining
+  questions.
+- **Rejected for now:** keeping the task open with per-question
+  eligibility. It would replace D3's all-or-nothing rule
+  (`MobileChoiceService.staleness`), leave the task at Created (0) after
+  a partial submission, and need a "Can't tell" counter so that a task
+  can't loop forever. It would also move further from the upstream
+  heuristic.
+- **App guidance:** before submitting, tell users which questions are
+  still "Can't tell" and that submitting closes the task.
