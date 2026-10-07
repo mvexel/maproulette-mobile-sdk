@@ -246,6 +246,7 @@ class ChoiceTest {
                 assertEquals(expect["eligible"]!!.jsonPrimitive.boolean, got.eligible, name)
                 assertEquals(expect["deleteAllowed"]!!.jsonPrimitive.boolean, got.deleteAllowed, name)
                 assertEquals(expect.text("reason"), got.reason?.let { camel(it.name) }, name)
+                assertEquals(expect["questionIds"]?.jsonArray?.map { it.jsonPrimitive.content }?.toSet(), got.questionIds, name)
             } else {
                 val expected = row.getValue("error").jsonObject
                 val error = assertFailsWith<MapRouletteException>(name) { client(script).checkChoice(id) }

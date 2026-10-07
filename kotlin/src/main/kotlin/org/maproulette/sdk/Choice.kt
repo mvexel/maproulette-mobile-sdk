@@ -67,6 +67,8 @@ data class ChoiceEligibility(
     val eligible: Boolean,
     val deleteAllowed: Boolean,
     val reason: IneligibleReason?,
+    /** When present, only these question IDs currently lack their guarded OSM tags. */
+    val questionIds: Set<String>? = null,
 )
 
 internal const val TOO_HARD_ID = ChoiceOutcome.TOO_HARD_ID

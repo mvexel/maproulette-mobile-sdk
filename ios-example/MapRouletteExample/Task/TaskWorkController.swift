@@ -61,6 +61,11 @@ struct ChoiceWork: Equatable, Sendable {
   let element: OSMElementRef
   let questions: [ChoiceQuestion]
 
+  init(element: OSMElementRef, questions: [ChoiceQuestion]) {
+    self.element = element
+    self.questions = questions
+  }
+
   init?(_ work: TaskWork) {
     guard case .choice(let element, _, let questions, _) = work else { return nil }
     self.element = element
@@ -224,9 +229,13 @@ enum TaskScreen: Sendable {
       if !Task.isCancelled { changed = true }  // The server now hides it from discovery.
       return .noLongerNeeded(loaded)
     }
+    let current = eligibility.questionIDs.map { ids in
+      ChoiceWork(
+        element: work.element, questions: work.questions.filter { ids.contains($0.id) })
+    } ?? work
     return .answering(
       loaded,
-      Self.form(work, outcomes: ops.choiceOutcomes(task), deleteAllowed: eligibility.deleteAllowed),
+      Self.form(current, outcomes: ops.choiceOutcomes(task), deleteAllowed: eligibility.deleteAllowed),
       notice: nil)
   }
 

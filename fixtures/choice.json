@@ -6765,14 +6765,15 @@
     "eligible": true,
     "deleteAllowed": true,
     "elementVersion": 7,
-    "questions": [
+    "questionIds": [
      "backrest"
     ]
    },
    "expect": {
     "eligible": true,
     "deleteAllowed": true,
-    "reason": null
+    "reason": null,
+    "questionIds": ["backrest"]
    }
   },
   {

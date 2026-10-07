@@ -187,7 +187,10 @@ class TaskWorkController(
             changed = true // The server now hides it from discovery.
             return TaskScreen.NoLongerNeeded(task, challenge)
         }
-        return TaskScreen.Answering(task, challenge, form(work, ops.choiceOutcomes(task), eligibility.deleteAllowed))
+        val current = eligibility.questionIds?.let { ids ->
+            work.copy(questions = work.questions.filter { it.id in ids })
+        } ?: work
+        return TaskScreen.Answering(task, challenge, form(current, ops.choiceOutcomes(task), eligibility.deleteAllowed))
     }
 
     /** [optionId] null means "Can't tell": the question is left out of the submission. */

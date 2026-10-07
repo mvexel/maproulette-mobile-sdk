@@ -358,7 +358,13 @@ class MapRouletteClient(
         return decode {
             val o = Json.parseToJsonElement(response.body).obj()
             val deleteAllowed = o.bool("deleteAllowed") ?: false
-            if (requireNotNull(o.bool("eligible"))) ChoiceEligibility(true, deleteAllowed, null)
+            if (requireNotNull(o.bool("eligible"))) {
+                val ids = o["questionIds"]?.takeUnless { it == JsonNull }?.jsonArray?.map {
+                    require(it.jsonPrimitive.isString)
+                    it.jsonPrimitive.content
+                }?.toSet()
+                ChoiceEligibility(true, deleteAllowed, null, ids)
+            }
             else ChoiceEligibility(false, false, ineligibleReason(o.text("reason")))
         }
     }

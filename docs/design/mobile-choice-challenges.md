@@ -146,7 +146,14 @@ The payload is stored as the task's `cooperativeWork`.
   - `match` holds
   - **every** question's `expect` still holds
 
-  Anything else makes the whole task stale (D3).
+  Anything else makes the whole task stale (D3). Field challenges may opt into
+  `liveMissingQuestions: true` (2026-10-07 user decision). This mode declares
+  all candidate questions with absent-tag guards. The live check returns
+  `questionIds` for those still missing, and the app shows only those. If no
+  questions remain, the task becomes stale as `already_tagged`. A selected
+  answer is rechecked against live OSM just before upload; if that tag appeared,
+  the answer is refused without an OSM edit or task status change. Other
+  questions can still be offered when the task is reopened.
 
 ### Validation rules
 

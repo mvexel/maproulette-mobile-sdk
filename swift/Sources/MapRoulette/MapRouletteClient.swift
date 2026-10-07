@@ -354,7 +354,10 @@ public final class MapRouletteClient: Sendable {
       let o = try JSONDecoder().decode(JSONValue.self, from: response.body).object()
       let deleteAllowed = try o.optional("deleteAllowed")?.boolean() ?? false
       if try o.required("eligible").boolean() {
-        return ChoiceEligibility(eligible: true, deleteAllowed: deleteAllowed, reason: nil)
+        let questionIDs = try o.optional("questionIds").map { value in
+          Set(try value.array().map { try $0.string() })
+        }
+        return ChoiceEligibility(eligible: true, deleteAllowed: deleteAllowed, reason: nil, questionIDs: questionIDs)
       }
       return ChoiceEligibility(
         eligible: false, deleteAllowed: false,

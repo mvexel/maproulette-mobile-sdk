@@ -263,6 +263,7 @@ private func submission(_ task: MapRouletteTask, _ row: [String: Any], deletion:
             #expect(got.eligible == expect["eligible"] as! Bool, "\(name)")
             #expect(got.deleteAllowed == expect["deleteAllowed"] as! Bool, "\(name)")
             #expect(reasonName(got.reason) == expect["reason"] as? String, "\(name)")
+            #expect(got.questionIDs == (expect["questionIds"] as? [String]).map(Set.init), "\(name)")
         } else {
             let expected = row["error"] as! [String: Any]
             let error = await failure { try await client(script).checkChoice(taskID) }

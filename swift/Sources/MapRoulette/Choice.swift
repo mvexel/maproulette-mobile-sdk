@@ -90,11 +90,14 @@ public enum IneligibleReason: Hashable, Sendable {
 /// `reason` is set only when not. The server's diagnostic `detail` is not modelled.
 public struct ChoiceEligibility: Hashable, Sendable {
   public let eligible: Bool, deleteAllowed: Bool, reason: IneligibleReason?
+  /// Present for tasks whose questions are filtered against current OSM tags.
+  public let questionIDs: Set<String>?
   /// Public for app-side fakes, like Kotlin's data class.
-  public init(eligible: Bool, deleteAllowed: Bool, reason: IneligibleReason?) {
+  public init(eligible: Bool, deleteAllowed: Bool, reason: IneligibleReason?, questionIDs: Set<String>? = nil) {
     self.eligible = eligible
     self.deleteAllowed = deleteAllowed
     self.reason = reason
+    self.questionIDs = questionIDs
   }
 }
 /// Failures specific to choice submission and checks (`POST task/{id}/choice`, `choice/check`).
