@@ -78,13 +78,26 @@ its own MapRoulette database.
    [master.apis.dev.openstreetmap.org](https://master.apis.dev.openstreetmap.org).
    It is separate from your openstreetmap.org account. Edits there do not touch
    real OSM data.
-2. **Client ID.** Ask the maintainer for a client ID on `mr-api.osm.lol`:
-   [open a GitHub issue](https://github.com/mvexel/maproulette-mobile-sdk/issues).
-   A client ID is a public identifier, not a secret. There is no client secret
-   for mobile apps.
-3. **Redirect URI.** Register a custom-scheme redirect with the client. The demos
-   use `org.maproulette.example:/oauth2redirect`; pick your own scheme for your
-   app.
+2. **Client ID.** Staging accepts only registered clients. To evaluate the SDK,
+   use one of the example clients, so you don't have to wait for a
+   registration:
+
+   | Client ID | Redirect URI |
+   | --- | --- |
+   | `maproulette-android-example` | `org.maproulette.example:/oauth2redirect` |
+   | `maproulette-ios-example` | `org.maproulette.example:/oauth2redirect` |
+
+   Your app must handle that exact redirect. The example clients are shared:
+   anyone can use them, and the OSM and MapRoulette consent screens name the
+   example app, not yours. Use them for development only.
+
+   When your app is going to real users, ask the maintainer to register its own
+   client by [opening a GitHub issue](https://github.com/mvexel/maproulette-mobile-sdk/issues).
+   Include the app name and your redirect URI, with a custom scheme you own
+   (for example `com.yourorg.app:/oauth2redirect`). A client ID is a public
+   identifier, not a secret. There is no client secret for mobile apps.
+3. **Redirect URI.** The redirect must match the registered one exactly,
+   including the scheme and path.
 4. **Scopes.** Request `tasks:read tasks:write osm:tagfix`. The server may grant
    less; check `getCurrentUser().scopes`.
 5. **Environment.** Use `MapRouletteEnvironment.STAGING` / `.staging`, so the
