@@ -54,6 +54,8 @@ struct HomeView: View {
       Section {
         TextField("Challenge ID", text: $challengeInput)
           .keyboardType(.numberPad)
+          // No suggestion bar for a numeric ID (also avoids the keyboard's own constraint warnings).
+          .autocorrectionDisabled()
           .disabled(request != nil)
         if let inputError { Text(inputError).foregroundStyle(.red).font(.footnote) }
         Button("Load challenge") { loadChallenge() }.disabled(request != nil)

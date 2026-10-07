@@ -58,9 +58,11 @@ The backend must list the client with this exact native callback (the same one a
 org.maproulette.example:/oauth2redirect
 ```
 
-The staging backend (`conf/mobile-staging.conf`) currently registers only
-`maproulette-android-example`. Until an iOS client is added there, a debug build can use
-`MAPROULETTE_OAUTH_CLIENT_ID=maproulette-android-example`: the callback is identical.
+The staging backend (`conf/mobile-staging.conf`) registers `maproulette-ios-example` with
+this callback.
+
+To run on a physical iPhone, select your team under the target's Signing & Capabilities in
+Xcode. Keep that setting local: don't commit `DEVELOPMENT_TEAM`.
 
 To get a client ID and a development OSM account, see the
 [staging checklist](../docs/guide/authentication.md#staging-checklist-bearer-sign-in).
