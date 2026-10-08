@@ -45,21 +45,21 @@ the write before sending anything. Production maproulette.org is always
 refused: opting in for `maproulette.org` or a subdomain fails when you create
 the environment.
 
-| Environment | Kotlin | Swift | Writes |
-| --- | --- | --- | --- |
-| Production | `MapRouletteEnvironment.PRODUCTION` | `.production` | Refused |
-| Staging | `MapRouletteEnvironment.STAGING` | `.staging` | Allowed |
-| Custom | `MapRouletteEnvironment("https://…/api/v2/")` | `try MapRouletteEnvironment(serviceURL:)` | Loopback only |
-| Your own backend | `MapRouletteEnvironment("https://…/api/v2/", allowWrites = true)` | `try MapRouletteEnvironment(serviceURL: url, allowWrites: true)` | Allowed |
+| Environment      | Kotlin                                                            | Swift                                                            | Writes        |
+| ---------------- | ----------------------------------------------------------------- | ---------------------------------------------------------------- | ------------- |
+| Production       | `MapRouletteEnvironment.PRODUCTION`                               | `.production`                                                    | Refused       |
+| Staging          | `MapRouletteEnvironment.STAGING`                                  | `.staging`                                                       | Allowed       |
+| Custom           | `MapRouletteEnvironment("https://…/api/v2/")`                     | `try MapRouletteEnvironment(serviceURL:)`                        | Loopback only |
+| Your own backend | `MapRouletteEnvironment("https://…/api/v2/", allowWrites = true)` | `try MapRouletteEnvironment(serviceURL: url, allowWrites: true)` | Allowed       |
 
 ## Requirements
 
-| | Minimum |
-| --- | --- |
-| JDK (to build) | 17. The library is JDK 17 bytecode. |
-| Android | Test your own minimum. The demo uses `minSdk 26`. Needs AGP 8+ and the `INTERNET` permission. |
-| iOS / macOS | iOS 15 / macOS 12 |
-| Swift / Xcode | Swift 6 tools, Xcode 16+ |
+|                | Minimum                                                                                       |
+| -------------- | --------------------------------------------------------------------------------------------- |
+| JDK (to build) | 17. The library is JDK 17 bytecode.                                                           |
+| Android        | Test your own minimum. The demo uses `minSdk 26`. Needs AGP 8+ and the `INTERNET` permission. |
+| iOS / macOS    | iOS 15 / macOS 12                                                                             |
+| Swift / Xcode  | Swift 6 tools, Xcode 16+                                                                      |
 
 ## Install
 
