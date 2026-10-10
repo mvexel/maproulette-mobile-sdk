@@ -12,6 +12,15 @@ minor version, so add a default branch when you switch on them.
 
 ### Added
 
+- Swift: `MobileSignIn`, an optional browser sign-in helper for mobile-enabled
+  backends. It runs authorization code with S256 PKCE, checks the callback and
+  the grant, stores it through a `CredentialStore` (`KeychainCredentialStore`,
+  `InMemoryCredentialStore`), refreshes one token at a time, signs out safely
+  after an interrupted or failed refresh, and revokes on sign-out. It is UI-free:
+  the app passes in the web authentication session. `client()` returns a client
+  bound to the signed-in account. See the
+  [authentication guide](docs/guide/authentication.md#ios-mobilesignin).
+
 - Opt-in writes for your own backend: `MapRouletteEnvironment(serviceUrl,
   allowWrites = true)` in Kotlin, `MapRouletteEnvironment(serviceURL:allowWrites:)`
   in Swift. The default stays `false`, so existing calls compile unchanged.
