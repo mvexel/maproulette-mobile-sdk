@@ -152,7 +152,8 @@ private func failure(_ operation: () async throws -> Void) async -> SignInFailur
   let (_, account) = try await signIn(
     Backend(tokens: [token("access-1", "refresh-1")], identities: [unnamed]), store: store)
   #expect(account.displayName == nil)
-  let saved = try #require(try JSONSerialization.jsonObject(with: try #require(try store.read())) as? [String: Any])
+  let data = try #require(try store.read())
+  let saved = try #require(try JSONSerialization.jsonObject(with: data) as? [String: Any])
   #expect(saved["displayName"] == nil)
   // Storage written before display names existed still restores, without a name.
   let next = MobileSignIn(configuration: try configuration(), store: store, transport: Backend(tokens: []))
