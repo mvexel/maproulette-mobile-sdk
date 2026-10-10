@@ -576,7 +576,7 @@ public final class MapRouletteClient: Sendable {
       ? PageCursor(owner: owner, key: key, position: nextPosition.partialValue) : nil
     return try Page(items: rows.map(parse), next: next, total: total)
   }
-  private struct Credential {
+  struct Credential {
     let key: String?
     let bearer: String?
   }
