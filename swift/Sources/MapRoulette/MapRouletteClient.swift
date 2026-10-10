@@ -16,7 +16,7 @@ public final class MapRouletteClient: Sendable {
   private let transport: any Transport
   private let apiKey: @Sendable () async throws -> String?
   private let accessToken: @Sendable () async throws -> String?
-  private let owner = UUID()
+  let owner = UUID()
 
   /// Credential providers run before every request, so a rotated or signed-out credential takes
   /// effect immediately. Supply at most one of them: a request fails with `.validation` when both
@@ -143,7 +143,10 @@ public final class MapRouletteClient: Sendable {
     if !filter.challengeIDs.isEmpty {
       params["cid"] = filter.challengeIDs.map { String($0.value) }.joined(separator: ",")
     }
-    if filter.choiceOnly { params.merge(choiceOnlyParams) { $1 } }
+    if filter.choiceOnly {
+      params.merge(choiceOnlyParams) { $1 }
+      if filter.excludePending { params["excludePending"] = "true" }
+    }
     let result = try await page(
       path: "tasks/box/\(b.west)/\(b.south)/\(b.east)/\(b.north)", params: params, size: pageSize,
       after: after, offset: false, envelope: true, parse: summary)
@@ -173,7 +176,10 @@ public final class MapRouletteClient: Sendable {
     if !filter.challengeIDs.isEmpty {
       params["cid"] = filter.challengeIDs.map { String($0.value) }.joined(separator: ",")
     }
-    if filter.choiceOnly { params.merge(choiceOnlyParams) { $1 } }
+    if filter.choiceOnly {
+      params.merge(choiceOnlyParams) { $1 }
+      if filter.excludePending { params["excludePending"] = "true" }
+    }
     let b = filter.bounds
     if filter.challengeIDs.isEmpty {
       params["ce"] = "true"
@@ -408,7 +414,7 @@ public final class MapRouletteClient: Sendable {
     }
   }
 
-  private enum Write { case start, refresh, release, skip, resolve, choice }
+  enum Write { case start, refresh, release, skip, resolve, choice, pending }
 
   private func lock(_ id: TaskID, action: String, _ operation: Write) async throws -> TaskLock {
     let response = try await write(operation, "task/\(id.value)/\(action)", .get)
@@ -426,7 +432,7 @@ public final class MapRouletteClient: Sendable {
     }
   }
 
-  private func write(
+  func write(
     _ operation: Write, _ path: String, _ method: HTTPMethod, body: Data? = nil
   ) async throws -> HTTPResponse {
     try requireWrites()
@@ -440,7 +446,7 @@ public final class MapRouletteClient: Sendable {
     throw failure(response, problem: writeProblem(operation, response))
   }
 
-  private func requireWrites() throws {
+  func requireWrites() throws {
     guard environment.allowsWrites else {
       throw MapRouletteError(
         .validation,
@@ -449,13 +455,13 @@ public final class MapRouletteClient: Sendable {
   }
 
   // Bodies are inspected only for the lock/scope details below and never retained.
-  private func writeProblem(_ operation: Write, _ response: HTTPResponse) -> WriteProblem? {
+  func writeProblem(_ operation: Write, _ response: HTTPResponse) -> WriteProblem? {
     let body = try? JSONDecoder().decode(JSONValue.self, from: response.body).object()
     func field(_ name: String) -> String? {
       if case .string(let value) = body?[name] { return value }
       return nil
     }
-    if operation == .choice { return choiceProblem(response.status, body, field) }
+    if operation == .choice || operation == .pending { return choiceProblem(response.status, body, field) }
     switch response.status {
     case 400:
       return operation == .resolve && field("error") != "invalid_request" ? .invalidTransition : nil
@@ -486,7 +492,7 @@ public final class MapRouletteClient: Sendable {
     }
   }
 
-  private func errorField(_ response: HTTPResponse, _ name: String) -> String? {
+  func errorField(_ response: HTTPResponse, _ name: String) -> String? {
     guard let body = try? JSONDecoder().decode(JSONValue.self, from: response.body).object(),
       case .string(let value) = body[name]
     else { return nil }
@@ -610,7 +616,7 @@ public final class MapRouletteClient: Sendable {
     }
   }
 
-  private func failure(_ response: HTTPResponse, problem: WriteProblem? = nil) -> MapRouletteError {
+  func failure(_ response: HTTPResponse, problem: WriteProblem? = nil) -> MapRouletteError {
     let kind: ErrorKind
     switch response.status {
     case 401: kind = .authentication
@@ -627,7 +633,7 @@ public final class MapRouletteClient: Sendable {
       problem: problem)
   }
 
-  private func send(
+  func send(
     _ path: String, params: [String: String] = [:], method: HTTPMethod = .get,
     body: Data? = nil, credential suppliedCredential: Credential? = nil,
     originRelative: Bool = false
@@ -671,23 +677,23 @@ public final class MapRouletteClient: Sendable {
 }
 
 extension JSONValue {
-  fileprivate func object() throws -> [String: JSONValue] {
+  func object() throws -> [String: JSONValue] {
     guard case .object(let v) = self else { throw MapRouletteError(.protocolFailure) }
     return v
   }
-  fileprivate func array() throws -> [JSONValue] {
+  func array() throws -> [JSONValue] {
     guard case .array(let v) = self else { throw MapRouletteError(.protocolFailure) }
     return v
   }
-  fileprivate func string() throws -> String {
+  func string() throws -> String {
     guard case .string(let v) = self else { throw MapRouletteError(.protocolFailure) }
     return v
   }
-  fileprivate func integer() throws -> Int64 {
+  func integer() throws -> Int64 {
     guard case .integer(let v) = self else { throw MapRouletteError(.protocolFailure) }
     return v
   }
-  fileprivate func boolean() throws -> Bool {
+  func boolean() throws -> Bool {
     guard case .bool(let v) = self else { throw MapRouletteError(.protocolFailure) }
     return v
   }
@@ -699,11 +705,11 @@ extension Optional {
   }
 }
 extension Dictionary where Key == String, Value == JSONValue {
-  fileprivate func required(_ key: String) throws -> JSONValue {
+  func required(_ key: String) throws -> JSONValue {
     guard let value = self[key] else { throw MapRouletteError(.protocolFailure) }
     return value
   }
-  fileprivate func optional(_ key: String) -> JSONValue? {
+  func optional(_ key: String) -> JSONValue? {
     guard let value = self[key], value != .null else { return nil }
     return value
   }

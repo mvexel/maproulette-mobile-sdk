@@ -12,6 +12,20 @@ minor version, so add a default branch when you switch on them.
 
 ### Added
 
+- Swift: guest calls for deferred sign-up (backend `mobileOAuth.guests`):
+  `submitPendingChoice`, `withdrawPendingChoice`, `listPendingChoices`,
+  `getGuestStatus`, `setGuestEmail` and `deleteGuest`, with `GuestStatus`,
+  `PendingChoice` and related types. Pending answers never edit OSM; a "gone"
+  outcome is stored without deletion. Guest errors carry the server's code in
+  `MapRouletteError.reason`. Kotlin follows.
+- Swift: `TaskFilter.excludePending` (default true) leaves out tasks held by a
+  guest's pending answer in choice-only searches.
+
+### Changed
+
+- Swift: `HTTPMethod` gains `.delete`. Exhaustive switches over it need the
+  new case.
+
 - Swift: `MobileSignIn`, an optional browser sign-in helper for mobile-enabled
   backends. It runs authorization code with S256 PKCE, checks the callback and
   the grant, stores it through a `CredentialStore` (`KeychainCredentialStore`,

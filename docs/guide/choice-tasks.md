@@ -177,3 +177,26 @@ See [Handling errors](errors.md) for every problem and what to show. Key rules:
 - After `OutcomeUnknown`, never resend an edit automatically. Re-read the task.
   If it is not done, the user may submit the same answers again; the server
   resumes without a second upload.
+
+## Guests (Swift; deferred sign-up)
+
+On a backend with guests enabled, a participant can answer before having an OSM account. The
+app registers a guest and gets a short-lived guest token (scope `guest`); pass it as the client's
+`accessToken`. Guest answers are stored, not published:
+
+```swift
+let pending = try await client.submitPendingChoice(task, .answers(["shelter": "yes"]))
+// pending.state == .pending; nothing is edited in OSM. The task is held until pending.holdUntil.
+```
+
+- Submitting again for the same task replaces the earlier answer, so a resend after a network
+  failure is safe. `withdrawPendingChoice(_:)` takes it back.
+- A "gone" outcome is stored without deletion.
+- `getGuestStatus()` reports the pending and published counts, the email state and the deadline
+  (`expiresAt`); `listPendingChoices()` shows each answer's state and, once published, its
+  changeset and any `droppedQuestionIDs`.
+- `setGuestEmail(_:)` sends the claim link; `deleteGuest()` deletes the email and pending answers
+  (published edits stay).
+- Errors carry the server's code in `reason`: `guest_claimed`, `task_completed` (`.conflict`),
+  `pending_limit`, `email_rate_limited` (`.rateLimit`), `mail_unavailable` (`.server`).
+- Choice-only searches leave out tasks held by guests (`TaskFilter.excludePending`, default true).
