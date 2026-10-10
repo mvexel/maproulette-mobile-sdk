@@ -77,7 +77,7 @@ private func approve(_ url: URL) -> URL {
 }
 
 @Test func guestRegistersStoresAndRestores() async throws {
-  let backend = Backend(tokens: [guestToken("guest-access-1")])
+  let backend = Backend(tokens: [guestToken("guest-access-token-0001")])
   let store = InMemoryCredentialStore()
   let s = try session(backend, store: store)
   let guest = try await s.startGuest()
@@ -93,14 +93,14 @@ private func approve(_ url: URL) -> URL {
 }
 
 @Test func guestTokenIsFetchedCachedAndRenewed() async throws {
-  let backend = Backend(tokens: [guestToken("guest-access-1"), guestToken("guest-access-2")])
+  let backend = Backend(tokens: [guestToken("guest-access-token-0001"), guestToken("guest-access-token-0002")])
   let clock = Clock()
   let s = try session(backend, clock: clock)
   let guest = try await s.startGuest()
-  #expect(try await s.accessToken(generation: guest.generation) == "guest-access-1")
-  #expect(try await s.accessToken(generation: guest.generation) == "guest-access-1")
+  #expect(try await s.accessToken(generation: guest.generation) == "guest-access-token-0001")
+  #expect(try await s.accessToken(generation: guest.generation) == "guest-access-token-0001")
   clock.now += 850  // Within a minute of expiry.
-  #expect(try await s.accessToken(generation: guest.generation) == "guest-access-2")
+  #expect(try await s.accessToken(generation: guest.generation) == "guest-access-token-0002")
   let forms = await backend.forms("/oauth/mobile/token")
   #expect(forms.count == 2)
   #expect(forms[0] == [
@@ -111,7 +111,7 @@ private func approve(_ url: URL) -> URL {
   let client = await s.client()
   _ = try? await client.getGuestStatus()
   let sent = await backend.requests.last { $0.url.path.hasSuffix("mobile-guest/me") }
-  #expect(sent?.headers["Authorization"] == "Bearer guest-access-2")
+  #expect(sent?.headers["Authorization"] == "Bearer guest-access-token-0002")
 }
 
 @Test func claimedGuestReportsConflictThenUpgrades() async throws {
@@ -133,7 +133,8 @@ private func approve(_ url: URL) -> URL {
   #expect(forms.last?["grant_type"] == "urn:maproulette:grant-type:guest_claim")
   #expect(forms.last?["guest_secret"] == secret)
   // The stored state is now an ordinary sign-in without the guest.
-  guard case .signedIn = await (try session(Backend(), store: store)).restore() else { Issue.record("not stored"); return }
+  let reopened = try session(Backend(), store: store)
+  guard case .signedIn = await reopened.restore() else { Issue.record("not stored"); return }
 }
 
 @Test func signInAndSignOutKeepTheGuestUntilForgotten() async throws {
@@ -145,8 +146,10 @@ private func approve(_ url: URL) -> URL {
   #expect(await s.guest?.guestID == guest.guestID)
   #expect(try await s.accessToken(generation: account.generation) == "access-1")
   await s.signOut()
-  #expect(await s.account == nil && (await s.guest)?.guestID == guest.guestID)
-  guard case .guest = await (try session(Backend(), store: store)).restore() else { Issue.record("guest lost"); return }
+  #expect(await s.account == nil)
+  #expect(await s.guest?.guestID == guest.guestID)
+  let reopened = try session(Backend(), store: store)
+  guard case .guest = await reopened.restore() else { Issue.record("guest lost"); return }
   try await s.forgetGuest()
   #expect(await s.guest == nil)
   #expect(try store.read() == nil)
