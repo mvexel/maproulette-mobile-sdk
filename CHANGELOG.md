@@ -20,11 +20,20 @@ minor version, so add a default branch when you switch on them.
   `MapRouletteError.reason`. Kotlin follows.
 - Swift: `TaskFilter.excludePending` (default true) leaves out tasks held by a
   guest's pending answer in choice-only searches.
+- Kotlin: the same guest calls and types, with errors carrying the server's code
+  in `MapRouletteException.reason`, and `TaskFilter.excludePending`.
+- Kotlin: `MobileSignIn`, the counterpart of the Swift helper: PKCE sign-in,
+  serialized refresh, revocation, restore, and guests (`startGuest`,
+  `upgradeGuest`, `forgetGuest`). It stores through a `CredentialStore`;
+  `InMemoryCredentialStore` is included, and Android apps supply an encrypted
+  store. A client from an older sign-in fails with `CancellationException`.
 
 ### Changed
 
 - Swift: `HTTPMethod` gains `.delete`. Exhaustive switches over it need the
   new case.
+- Kotlin: `HttpMethod` gains `DELETE`, and `MapRouletteException` gains
+  `reason`. Exhaustive `when` over `HttpMethod` needs the new case.
 
 - Swift: `MobileSignIn`, an optional browser sign-in helper for mobile-enabled
   backends. It runs authorization code with S256 PKCE, checks the callback and

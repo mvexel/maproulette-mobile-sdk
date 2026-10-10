@@ -18,7 +18,7 @@ fun interface Transport {
 }
 
 // No data-class toString: headers and response bodies can contain credentials.
-enum class HttpMethod { GET, PUT, POST }
+enum class HttpMethod { GET, PUT, POST, DELETE }
 class HttpRequest(
     val url: String, val headers: Map<String, String>,
     val method: HttpMethod = HttpMethod.GET, val body: String? = null,
@@ -50,7 +50,8 @@ class OkHttpTransport : Transport, Closeable {
                 .method(
                     request.method.name,
                     request.body?.toRequestBody()
-                        ?: if (request.method == HttpMethod.GET) null else ByteArray(0).toRequestBody(),
+                        ?: if (request.method == HttpMethod.GET || request.method == HttpMethod.DELETE) null
+                        else ByteArray(0).toRequestBody(),
                 )
                 .apply {
                     request.headers.forEach { (name, value) -> header(name, value) }
