@@ -76,7 +76,7 @@ dependencyResolutionManagement {
 
 // app/build.gradle.kts
 dependencies {
-    implementation("com.github.mvexel:maproulette-mobile-sdk:0.1.0")
+    implementation("com.github.mvexel:maproulette-mobile-sdk:0.2.0")
 }
 ```
 
@@ -87,7 +87,7 @@ kotlinx-serialization-json 1.7.3 (an API dependency: `Task.geometry` is a `JsonO
 ### Swift Package Manager
 
 ```swift
-.package(url: "https://github.com/mvexel/maproulette-mobile-sdk", from: "0.1.0")
+.package(url: "https://github.com/mvexel/maproulette-mobile-sdk", from: "0.2.0")
 ```
 
 Then add the `MapRoulette` product to your target. In Xcode: File > Add Package

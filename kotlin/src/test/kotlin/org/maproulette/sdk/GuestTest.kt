@@ -144,6 +144,25 @@ class GuestTest {
         assertEquals(1, script.requests.size)
     }
 
+    @Test fun setEmailErrorsCarryStatusKindAndCode() = runBlocking<Unit> {
+        for (row in guest.getValue("email_errors").jsonArray.map { it.jsonObject }) {
+            val status = row.getValue("status").jsonPrimitive.int
+            val script = Script(listOf(ok(row.getValue("body"), status)))
+            val error = assertFailsWith<MapRouletteException>(row.toString()) { client(script).setGuestEmail("rosa@example.org") }
+            val kind = row.getValue("kind").jsonPrimitive.content
+            assertEquals(kind.replace(Regex("([A-Z])"), "_$1").uppercase(), error.kind.name, row.toString())
+            assertEquals(status, error.status, row.toString())
+            assertEquals(row["reason"]?.jsonPrimitive?.contentOrNull, error.reason, row.toString())
+            assertFalse(error.message!!.contains("example.org"))
+            assertEquals(listOf("PUT /api/v2/mobile-guest/email"), script.calls())
+        }
+        // Nothing saved yet: a conflict the app can tell apart from a claimed guest.
+        val error = assertFailsWith<MapRouletteException> {
+            client(Script(listOf(HttpResponse(409, body = """{"error":"nothing_saved"}""")))).setGuestEmail("rosa@example.org")
+        }
+        assertEquals(ErrorKind.CONFLICT, error.kind); assertEquals(409, error.status); assertEquals("nothing_saved", error.reason)
+    }
+
     @Test fun deleteGuestSendsDelete() = runBlocking<Unit> {
         val script = Script(listOf(HttpResponse(204)))
         client(script).deleteGuest()

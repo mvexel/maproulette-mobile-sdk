@@ -137,7 +137,7 @@ class ContractTest {
     @Test fun errorsAndCredentialRedaction() = runBlocking<Unit> {
         val wire = fake("identity"); val client = MapRouletteClient(transport = wire, apiKey = { "fixture-secret-do-not-expose" })
         val user = client.getCurrentUser()
-        assertEquals(UserIdentity(900, false), user)
+        assertEquals(UserIdentity(900, false, displayName = "mapper_demo"), user)
         assertFalse(user.toString().contains("secret")); assertFalse(wire.requests.last().toString().contains("secret"))
         assertEquals("fixture-secret-do-not-expose", wire.requests.last().headers["apiKey"])
         for ((status, kind) in listOf(401 to ErrorKind.AUTHENTICATION, 403 to ErrorKind.PERMISSION, 404 to ErrorKind.NOT_FOUND, 409 to ErrorKind.CONFLICT, 429 to ErrorKind.RATE_LIMIT, 503 to ErrorKind.SERVER, 302 to ErrorKind.HTTP)) {
@@ -215,7 +215,7 @@ class ContractTest {
         var keyCalls = 0; var tokenCalls = 0
         val client = MapRouletteClient(MapRouletteEnvironment("https://example.invalid:9443/prefix/api/v2/"),
             transport = wire, apiKey = { keyCalls++; null }, accessToken = { tokenCalls++; "synthetic-access-token" })
-        assertEquals(UserIdentity(900, false, setOf("tasks:read")), client.getCurrentUser())
+        assertEquals(UserIdentity(900, false, setOf("tasks:read"), "mapper_demo"), client.getCurrentUser())
         assertEquals(1, keyCalls); assertEquals(1, tokenCalls)
         val request = wire.requests.single()
         assertEquals("https://example.invalid:9443/oauth/mobile/me", request.url)
@@ -273,7 +273,7 @@ class ContractTest {
             val client = MapRouletteClient(MapRouletteEnvironment(server.url("/api/v2/").toString()), transport = transport,
                 accessToken = { "wire-bearer" })
             server.enqueue(MockResponse().setBody(body("identity_mobile")))
-            assertEquals(UserIdentity(900, false, setOf("tasks:read")), client.getCurrentUser())
+            assertEquals(UserIdentity(900, false, setOf("tasks:read"), "mapper_demo"), client.getCurrentUser())
             val identity = assertNotNull(server.takeRequest(2, TimeUnit.SECONDS))
             assertEquals("/oauth/mobile/me", identity.path)
             assertEquals("Bearer wire-bearer", identity.getHeader("Authorization"))
@@ -282,6 +282,29 @@ class ContractTest {
             assertEquals(ErrorKind.HTTP, assertFailsWith<MapRouletteException> { client.getCurrentUser() }.kind)
             assertNull(destination.takeRequest(150, TimeUnit.MILLISECONDS))
         } } }
+    }
+
+    @Test fun displayNameComesFromEitherIdentityShapeAndIsOptional() = runBlocking<Unit> {
+        val wire = fake("identity_mobile")
+        val bearer = MapRouletteClient(transport = wire, accessToken = { "synthetic-access-token" })
+        val key = MapRouletteClient(transport = wire, apiKey = { "fixture-secret-do-not-expose" })
+        // oauth/mobile/me: top-level displayName.
+        assertEquals("mapper_demo", bearer.getCurrentUser().displayName)
+        // user/whoami: the full user record, name under osmProfile.
+        wire.response = HttpResponse(200, body = body("identity"))
+        assertEquals("mapper_demo", key.getCurrentUser().displayName)
+        // Older or partial responses still decode, without a name.
+        for (name in listOf("identity_mobile_without_name", "identity_mobile_blank_name")) {
+            wire.response = HttpResponse(200, body = body(name))
+            assertEquals(UserIdentity(900, false, setOf("tasks:read")), bearer.getCurrentUser())
+        }
+        wire.response = HttpResponse(200, body = body("identity_without_name"))
+        assertEquals(UserIdentity(900, false), key.getCurrentUser())
+        wire.response = HttpResponse(200, body = """{"id":900,"guest":false,"osmProfile":"unexpected"}""")
+        assertEquals(UserIdentity(900, false), key.getCurrentUser())
+        // The bearer route's name, when present, must still be a string.
+        wire.response = HttpResponse(200, body = body("identity_mobile_numeric_name"))
+        assertEquals(ErrorKind.PROTOCOL, assertFailsWith<MapRouletteException> { bearer.getCurrentUser() }.kind)
     }
 
     @Test fun malformedIdentitiesAndCredentialValidation() = runBlocking<Unit> {

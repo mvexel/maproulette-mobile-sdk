@@ -10,6 +10,8 @@ minor version, so add a default branch when you switch on them.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-10
+
 ### Added
 
 - Swift: guest calls for deferred sign-up (backend `mobileOAuth.guests`):
@@ -17,7 +19,9 @@ minor version, so add a default branch when you switch on them.
   `getGuestStatus`, `setGuestEmail` and `deleteGuest`, with `GuestStatus`,
   `PendingChoice` and related types. Pending answers never edit OSM; a "gone"
   outcome is stored without deletion. Guest errors carry the server's code in
-  `MapRouletteError.reason`. Kotlin follows.
+  `MapRouletteError.reason`. Kotlin follows. `setGuestEmail` before the guest
+  has a pending answer fails with `.conflict` (HTTP 409) and reason
+  `nothing_saved`.
 - Swift: `TaskFilter.excludePending` (default true) leaves out tasks held by a
   guest's pending answer in choice-only searches.
 - Kotlin: the same guest calls and types, with errors carrying the server's code
@@ -27,6 +31,10 @@ minor version, so add a default branch when you switch on them.
   `upgradeGuest`, `forgetGuest`). It stores through a `CredentialStore`;
   `InMemoryCredentialStore` is included, and Android apps supply an encrypted
   store. A client from an older sign-in fails with `CancellationException`.
+- Swift and Kotlin: optional `displayName` (the OSM display name) on
+  `UserIdentity` and `MobileAccount`. `getCurrentUser` reads `displayName` from
+  `oauth/mobile/me` and `osmProfile.displayName` from `user/whoami`; it is
+  null / nil when absent. `MobileSignIn` stores it with the grant.
 
 ### Changed
 
@@ -34,6 +42,8 @@ minor version, so add a default branch when you switch on them.
   new case.
 - Kotlin: `HttpMethod` gains `DELETE`, and `MapRouletteException` gains
   `reason`. Exhaustive `when` over `HttpMethod` needs the new case.
+- `getCurrentUser` with a bearer token no longer requires `displayName` in the
+  `oauth/mobile/me` response; a present one must still be a string.
 
 - Swift: `MobileSignIn`, an optional browser sign-in helper for mobile-enabled
   backends. It runs authorization code with S256 PKCE, checks the callback and
@@ -118,5 +128,6 @@ First release of the Kotlin and Swift SDKs.
   loopback hosts.
 - No DocC catalog for the Swift SDK yet.
 
-[Unreleased]: https://github.com/mvexel/maproulette-mobile-sdk/compare/0.1.0...HEAD
+[Unreleased]: https://github.com/mvexel/maproulette-mobile-sdk/compare/0.2.0...HEAD
+[0.2.0]: https://github.com/mvexel/maproulette-mobile-sdk/compare/0.1.0...0.2.0
 [0.1.0]: https://github.com/mvexel/maproulette-mobile-sdk/releases/tag/0.1.0

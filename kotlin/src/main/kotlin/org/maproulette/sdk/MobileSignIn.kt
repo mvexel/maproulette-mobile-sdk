@@ -91,8 +91,14 @@ class InMemoryCredentialStore(data: String? = null) : CredentialStore {
 }
 
 /** A signed-in account. [generation] changes on every sign-in and sign-out; a client bound to an
- * older generation can no longer use credentials. */
-data class MobileAccount(val userId: Long, val scopes: Set<String>, val generation: Int) {
+ * older generation can no longer use credentials. [displayName] is the OSM display name, or null
+ * when the server didn't send one (or the account was restored from storage written before it). */
+data class MobileAccount(
+    val userId: Long,
+    val scopes: Set<String>,
+    val generation: Int,
+    val displayName: String? = null,
+) {
     val canWriteTasks: Boolean get() = MobileSignInConfiguration.WRITE_SCOPE in scopes
     val canEditOsm: Boolean get() = canWriteTasks && MobileSignInConfiguration.TAGFIX_SCOPE in scopes
 }
@@ -227,6 +233,7 @@ class MobileSignIn(
                 )
             }
             val user = saved["userID"]?.takeUnless { it == JsonNull }?.jsonPrimitive?.long
+            val name = (saved["displayName"] as? JsonPrimitive)?.takeIf { it.isString }?.content
             val pending = saved["refreshPending"]?.jsonPrimitive?.boolean ?: false
             guestCredential = savedGuest
             if (pending) {
@@ -244,7 +251,7 @@ class MobileSignIn(
             grant = savedGrant
             generation += 1
             savedGuest?.let { guest = MobileGuest(it.id, generation) }
-            val account = MobileAccount(user, savedGrant.scopes, generation)
+            val account = MobileAccount(user, savedGrant.scopes, generation, name)
             this.account = account
             RestoreResult.SignedIn(account)
         } catch (e: CancellationException) {
@@ -271,7 +278,10 @@ class MobileSignIn(
                     putJsonArray("scopes") { it.scopes.sorted().forEach(::add) }
                 }
             }
-            account?.let { put("userID", it.userId) }
+            account?.let {
+                put("userID", it.userId)
+                it.displayName?.let { name -> put("displayName", name) }
+            }
             put("refreshPending", refreshPending)
             guestCredential?.let {
                 putJsonObject("guest") {
@@ -373,7 +383,7 @@ class MobileSignIn(
             grant = next
             generation += 1
             guestToken = null
-            val account = MobileAccount(identity.id, next.scopes, generation)
+            val account = MobileAccount(identity.id, next.scopes, generation, identity.displayName)
             this.account = account
             guestCredential?.let { guest = MobileGuest(it.id, generation) }
             try {
@@ -633,7 +643,7 @@ class MobileSignIn(
             guestToken = null
             guest = null
             generation += 1
-            val account = MobileAccount(identity.id, next.scopes, generation)
+            val account = MobileAccount(identity.id, next.scopes, generation, identity.displayName)
             this.account = account
             try {
                 persist()

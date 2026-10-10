@@ -118,7 +118,7 @@ private func errorKind(_ expected: ErrorKind, _ operation: () async throws -> Vo
     let wire = try Fake("identity")
     let client = MapRouletteClient(transport: wire, apiKey: { "fixture-secret-do-not-expose" })
     let identity = try await client.getCurrentUser()
-    #expect(identity.id == 900); #expect(!identity.guest)
+    #expect(identity.id == 900); #expect(!identity.guest); #expect(identity.displayName == "mapper_demo")
     #expect(!String(describing: identity).contains("secret"))
     #expect(await wire.last().headers["apiKey"] == "fixture-secret-do-not-expose")
     #expect(!String(describing: await wire.last()).contains("secret"))
@@ -182,6 +182,29 @@ private actor SuspendedTransport: Transport {
     do { _ = try await operation.value; Issue.record("Expected cancellation") }
     catch is CancellationError { }
     #expect(await wire.stopped)
+}
+
+@Test func displayNameComesFromEitherIdentityShapeAndIsOptional() async throws {
+    let wire = try Fake("identity_mobile")
+    let bearer = MapRouletteClient(transport: wire, accessToken: { "synthetic-access-token" })
+    let key = MapRouletteClient(transport: wire, apiKey: { "fixture-secret-do-not-expose" })
+    // oauth/mobile/me: top-level displayName.
+    #expect(try await bearer.getCurrentUser().displayName == "mapper_demo")
+    // user/whoami: the full user record, name under osmProfile.
+    await wire.set(HTTPResponse(status: 200, body: try fixture("identity")))
+    #expect(try await key.getCurrentUser().displayName == "mapper_demo")
+    // Older or partial responses still decode, without a name.
+    for name in ["identity_mobile_without_name", "identity_mobile_blank_name"] {
+        await wire.set(HTTPResponse(status: 200, body: try fixture(name)))
+        #expect(try await bearer.getCurrentUser() == UserIdentity(id: 900, guest: false, scopes: ["tasks:read"]))
+    }
+    await wire.set(HTTPResponse(status: 200, body: try fixture("identity_without_name")))
+    #expect(try await key.getCurrentUser() == UserIdentity(id: 900, guest: false))
+    await wire.set(HTTPResponse(status: 200, body: Data("{\"id\":900,\"guest\":false,\"osmProfile\":\"unexpected\"}".utf8)))
+    #expect(try await key.getCurrentUser() == UserIdentity(id: 900, guest: false))
+    // The bearer route's name, when present, must still be a string.
+    await wire.set(HTTPResponse(status: 200, body: try fixture("identity_mobile_numeric_name")))
+    try await errorKind(.protocolFailure) { _ = try await bearer.getCurrentUser() }
 }
 
 @Test func malformedIdentitiesAndCredentialValidation() async throws {
@@ -304,7 +327,7 @@ private actor CredentialProbe {
     let client = MapRouletteClient(transport: wire, accessToken: { "synthetic-access-token" })
     let original = try JSONSerialization.jsonObject(with: fixture("identity_mobile")) as! [String:Any]
     for (key, value) in [("id", 0 as Any), ("osmId", "12345" as Any),
-                         ("displayName", NSNull() as Any), ("scope", "tasks:write" as Any)] {
+                         ("displayName", 42 as Any), ("scope", "tasks:write" as Any)] {
         var changed = original; changed[key] = value
         await wire.set(HTTPResponse(status: 200, body: try JSONSerialization.data(withJSONObject: changed)))
         try await errorKind(.protocolFailure) { _ = try await client.getCurrentUser() }

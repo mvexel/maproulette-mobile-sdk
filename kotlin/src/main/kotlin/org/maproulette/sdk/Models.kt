@@ -139,8 +139,14 @@ data class TaskSummary(
     val point: JsonObject?,
 )
 
-/** [scopes] is the bearer grant's scope set, or null for API-key and anonymous identities. */
-data class UserIdentity(val id: Long, val guest: Boolean, val scopes: Set<String>? = null) {
+/** [scopes] is the bearer grant's scope set, or null for API-key and anonymous identities.
+ * [displayName] is the OSM display name, or null when the server didn't send one. */
+data class UserIdentity(
+    val id: Long,
+    val guest: Boolean,
+    val scopes: Set<String>? = null,
+    val displayName: String? = null,
+) {
     /** Bearer grants need `tasks:write`; an API key acts with the user's full authority. */
     val canWriteTasks: Boolean
         get() = scopes?.contains("tasks:write") ?: !guest

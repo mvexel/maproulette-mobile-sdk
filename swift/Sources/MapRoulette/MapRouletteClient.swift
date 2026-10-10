@@ -102,8 +102,9 @@ public final class MapRouletteClient: Sendable {
     return result
   }
   /// The caller's identity. Needs a credential: an API key reads `user/whoami`, a bearer token
-  /// reads `oauth/mobile/me` (fork backend) and reports the grant's scopes. `.authentication`
-  /// when the credential is missing or rejected.
+  /// reads `oauth/mobile/me` (fork backend) and reports the grant's scopes. The OSM display name
+  /// comes from `displayName` (mobile) or `osmProfile.displayName` (whoami) and is nil when absent.
+  /// `.authentication` when the credential is missing or rejected.
   public func getCurrentUser() async throws -> UserIdentity {
     let credential = try await credentials()
     let mobile = credential.bearer != nil
@@ -114,16 +115,17 @@ public final class MapRouletteClient: Sendable {
     if mobile {
       let id = try o.required("id").integer()
       let osmID = try o.required("osmId").integer()
-      _ = try o.required("displayName").string()
+      let name = try o.optional("displayName")?.string()
       let scopes = try o.required("scope").string().split(
         separator: " ", omittingEmptySubsequences: false
       ).map(String.init)
       guard id > 0, osmID > 0, scopes.contains("tasks:read"), !scopes.contains("") else {
         throw MapRouletteError(.protocolFailure)
       }
-      return UserIdentity(id: id, guest: false, scopes: Set(scopes))
+      return UserIdentity(id: id, guest: false, scopes: Set(scopes), displayName: osmDisplayName(name))
     }
-    return try UserIdentity(id: o.required("id").integer(), guest: o.required("guest").boolean())
+    return try UserIdentity(
+      id: o.required("id").integer(), guest: o.required("guest").boolean(), displayName: whoamiName(o))
   }
   /// Tasks whose location is inside `filter.bounds`, ordered by id, with `total`. `pageSize`
   /// must be 1...100; continue with `next`.
@@ -726,6 +728,18 @@ extension Dictionary where Key == String, Value == JSONValue {
     guard code >= Int32.min, code <= Int32.max else { throw MapRouletteError(.protocolFailure) }
     return TaskStatus(code: Int(code))
   }
+}
+private func osmDisplayName(_ value: String?) -> String? {
+  guard let trimmed = value?.trimmingCharacters(in: .whitespacesAndNewlines), !trimmed.isEmpty else {
+    return nil
+  }
+  return trimmed
+}
+// whoami is the full user record: a missing or oddly typed profile only loses the name.
+private func whoamiName(_ user: [String: JSONValue]) -> String? {
+  guard case .object(let profile)? = user["osmProfile"], case .string(let name)? = profile["displayName"]
+  else { return nil }
+  return osmDisplayName(name)
 }
 private func challenge(_ value: JSONValue) throws -> Challenge {
   let o = try value.object()

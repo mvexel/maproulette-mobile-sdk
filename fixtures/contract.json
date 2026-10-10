@@ -13,7 +13,11 @@
   "task_summaries_multiple_challenges": {"total": 2, "tasks": [{"id": 101, "parentId": 42, "title": "Bench", "status": 0, "point": {"lat": 52.3, "lng": 4.9}}, {"id": 202, "parentId": 99, "title": "Shop", "status": 3, "point": {"lat": 52.4, "lng": 4.8}}]},
   "markers": [{"id": 101, "parentId": 42, "title": "Bench", "status": 0, "point": {"lat": 52.3, "lng": 4.9}}, {"id": 202, "parentId": 99, "title": "Shop", "status": 3, "point": {"lat": 52.4, "lng": 4.8}}],
   "tags": [{"id": 8, "name": "cycling"}],
-  "identity": {"id": 900, "guest": false, "apiKey": "fixture-secret-do-not-expose", "email": "private@example.invalid", "osmProfile": {"displayName": "Example"}},
-  "identity_mobile": {"id": 900, "osmId": 12345, "displayName": "Example", "scope": "tasks:read"},
+  "identity": {"id": 900, "guest": false, "apiKey": "fixture-secret-do-not-expose", "email": "private@example.invalid", "osmProfile": {"id": 12345, "displayName": "mapper_demo", "avatarURL": "https://example.invalid/avatar.png"}},
+  "identity_without_name": {"id": 900, "guest": false, "apiKey": "fixture-secret-do-not-expose", "osmProfile": {"id": 12345}},
+  "identity_mobile": {"id": 900, "osmId": 12345, "displayName": "mapper_demo", "scope": "tasks:read"},
+  "identity_mobile_without_name": {"id": 900, "osmId": 12345, "scope": "tasks:read"},
+  "identity_mobile_blank_name": {"id": 900, "osmId": 12345, "displayName": " ", "scope": "tasks:read"},
+  "identity_mobile_numeric_name": {"id": 900, "osmId": 12345, "displayName": 7, "scope": "tasks:read"},
   "malformed_challenge": {"id": "42", "parent": 7, "name": "Wrong identity type"}
 }

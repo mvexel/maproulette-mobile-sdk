@@ -138,6 +138,27 @@ private func date(_ text: String) -> Date { ISO8601DateFormatter().date(from: te
     }
 }
 
+@Test func setEmailErrorsCarryStatusKindAndCode() async throws {
+    for row in guest["email_errors"] as! [[String: Any]] {
+        let script = Script([ok(row["body"]!, status: row["status"] as! Int)])
+        do {
+            _ = try await client(script).setGuestEmail("rosa@example.org")
+            Issue.record("expected failure for \(row)")
+        } catch let error as MapRouletteError {
+            #expect(error.kind.rawValue == row["kind"] as! String)
+            #expect(error.status == row["status"] as? Int)
+            #expect(error.reason == row["reason"] as? String)
+            #expect(!error.description.contains("example.org"))
+        }
+        #expect(await script.calls() == ["PUT /api/v2/mobile-guest/email"])
+    }
+    // Nothing saved yet: a conflict the app can tell apart from a claimed guest.
+    let script = Script([ok(["error": "nothing_saved"], status: 409)])
+    await #expect(throws: MapRouletteError(.conflict, status: 409, reason: "nothing_saved")) {
+        try await client(script).setGuestEmail("rosa@example.org")
+    }
+}
+
 @Test func deleteGuestSendsDelete() async throws {
     let script = Script([HTTPResponse(status: 204, body: Data())])
     try await client(script).deleteGuest()

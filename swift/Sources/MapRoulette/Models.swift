@@ -265,13 +265,16 @@ public struct TaskSummary: Hashable, Identifiable, Sendable {
   }
 }
 /// `scopes` is the bearer grant's scope set, or nil for API-key and anonymous identities.
+/// `displayName` is the OSM display name, or nil when the server didn't send one.
 public struct UserIdentity: Hashable, Identifiable, Sendable {
   public let id: Int64, guest: Bool
   public let scopes: Set<String>?
-  public init(id: Int64, guest: Bool, scopes: Set<String>? = nil) {
+  public let displayName: String?
+  public init(id: Int64, guest: Bool, scopes: Set<String>? = nil, displayName: String? = nil) {
     self.id = id
     self.guest = guest
     self.scopes = scopes
+    self.displayName = displayName
   }
   /// Bearer grants need `tasks:write`; an API key acts with the user's full authority.
   public var canWriteTasks: Bool { scopes.map { $0.contains("tasks:write") } ?? !guest }

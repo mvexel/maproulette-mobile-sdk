@@ -600,8 +600,9 @@ class MapRouletteClient(
     }
 
     /** The caller's identity. Needs a credential: an API key reads `user/whoami`, a bearer token reads
-     * `oauth/mobile/me` (fork backend) and reports the grant's scopes. AUTHENTICATION when the
-     * credential is missing or rejected. */
+     * `oauth/mobile/me` (fork backend) and reports the grant's scopes. The OSM display name comes from
+     * `displayName` (mobile) or `osmProfile.displayName` (whoami) and is null when absent. AUTHENTICATION
+     * when the credential is missing or rejected. */
     suspend fun getCurrentUser(): UserIdentity {
         currentCoroutineContext().ensureActive()
         val credentials = readCredentials()
@@ -615,11 +616,11 @@ class MapRouletteClient(
             if (bearer) {
                 val id = value.long("id")
                 require(id > 0 && value.long("osmId") > 0)
-                value.str("displayName")
+                val name = value.text("displayName")
                 val scopes = value.str("scope").split(' ').toSet()
                 require("tasks:read" in scopes && "" !in scopes)
-                UserIdentity(id, false, scopes)
-            } else UserIdentity(value.long("id"), requireNotNull(value.bool("guest")))
+                UserIdentity(id, false, scopes, osmDisplayName(name))
+            } else UserIdentity(value.long("id"), requireNotNull(value.bool("guest")), displayName = whoamiName(value))
         }
     }
 
@@ -814,6 +815,13 @@ private fun JsonObject.bool(key: String): Boolean? =
 
 private fun JsonObject.objectOrNull(key: String): JsonObject? =
     get(key)?.takeUnless { it == JsonNull }?.jsonObject
+
+private fun osmDisplayName(value: String?): String? = value?.trim()?.takeIf { it.isNotEmpty() }
+
+// whoami is the full user record: a missing or oddly typed profile only loses the name.
+private fun whoamiName(user: JsonObject): String? =
+    ((user["osmProfile"] as? JsonObject)?.get("displayName") as? JsonPrimitive)
+        ?.takeIf { it.isString }?.let { osmDisplayName(it.content) }
 
 // Only plain error codes are passed on, never other server text.
 internal val plainCode = Regex("[a-z_]{1,40}")

@@ -15,7 +15,8 @@ request bodies, submissions rejected before any request, every `POST …/choice`
 mapping with its release behavior, retry flows, `choice/check` responses, the `osm:tagfix`
 identity flag and the `choiceOnly` query parameters.
 `guest.json` holds the guest (deferred sign-up) status and pending-answer shapes and the
-guest error codes passed through as the error's reason.
+guest error codes passed through as the error's reason, including the `PUT mobile-guest/email`
+codes (`email_errors`; `409 nothing_saved` while the guest has no pending answer).
 Both native suites load the same file directly; no generated or copied fixture variants.
 IDs and API key text here are invented. These fixtures complement, rather than replace,
 the read-only live probes documented in [`docs/design/api-probes.json`](../docs/design/api-probes.json)
@@ -46,6 +47,10 @@ The contract tests cover:
 - All-challenge spatial search (empty/default challenge IDs), preserving other filters,
   versus selected-challenge membership validation and separate page-cursor scopes.
 - Minimal identity extraction, credential validation and nonsecret error descriptions.
+- The optional OSM display name: top-level `displayName` on `oauth/mobile/me`,
+  `osmProfile.displayName` on `user/whoami` (backend `MobileOAuthController.me` and
+  `UserController.whoami`, which serializes the full `User` with its `OSMProfile`),
+  plus responses without it.
 - Per-user credential isolation across clients sharing a transport, anonymous requests,
   key rotation and logout without retaining an earlier key.
 - Empty 404 bodies, invalid successful JSON, rate limits and Retry-After.
