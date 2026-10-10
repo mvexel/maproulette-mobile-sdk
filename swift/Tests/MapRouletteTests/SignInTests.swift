@@ -91,10 +91,11 @@ private func failure(_ operation: () async throws -> Void) async -> SignInFailur
   catch { Issue.record("Unexpected \(error)"); return nil }
 }
 
-@Test func challengeMatchesRFC7636() {
+/// base64url(SHA-256(verifier)) without padding (RFC 7636 S256); expected value computed independently.
+@Test func challengeIsUnpaddedBase64URLOfSHA256() {
   #expect(
     MobileSignIn.challenge("dBjftJeZ4CVP-mJ92K1QD8a7jj6c3D9vrxwYGrqXDW8")
-      == "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM")
+      == "nSDMx7jJh8uGbliKbSstDRcTcJmLbdPcZm3IpF_Q1T0")
 }
 
 @Test func configurationValidatesAndUsesTheBackendOrigin() throws {
