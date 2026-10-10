@@ -137,40 +137,59 @@ locally first. Copy from it:
 [android-example](../../android-example/README.md), under
 `android-example/app/src/main/java/org/maproulette/example/auth/`.
 
-## iOS: ASWebAuthenticationSession and PKCE
+## iOS: MobileSignIn
 
-The Swift SDK has no sign-in helper. Your app runs the browser flow and gives
-the SDK an access-token provider. The iOS demo does this with no third-party
-code; see `ios-example/MapRouletteExample/Auth/` and the
-[iOS README](../../ios-example/README.md). The core of it:
+`MobileSignIn` runs the browser sign-in for you: authorization code with S256
+PKCE, `state` and redirect checks, token exchange, an identity check with
+`getCurrentUser()`, Keychain storage, refresh and revocation. It has no UI. Your
+app opens the authorization URL in `ASWebAuthenticationSession` (or SwiftUI's
+`WebAuthenticationSession`) and hands back the callback URL.
 
 ```swift
 import AuthenticationServices
+import MapRoulette
 
-// verifier: a random URL-safe string. challenge: base64url(SHA-256(verifier)), no padding.
-var authorize = URLComponents(string: "https://mr-api.osm.lol/oauth/mobile/authorize")!
-authorize.queryItems = [
-    URLQueryItem(name: "response_type", value: "code"),
-    URLQueryItem(name: "client_id", value: clientID),
-    URLQueryItem(name: "redirect_uri", value: "org.maproulette.example:/oauth2redirect"),
-    URLQueryItem(name: "scope", value: "tasks:read tasks:write osm:tagfix"),
-    URLQueryItem(name: "state", value: state),
-    URLQueryItem(name: "code_challenge", value: challenge),
-    URLQueryItem(name: "code_challenge_method", value: "S256"),
-]
-let session = ASWebAuthenticationSession(
-    url: authorize.url!, callbackURLScheme: "org.maproulette.example"
-) { callback, error in
-    // Check `state`, read `code`, then POST a form to /oauth/mobile/token with
-    // grant_type=authorization_code, code, redirect_uri, client_id and code_verifier.
+let configuration = try MobileSignInConfiguration(
+    environment: .staging, clientID: "maproulette-ios-example",
+    redirectURI: URL(string: "org.maproulette.example:/oauth2redirect")!)
+let signIn = MobileSignIn(
+    configuration: configuration,
+    store: KeychainCredentialStore(service: "com.example.app.auth", binding: configuration.storageBinding))
+
+await signIn.restore()  // at launch: .signedIn, .signedOut, .refreshInterrupted or .unreadable
+
+// SwiftUI: @Environment(\.webAuthenticationSession) private var webAuth
+let account = try await signIn.signIn(scopes: MobileSignInConfiguration.scopes(writes: true)) { url in
+    try await webAuth.authenticate(
+        using: url, callbackURLScheme: configuration.callbackScheme,
+        preferredBrowserSession: .ephemeral)  // each sign-in shows the OSM login
 }
-session.prefersEphemeralWebBrowserSession = true  // each sign-in shows the OSM login
-session.presentationContextProvider = presenter
-session.start()
+let client = await signIn.client()  // bound to this account
 ```
 
-Store the tokens in the Keychain. Refresh with `grant_type=refresh_token`
-before the access token expires, one refresh at a time.
+What it guarantees:
+
+- **One client per account.** `client()` binds to the current account. After
+  `signOut()` or another `signIn`, its requests fail with `CancellationError`
+  before anything is sent. Make a new client after every sign-in.
+- **Refresh at most once per token.** Tokens are refreshed when they expire
+  within a minute, one refresh at a time. Before a refresh token leaves the
+  device it is marked pending. If the app dies before the result is saved,
+  `restore()` returns `.refreshInterrupted` and signs out rather than retry a
+  token that may already be spent. A failed refresh also signs out.
+- **401 handling.** A 401 from the backend triggers one refresh for the next
+  request. The rejected request is never resent. `osm_reauth_required` is about
+  the backend's OSM token, so it does not refresh.
+- **Narrower grants.** The backend may grant less than you asked for. Check
+  `account.canWriteTasks` and `account.canEditOsm`.
+- **Sign-out is local first.** `signOut()` clears the grant, then asks the
+  backend to revoke it; `SignOutResult` says whether the revocation was
+  confirmed.
+
+`SignInFailure` says why a sign-in did not finish (`.canceled`, `.denied`,
+`.callbackMismatch`, `.tokenExchange`, …). It never carries server text or
+tokens, so it is safe to log. Use `InMemoryCredentialStore` in tests and
+previews, or implement `CredentialStore` yourself.
 
 An ephemeral session shares no browser cookies, so the user can pick a
 different OSM account each time. Without it, the browser silently reuses the
