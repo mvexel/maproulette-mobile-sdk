@@ -1,5 +1,5 @@
 {
-  "_comment": "Synthetic guest (deferred sign-up) fixtures; see design deferred-signup-api.md §3.3-3.5. Swift suite only until Kotlin parity. Task 101, challenge 7.",
+  "_comment": "Synthetic guest (deferred sign-up) fixtures; see design deferred-signup-api.md §3.3-3.5. Loaded by both suites. Task 101, challenge 7.",
   "status": {
     "guestId": "6f1c2a9e-0000-4000-8000-000000000001",
     "state": "active",

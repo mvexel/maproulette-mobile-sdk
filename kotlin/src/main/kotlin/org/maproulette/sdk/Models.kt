@@ -64,13 +64,16 @@ data class Bounds(
 /** Filters task locations. Empty challengeIds means all challenges visible to the caller.
  * null statuses means all statuses; empty statuses is invalid. [choiceOnly] sends
  * `cct=3&excludeStale=true` (fork backend): only choice challenges, without tasks found
- * stale. Servers without the filter ignore it, so still check [Task.mobileSupport]. */
+ * stale. Servers without the filter ignore it, so still check [Task.mobileSupport].
+ * With [choiceOnly], [excludePending] (default true) also sends `excludePending=true`: tasks held
+ * by a guest's pending answer are left out. Backends without guest support ignore it. */
 data class TaskFilter(
     val challengeIds: List<ChallengeId> = emptyList(),
     val bounds: Bounds,
     val statuses: List<Int>? = listOf(0, 3, 6),
     val includeArchived: Boolean = false,
     val choiceOnly: Boolean = false,
+    val excludePending: Boolean = true,
 )
 
 data class Challenge(
@@ -154,6 +157,8 @@ class PageCursor internal constructor(
     internal val owner: Any,
     internal val key: String,
     internal val position: Int,
+    /** The server's opaque cursor, for reads that page by cursor rather than by page number. */
+    internal val token: String? = null,
 )
 
 data class Page<T>(
@@ -268,12 +273,15 @@ enum class ResolutionCheck {
     RESOLVED_BY_OTHER,
 }
 
-/** Server bodies and credentials are deliberately excluded from error descriptions. */
+/** Server bodies and credentials are deliberately excluded from error descriptions.
+ * [reason] is the server's error code for guest and sign-in calls, e.g. "guest_claimed", and only
+ * when it is a plain code (`[a-z_]{1,40}`); never other server text. */
 class MapRouletteException(
     val kind: ErrorKind,
     val status: Int? = null,
     val retryAfter: String? = null,
     val problem: WriteProblem? = null,
+    val reason: String? = null,
 ) : Exception(
-    "MapRoulette ${kind.name.lowercase()}" + (status?.let { " (HTTP $it)" } ?: ""),
+    "MapRoulette ${kind.name.lowercase()}" + (status?.let { " (HTTP $it)" } ?: "") + (reason?.let { ": $it" } ?: ""),
 )

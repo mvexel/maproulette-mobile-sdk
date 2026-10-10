@@ -178,7 +178,7 @@ See [Handling errors](errors.md) for every problem and what to show. Key rules:
   If it is not done, the user may submit the same answers again; the server
   resumes without a second upload.
 
-## Guests (Swift; deferred sign-up)
+## Guests (deferred sign-up)
 
 On a backend with guests enabled, a participant can answer before having an OSM account. The
 app registers a guest and gets a short-lived guest token (scope `guest`); pass it as the client's
@@ -200,3 +200,26 @@ let pending = try await client.submitPendingChoice(task, .answers(["shelter": "y
 - Errors carry the server's code in `reason`: `guest_claimed`, `task_completed` (`.conflict`),
   `pending_limit`, `email_rate_limited` (`.rateLimit`), `mail_unavailable` (`.server`).
 - Choice-only searches leave out tasks held by guests (`TaskFilter.excludePending`, default true).
+
+Kotlin has the same calls and types (`submitPendingChoice`, `withdrawPendingChoice`,
+`listPendingChoices`, `getGuestStatus`, `setGuestEmail`, `deleteGuest`; `GuestStatus`,
+`PendingChoice`, `PendingState`). `MobileSignIn` registers the guest (`startGuest()`), supplies
+the guest token to `client()`, and signs in a claimed guest with `upgradeGuest()`:
+
+```kotlin
+val signIn = MobileSignIn(configuration, store = myEncryptedStore, transport = transport)
+signIn.restore()
+signIn.startGuest()
+val client = signIn.client()
+val pending = client.submitPendingChoice(task, ChoiceSubmission.Answers(mapOf("shelter" to "yes")))
+// Later, after the guest claimed the answers on the web:
+when (val upgrade = signIn.upgradeGuest()) {
+    is GuestUpgrade.SignedIn -> { /* make a new client() */ }
+    GuestUpgrade.NotYet -> { /* still a guest */ }
+}
+```
+
+Errors carry the server's code in `MapRouletteException.reason`. Local validation fails with
+`IllegalArgumentException`, and production with `IllegalStateException`, as for
+`submitChoice`. Android apps supply their own encrypted `CredentialStore`;
+`InMemoryCredentialStore` is for tests and previews.

@@ -125,7 +125,10 @@ class MapRouletteClient(
         if (filter.challengeIds.isNotEmpty()) {
             params["cid"] = filter.challengeIds.joinToString(",") { it.value.toString() }
         }
-        if (filter.choiceOnly) params += choiceOnlyParams
+        if (filter.choiceOnly) {
+            params += choiceOnlyParams
+            if (filter.excludePending) params["excludePending"] = "true"
+        }
         val result = page(
             "tasks/box/${filter.bounds.path()}", params, pageSize, after,
             offset = false, parse = ::summary, envelope = true,
@@ -152,7 +155,10 @@ class MapRouletteClient(
         if (filter.challengeIds.isNotEmpty()) {
             params["cid"] = filter.challengeIds.joinToString(",") { it.value.toString() }
         }
-        if (filter.choiceOnly) params += choiceOnlyParams
+        if (filter.choiceOnly) {
+            params += choiceOnlyParams
+            if (filter.excludePending) params["excludePending"] = "true"
+        }
         if (filter.challengeIds.isEmpty()) {
             params["ce"] = "true"
             params["pe"] = "true"
@@ -411,7 +417,7 @@ class MapRouletteClient(
         Recovery.Unknown
     }
 
-    private enum class Write { START, REFRESH, RELEASE, SKIP, RESOLVE, CHOICE }
+    private enum class Write { START, REFRESH, RELEASE, SKIP, RESOLVE, CHOICE, PENDING }
 
     private fun requireWrites() {
         check(environment.allowsWrites) {
@@ -441,7 +447,7 @@ class MapRouletteClient(
     private fun writeProblem(operation: Write, response: HttpResponse): WriteProblem? {
         val body = errorBody(response)
         fun field(name: String) = (body?.get(name) as? JsonPrimitive)?.takeIf { it.isString }?.content
-        if (operation == Write.CHOICE) return choiceProblem(response.status, body, ::field)
+        if (operation == Write.CHOICE || operation == Write.PENDING) return choiceProblem(response.status, body, ::field)
         return when (response.status) {
             400 -> WriteProblem.InvalidTransition.takeIf {
                 operation == Write.RESOLVE && field("error") != "invalid_request"
@@ -498,6 +504,99 @@ class MapRouletteClient(
             in 500..599 -> WriteProblem.OutcomeUnknown
             else -> null
         }
+    }
+
+    // Guest calls (deferred sign-up). The client's access token is a guest token (scope `guest`), e.g.
+    // from a [MobileSignIn] guest. Errors carry the server's code in [MapRouletteException.reason]:
+    // "guest_claimed" and "task_completed" (CONFLICT), "pending_limit" and "email_rate_limited"
+    // (RATE_LIMIT), "mail_unavailable" (SERVER). Calls that change server state need an environment
+    // that allows writes, like [submitChoice].
+
+    /** Validates locally like [submitChoice], then stores the answers for the guest
+     * (`POST task/{id}/choice/pending`). Never edits OSM and takes no lock. A "gone" outcome is stored
+     * without deletion. Submitting again for the same task replaces the guest's earlier answer, so a
+     * resend after a network failure is safe. Choice failures carry a [ChoiceProblem]. */
+    suspend fun submitPendingChoice(task: Task, submission: ChoiceSubmission): PendingChoice {
+        requireWrites()
+        task.validateChoice(submission, allowElementDeletion)
+        val stored = if (submission is ChoiceSubmission.Outcome && submission.outcome.deletesElement) {
+            ChoiceSubmission.Outcome(submission.outcome.withoutDeletion())
+        } else submission
+        val response = guestCall(
+            "task/${task.id.value}/choice/pending", HttpMethod.POST, body = choiceBody(stored), write = Write.PENDING,
+        )
+        return decode {
+            pendingChoice(Json.parseToJsonElement(response.body)).also { require(it.taskId == task.id) }
+        }
+    }
+
+    /** Withdraws the guest's pending answer and releases its hold (`DELETE task/{id}/choice/pending`).
+     * NOT_FOUND when there is none. */
+    suspend fun withdrawPendingChoice(id: TaskId) {
+        requireWrites()
+        guestCall("task/${id.value}/choice/pending", HttpMethod.DELETE, write = Write.PENDING)
+    }
+
+    /** The guest's answers, newest first as the server orders them. [pageSize] must be 1..100; pass
+     * `page.next` as [after] for the next page, with the same page size. */
+    suspend fun listPendingChoices(pageSize: Int = 50, after: PageCursor? = null): Page<PendingChoice> {
+        require(pageSize in 1..100) { "pageSize must be 1..100" }
+        val key = "mobile-guest/pending?size=$pageSize"
+        require(after == null || (after.owner === owner && after.key == key && after.token != null)) {
+            "page cursor belongs to another client, operation or page size"
+        }
+        val params = linkedMapOf("limit" to pageSize.toString())
+        after?.token?.let { params["after"] = it }
+        val response = guestCall("mobile-guest/pending", HttpMethod.GET, params)
+        return decode {
+            val o = Json.parseToJsonElement(response.body).obj()
+            val rows = o.getValue("items").jsonArray
+            require(rows.size <= pageSize)
+            val next = o.text("next")
+            Page(rows.map(::pendingChoice), next?.let { PageCursor(owner, key, 0, it) })
+        }
+    }
+
+    /** The guest's status (`GET mobile-guest/me`). */
+    suspend fun getGuestStatus(): GuestStatus {
+        val response = guestCall("mobile-guest/me", HttpMethod.GET)
+        return decode { guestStatus(Json.parseToJsonElement(response.body)) }
+    }
+
+    /** Stores the email and sends the claim link (`PUT mobile-guest/email`); call again to correct it.
+     * The address is trimmed and not checked beyond one "@" and at most 254 characters
+     * (IllegalArgumentException). */
+    suspend fun setGuestEmail(email: String): GuestStatus {
+        requireWrites()
+        val trimmed = email.trim()
+        require(
+            trimmed.codePointCount(0, trimmed.length) <= 254 && trimmed.count { it == '@' } == 1 &&
+                !trimmed.startsWith("@") && !trimmed.endsWith("@"),
+        ) { "email must contain one @ and be at most 254 characters" }
+        val body = buildJsonObject { put("email", trimmed) }.toString()
+        val response = guestCall("mobile-guest/email", HttpMethod.PUT, body = body, write = Write.PENDING)
+        return decode { guestStatus(Json.parseToJsonElement(response.body)) }
+    }
+
+    /** Deletes the guest's email, claim links and pending answers (`DELETE mobile-guest`). Published
+     * OSM edits stay. The guest credentials stop working; forget them afterwards
+     * ([MobileSignIn.forgetGuest]). */
+    suspend fun deleteGuest() {
+        requireWrites()
+        guestCall("mobile-guest", HttpMethod.DELETE, write = Write.PENDING)
+    }
+
+    private suspend fun guestCall(
+        path: String, method: HttpMethod, params: Map<String, String> = emptyMap(), body: String? = null,
+        write: Write? = null,
+    ): HttpResponse {
+        val response = send(path, params, method, body)
+        if (response.status in 200..299) return response
+        val base = failure(response, write?.let { writeProblem(it, response) })
+        val code = (errorBody(response)?.get("error") as? JsonPrimitive)?.takeIf { it.isString }?.content
+        throw MapRouletteException(
+            base.kind, base.status, base.retryAfter, base.problem, code?.takeIf { plainCode.matches(it) },
+        )
     }
 
     /** The caller's identity. Needs a credential: an API key reads `user/whoami`, a bearer token reads
@@ -715,6 +814,44 @@ private fun JsonObject.bool(key: String): Boolean? =
 
 private fun JsonObject.objectOrNull(key: String): JsonObject? =
     get(key)?.takeUnless { it == JsonNull }?.jsonObject
+
+// Only plain error codes are passed on, never other server text.
+internal val plainCode = Regex("[a-z_]{1,40}")
+
+private fun guestStatus(value: JsonElement): GuestStatus {
+    val o = value.obj()
+    val pending = o.long("pending")
+    val published = o.optionalLong("published") ?: 0
+    require(pending in 0..Int.MAX_VALUE && published in 0..Int.MAX_VALUE)
+    val claimed = o.objectOrNull("claimedAs")?.let { ClaimedAccount(it.str("displayName"), it.long("osmId")) }
+    val state = GuestState.entries.single { it.wire == o.str("state") }
+    val email = (o.text("email") ?: "none").let { wire -> GuestEmailState.entries.single { it.wire == wire } }
+    return GuestStatus(
+        guestId = o.str("guestId"), state = state, email = email, pendingCount = pending.toInt(),
+        publishedCount = published.toInt(), expiresAt = instant(o.str("expiresAt")), claimedAs = claimed,
+    )
+}
+
+private fun pendingChoice(value: JsonElement): PendingChoice {
+    val o = value.obj()
+    val state = o.str("state").let { wire -> PendingState.entries.single { it.wire == wire } }
+    val result = o.objectOrNull("result")
+    return PendingChoice(
+        taskId = TaskId(o.long("taskId")),
+        challengeId = o.optionalLong("challengeId")?.let(::ChallengeId),
+        state = state,
+        answeredAt = instant(o.str("answeredAt")),
+        holdUntil = o.text("holdUntil")?.let(::instant),
+        changesetId = result?.optionalLong("changesetId")?.takeIf { it > 0 },
+        droppedQuestionIds = result?.get("dropped")?.takeUnless { it == JsonNull }?.jsonArray?.map {
+            require(it.jsonPrimitive.isString)
+            it.jsonPrimitive.content
+        } ?: emptyList(),
+    )
+}
+
+/** RFC 3339 UTC, with or without fractional seconds. */
+private fun instant(text: String): java.time.Instant = java.time.Instant.parse(text)
 
 private fun challenge(value: JsonElement): Challenge {
     val o = value.obj()
