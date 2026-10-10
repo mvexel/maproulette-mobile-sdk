@@ -15,7 +15,8 @@ request bodies, submissions rejected before any request, every `POST …/choice`
 mapping with its release behavior, retry flows, `choice/check` responses, the `osm:tagfix`
 identity flag and the `choiceOnly` query parameters.
 `guest.json` holds the guest (deferred sign-up) status and pending-answer shapes and the
-guest error codes passed through as the error's reason.
+guest error codes passed through as the error's reason, including the `PUT mobile-guest/email`
+codes (`email_errors`; `409 nothing_saved` while the guest has no pending answer).
 Both native suites load the same file directly; no generated or copied fixture variants.
 IDs and API key text here are invented. These fixtures complement, rather than replace,
 the read-only live probes documented in [`docs/design/api-probes.json`](../docs/design/api-probes.json)

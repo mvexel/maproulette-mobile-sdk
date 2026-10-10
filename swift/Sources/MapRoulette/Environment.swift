@@ -3,7 +3,7 @@ import Foundation
 /// The SDK version, sent in the User-Agent. It must equal the repository's `VERSION` file;
 /// a test checks this.
 public enum MapRouletteSDK {
-  public static let version = "0.1.0"
+  public static let version = "0.2.0"
 }
 
 /// The MapRoulette deployment a client talks to.

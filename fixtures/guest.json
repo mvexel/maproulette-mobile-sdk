@@ -37,6 +37,15 @@
     ],
     "next": "c2"
   },
+  "_email_errors": "PUT mobile-guest/email error bodies (backend #8, GuestEmailError): {\"error\": code}. nothing_saved means the guest has no pending answer yet.",
+  "email_errors": [
+    {"status": 400, "body": {"error": "invalid_request"}, "kind": "http", "reason": "invalid_request"},
+    {"status": 409, "body": {"error": "nothing_saved"}, "kind": "conflict", "reason": "nothing_saved"},
+    {"status": 409, "body": {"error": "guest_claimed"}, "kind": "conflict", "reason": "guest_claimed"},
+    {"status": 429, "body": {"error": "email_rate_limited"}, "kind": "rateLimit", "reason": "email_rate_limited"},
+    {"status": 503, "body": {"error": "mail_unavailable"}, "kind": "server", "reason": "mail_unavailable"},
+    {"status": 401, "body": {"error": "invalid_token"}, "kind": "authentication", "reason": "invalid_token"}
+  ],
   "errors": [
     {"status": 409, "body": {"error": "guest_claimed"}, "kind": "conflict", "reason": "guest_claimed"},
     {"status": 409, "body": {"error": "task_completed"}, "kind": "conflict", "reason": "task_completed"},
