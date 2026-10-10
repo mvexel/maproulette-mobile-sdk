@@ -327,7 +327,7 @@ private actor CredentialProbe {
     let client = MapRouletteClient(transport: wire, accessToken: { "synthetic-access-token" })
     let original = try JSONSerialization.jsonObject(with: fixture("identity_mobile")) as! [String:Any]
     for (key, value) in [("id", 0 as Any), ("osmId", "12345" as Any),
-                         ("displayName", NSNull() as Any), ("scope", "tasks:write" as Any)] {
+                         ("displayName", 42 as Any), ("scope", "tasks:write" as Any)] {
         var changed = original; changed[key] = value
         await wire.set(HTTPResponse(status: 200, body: try JSONSerialization.data(withJSONObject: changed)))
         try await errorKind(.protocolFailure) { _ = try await client.getCurrentUser() }
