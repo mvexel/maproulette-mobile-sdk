@@ -42,6 +42,7 @@ public struct MobileSignInConfiguration: Hashable, Sendable {
   var authorizeURL: URL { origin(path: "/oauth/mobile/authorize") }
   var tokenURL: URL { origin(path: "/oauth/mobile/token") }
   var revokeURL: URL { origin(path: "/oauth/mobile/revoke") }
+  var guestURL: URL { origin(path: "/oauth/mobile/guest") }
 
   /// OAuth routes live at the backend origin, not under the API path.
   private func origin(path: String) -> URL {
@@ -106,6 +107,25 @@ public struct MobileAccount: Hashable, Sendable {
   public var canEditOsm: Bool { canWriteTasks && scopes.contains(MobileSignInConfiguration.tagfixScope) }
 }
 
+/// A guest: answers are stored, not published, until the guest is claimed with an OSM account.
+/// `generation` changes like `MobileAccount.generation`.
+public struct MobileGuest: Hashable, Sendable {
+  public let guestID: String
+  public let generation: Int
+  public init(guestID: String, generation: Int) {
+    self.guestID = guestID
+    self.generation = generation
+  }
+}
+
+/// What `upgradeGuest()` found.
+public enum GuestUpgrade: Hashable, Sendable {
+  /// The guest was claimed: now signed in as this account; the guest credentials are gone.
+  case signedIn(MobileAccount)
+  /// Not claimed yet, or the backend can't issue write grants right now: still a guest; try later.
+  case notYet
+}
+
 /// Why a sign-in did not finish. None of these carry server text or credentials.
 public enum SignInFailure: Error, Hashable, Sendable {
   /// The web authentication session was canceled or failed.
@@ -129,6 +149,8 @@ public enum SignInFailure: Error, Hashable, Sendable {
 /// What `restore()` found in the credential store.
 public enum RestoreResult: Hashable, Sendable {
   case signedIn(MobileAccount)
+  /// A guest (no signed-in account).
+  case guest(MobileGuest)
   case signedOut
   /// The app died during a token refresh, so the saved refresh token may be spent. Signed out.
   case refreshInterrupted
@@ -159,6 +181,9 @@ public actor MobileSignIn {
   public nonisolated let configuration: MobileSignInConfiguration
   /// The signed-in account, nil when signed out.
   public private(set) var account: MobileAccount?
+  /// The guest, when the app answers as a guest. Kept across sign-in and sign-out so that
+  /// the guest's answers can still be claimed; `forgetGuest()` removes it.
+  public private(set) var guest: MobileGuest?
   /// Bumped on every sign-in and sign-out.
   public private(set) var generation = 0
 
@@ -166,6 +191,8 @@ public actor MobileSignIn {
   private let transport: any Transport
   private let now: @Sendable () -> Date
   private var grant: Grant?
+  private var guestCredential: GuestCredential?
+  private var guestToken: (value: String, expiresAt: Date)?
   private var refreshing: Task<Void, any Error>?
 
   public init(
@@ -186,11 +213,16 @@ public actor MobileSignIn {
     var expiresAt: Date
     var scopes: Set<String>
   }
+  struct GuestCredential: Codable, Sendable {
+    var id: String
+    var secret: String
+  }
   private struct Saved: Codable {
     var binding: String
     var grant: Grant?
     var userID: Int64?
     var refreshPending = false
+    var guest: GuestCredential?
   }
 
   /// Loads the saved grant. Call once at launch, before handing out clients.
@@ -200,13 +232,22 @@ public actor MobileSignIn {
       guard let data = try store.read() else { return .signedOut }
       let saved = try JSONDecoder().decode(Saved.self, from: data)
       guard saved.binding == configuration.storageBinding else { throw SignInFailure.storage }
+      guestCredential = saved.guest
       if saved.refreshPending {
-        try? store.clear()
-        return .refreshInterrupted
+        // The guest credential doesn't rotate, so it survives an interrupted refresh.
+        try? invalidate(keepGuest: true)
+        return guest.map(RestoreResult.guest) ?? .refreshInterrupted
       }
-      guard let grant = saved.grant, let user = saved.userID, user > 0 else { return .signedOut }
+      guard let grant = saved.grant, let user = saved.userID, user > 0 else {
+        generation += 1
+        guard let credential = saved.guest else { return .signedOut }
+        let guest = MobileGuest(guestID: credential.id, generation: generation)
+        self.guest = guest
+        return .guest(guest)
+      }
       self.grant = grant
       generation += 1
+      if let credential = saved.guest { guest = MobileGuest(guestID: credential.id, generation: generation) }
       let account = MobileAccount(userID: user, scopes: grant.scopes, generation: generation)
       self.account = account
       return .signedIn(account)
@@ -214,23 +255,30 @@ public actor MobileSignIn {
       try? store.clear()
       grant = nil
       account = nil
+      guest = nil
+      guestCredential = nil
       return .unreadable
     }
   }
 
   private func persist(refreshPending: Bool = false) throws {
     let saved = Saved(
-      binding: configuration.storageBinding, grant: grant, userID: account?.userID, refreshPending: refreshPending)
+      binding: configuration.storageBinding, grant: grant, userID: account?.userID, refreshPending: refreshPending,
+      guest: guestCredential)
     try store.write(JSONEncoder().encode(saved))
   }
 
   /// Ends the current generation: older clients and in-flight requests lose their credentials.
-  private func invalidate() throws {
+  /// With `keepGuest`, the guest credential stays (and stays stored).
+  private func invalidate(keepGuest: Bool = false) throws {
     generation += 1
     grant = nil
     account = nil
     refreshing = nil
-    try store.clear()
+    guestToken = nil
+    if !keepGuest { guestCredential = nil }
+    guest = guestCredential.map { MobileGuest(guestID: $0.id, generation: generation) }
+    if guestCredential == nil { try store.clear() } else { try persist() }
   }
 
   private func check(_ expected: Int) throws {
@@ -246,7 +294,7 @@ public actor MobileSignIn {
     scopes requested: Set<String>, authenticate: @Sendable (URL) async throws -> URL
   ) async throws -> MobileAccount {
     if account != nil { _ = await signOut() }
-    try? invalidate()
+    try? invalidate(keepGuest: true)
     let expected = generation
     let verifier = Self.randomToken()
     let state = Self.randomToken()
@@ -306,12 +354,14 @@ public actor MobileSignIn {
     }
     grant = next
     generation += 1
+    guestToken = nil
     let account = MobileAccount(userID: identity.id, scopes: next.scopes, generation: generation)
     self.account = account
+    if let credential = guestCredential { guest = MobileGuest(guestID: credential.id, generation: generation) }
     do {
       try persist()
     } catch {
-      try? invalidate()
+      try? invalidate(keepGuest: true)
       throw SignInFailure.storage
     }
     return account
@@ -327,9 +377,12 @@ public actor MobileSignIn {
 
   /// Token endpoint call; the response is validated before use.
   private func requestToken(_ form: [String: String], current: Grant?, requested: Set<String>) async throws -> Grant {
-    let (status, body) = try await post(configuration.tokenURL, form)
-    guard status == 200,
-      let o = try JSONSerialization.jsonObject(with: body) as? [String: Any],
+    try parseGrant(try await post(configuration.tokenURL, form), current: current, requested: requested)
+  }
+
+  private func parseGrant(_ response: HTTPResponse, current: Grant?, requested: Set<String>) throws -> Grant {
+    guard response.status == 200,
+      let o = try JSONSerialization.jsonObject(with: response.body) as? [String: Any],
       (o["token_type"] as? String)?.lowercased() == "bearer",
       let access = o["access_token"] as? String, !access.isEmpty,
       let refresh = o["refresh_token"] as? String, !refresh.isEmpty,
@@ -348,14 +401,14 @@ public actor MobileSignIn {
 
   // MARK: Tokens
 
-  /// The access token for `generation`, refreshed when it expires within a minute; nil when
-  /// signed out. Throws `CancellationError` when the generation is stale. Refreshes are
+  /// The access token for `generation`, refreshed when it expires within a minute; for a guest,
+  /// a guest token (scope `guest`); nil when signed out. Throws `CancellationError` when the generation is stale. Refreshes are
   /// serialized; a failed refresh signs out.
   public func accessToken(generation expected: Int) async throws -> String? {
     try check(expected)
     if let refreshing { try await refreshing.value }
     try check(expected)
-    guard let current = grant else { return nil }
+    guard let current = grant else { return try await currentGuestToken(expected) }
     if current.expiresAt.timeIntervalSince(now()) < 60 {
       let task = Task { try await self.refresh(current, expected) }
       refreshing = task
@@ -380,7 +433,7 @@ public actor MobileSignIn {
     } catch is CancellationError {
       throw CancellationError()
     } catch {
-      if generation == expected { try? invalidate() }
+      if generation == expected { try? invalidate(keepGuest: true) }
       throw MapRouletteError(.authentication)
     }
   }
@@ -388,6 +441,10 @@ public actor MobileSignIn {
   /// One forced refresh after the server rejected the token in `usedHeader` (`Bearer …`). Does
   /// nothing when the token was already replaced or a refresh is running.
   public func renewAfterRejection(generation expected: Int, usedHeader: String) async {
+    if grant == nil, generation == expected, let token = guestToken, usedHeader == "Bearer \(token.value)" {
+      guestToken = nil
+      return
+    }
     guard generation == expected, let current = grant, usedHeader == "Bearer \(current.accessToken)",
       refreshing == nil
     else { return }
@@ -396,17 +453,180 @@ public actor MobileSignIn {
   }
 
   /// Signs out: clears locally first (older clients lose their credentials at once), then asks
-  /// the backend to revoke the grant.
+  /// the backend to revoke the grant. A guest credential stays; see `forgetGuest()`.
   @discardableResult
   public func signOut() async -> SignOutResult {
     let token = grant?.refreshToken ?? grant?.accessToken
-    let localCleared = (try? invalidate()) != nil
+    let localCleared = (try? invalidate(keepGuest: true)) != nil
     var confirmed = false
     if let token {
       let result = try? await post(configuration.revokeURL, ["client_id": configuration.clientID, "token": token])
-      confirmed = result.map { (200...299).contains($0.0) } ?? false
+      confirmed = result.map { (200...299).contains($0.status) } ?? false
     }
     return SignOutResult(localCleared: localCleared, revocationConfirmed: confirmed)
+  }
+
+  // MARK: Guests
+
+  /// Registers a guest (`POST /oauth/mobile/guest`) when nobody is signed in and there is no
+  /// guest yet; otherwise returns the current guest. The secret goes to the credential store and
+  /// never leaves this actor. Throws `MapRouletteError`: `.notFound` when the backend has guests
+  /// off, `.rateLimit` (with `retryAfter`), `.authentication` for a client without guest access.
+  public func startGuest() async throws -> MobileGuest {
+    if let guest { return guest }
+    guard account == nil else {
+      throw MapRouletteError(.validation, reason: "sign out before starting a guest")
+    }
+    let expected = generation
+    let response = try await post(configuration.guestURL, ["client_id": configuration.clientID])
+    guard response.status == 201 else { throw Self.oauthFailure(response) }
+    guard let o = try? JSONSerialization.jsonObject(with: response.body) as? [String: Any],
+      let id = o["guestId"] as? String, id.range(of: "^[A-Za-z0-9-]{1,64}$", options: .regularExpression) != nil,
+      let secret = o["guestSecret"] as? String, Self.isToken(secret)
+    else { throw MapRouletteError(.protocolFailure) }
+    // A sign-in or another guest started meanwhile.
+    guard generation == expected, account == nil, self.guest == nil else { throw CancellationError() }
+    guestCredential = GuestCredential(id: id, secret: secret)
+    generation += 1
+    let guest = MobileGuest(guestID: id, generation: generation)
+    self.guest = guest
+    do {
+      try persist()
+    } catch {
+      try? invalidate()
+      throw SignInFailure.storage
+    }
+    return guest
+  }
+
+  /// Signs in a claimed guest (`guest_claim` grant): when the guest's answers were claimed on the
+  /// web, the phone becomes that account and the guest credentials are dropped. `.notYet` while
+  /// unclaimed or while the backend issues no write grants.
+  public func upgradeGuest() async throws -> GuestUpgrade {
+    guard account == nil, let credential = guestCredential else {
+      throw MapRouletteError(.validation, reason: "no guest to upgrade")
+    }
+    let expected = generation
+    let requested = MobileSignInConfiguration.scopes(writes: true)
+    let response = try await post(
+      configuration.tokenURL,
+      [
+        "grant_type": "urn:maproulette:grant-type:guest_claim", "client_id": configuration.clientID,
+        "guest_id": credential.id, "guest_secret": credential.secret,
+      ])
+    if response.status == 400, ["claim_pending", "invalid_scope"].contains(Self.oauthError(response.body)) {
+      return .notYet
+    }
+    guard response.status == 200 else { throw Self.oauthFailure(response) }
+    let next = try parseGrant(response, current: nil, requested: requested)
+    try check(expected)
+    let token = next.accessToken
+    let identity = try await MapRouletteClient(
+      environment: configuration.environment, transport: transport, accessToken: { token }
+    ).getCurrentUser()
+    try check(expected)
+    guard !identity.guest, identity.id > 0, identity.scopes == next.scopes else {
+      throw SignInFailure.accountLookup
+    }
+    grant = next
+    guestCredential = nil
+    guestToken = nil
+    guest = nil
+    generation += 1
+    let account = MobileAccount(userID: identity.id, scopes: next.scopes, generation: generation)
+    self.account = account
+    do {
+      try persist()
+    } catch {
+      try? invalidate()
+      throw SignInFailure.storage
+    }
+    return .signedIn(account)
+  }
+
+  /// Drops the guest credential, e.g. after `MapRouletteClient.deleteGuest()`. Unclaimed answers
+  /// can no longer be reached from this phone. A signed-in account stays.
+  public func forgetGuest() throws {
+    guestCredential = nil
+    guestToken = nil
+    guest = nil
+    if grant == nil {
+      try invalidate()
+    } else {
+      try persist()
+    }
+  }
+
+  /// A short-lived guest token (`guest` grant), fetched again when it expires within a minute.
+  private func currentGuestToken(_ expected: Int) async throws -> String? {
+    guard let credential = guestCredential else { return nil }
+    if let token = guestToken, token.expiresAt.timeIntervalSince(now()) >= 60 { return token.value }
+    let task = Task { () throws -> Void in
+      let response = try await self.post(
+        self.configuration.tokenURL,
+        [
+          "grant_type": "urn:maproulette:grant-type:guest", "client_id": self.configuration.clientID,
+          "guest_id": credential.id, "guest_secret": credential.secret,
+        ])
+      try await self.receivedGuestToken(response, expected)
+    }
+    refreshing = task
+    defer { if refreshing == task { refreshing = nil } }
+    try await task.value
+    try Task.checkCancellation()
+    try check(expected)
+    return guestToken?.value
+  }
+
+  private func receivedGuestToken(_ response: HTTPResponse, _ expected: Int) throws {
+    try check(expected)
+    if response.status == 400, Self.oauthError(response.body) == "guest_claimed" {
+      // Answers were claimed: run `upgradeGuest()`.
+      throw MapRouletteError(.conflict, status: 400, reason: "guest_claimed")
+    }
+    guard response.status == 200 else {
+      if response.status == 400 || response.status == 401 {
+        // Unknown, deleted or expired guest: the credential is useless.
+        try? forgetGuest()
+      }
+      throw MapRouletteError(.authentication, status: response.status, reason: Self.oauthError(response.body))
+    }
+    guard let o = try? JSONSerialization.jsonObject(with: response.body) as? [String: Any],
+      (o["token_type"] as? String)?.lowercased() == "bearer",
+      let access = o["access_token"] as? String, Self.isToken(access),
+      let expiresIn = (o["expires_in"] as? NSNumber)?.doubleValue, expiresIn > 0,
+      (o["scope"] as? String) == "guest"
+    else { throw MapRouletteError(.protocolFailure) }
+    guestToken = (access, now().addingTimeInterval(expiresIn))
+  }
+
+  private static func isToken(_ value: String) -> Bool {
+    value.range(of: "^[A-Za-z0-9_-]{20,200}$", options: .regularExpression) != nil
+  }
+
+  /// The OAuth `error` code, only when it is a plain code.
+  private static func oauthError(_ body: Data) -> String? {
+    guard let code = ((try? JSONSerialization.jsonObject(with: body)) as? [String: Any])?["error"] as? String,
+      code.range(of: "^[a-z_]{1,40}$", options: .regularExpression) != nil
+    else { return nil }
+    return code
+  }
+
+  private static func oauthFailure(_ response: HTTPResponse) -> MapRouletteError {
+    let kind: ErrorKind
+    switch response.status {
+    case 400, 401: kind = .authentication
+    case 403: kind = .permission
+    case 404: kind = .notFound
+    case 409: kind = .conflict
+    case 429: kind = .rateLimit
+    case 500...599: kind = .server
+    default: kind = .http
+    }
+    return MapRouletteError(
+      kind, status: response.status,
+      retryAfter: response.headers.first { $0.key.lowercased() == "retry-after" }?.value,
+      reason: oauthError(response.body))
   }
 
   // MARK: Clients
@@ -443,7 +663,7 @@ public actor MobileSignIn {
   // MARK: Helpers
 
   /// Form POST to an OAuth endpoint at the configured origin.
-  private func post(_ url: URL, _ form: [String: String]) async throws -> (Int, Data) {
+  private func post(_ url: URL, _ form: [String: String]) async throws -> HTTPResponse {
     var allowed = CharacterSet.alphanumerics
     allowed.insert(charactersIn: "-._~")
     let body = form.sorted { $0.key < $1.key }.map {
@@ -454,7 +674,7 @@ public actor MobileSignIn {
         url: url,
         headers: ["Content-Type": "application/x-www-form-urlencoded", "Accept": "application/json"],
         method: .post, body: Data(body.utf8)))
-    return (response.status, response.body)
+    return response
   }
 
   static func randomToken() -> String {

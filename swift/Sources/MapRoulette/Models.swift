@@ -156,15 +156,19 @@ public struct TaskFilter: Hashable, Sendable {
   public var statuses: [Int]?
   public var includeArchived: Bool
   public var choiceOnly: Bool
+  /// With `choiceOnly`: leave out tasks held by a guest's pending answer (default true).
+  /// Backends without guest support ignore it.
+  public var excludePending: Bool
   public init(
     challengeIDs: [ChallengeID] = [], bounds: Bounds, statuses: [Int]? = [0, 3, 6],
-    includeArchived: Bool = false, choiceOnly: Bool = false
+    includeArchived: Bool = false, choiceOnly: Bool = false, excludePending: Bool = true
   ) {
     self.challengeIDs = challengeIDs
     self.bounds = bounds
     self.statuses = statuses
     self.includeArchived = includeArchived
     self.choiceOnly = choiceOnly
+    self.excludePending = excludePending
   }
 }
 public struct Challenge: Hashable, Identifiable, Sendable {
@@ -326,6 +330,8 @@ public struct PageCursor: Hashable, Sendable {
   let owner: UUID
   let key: String
   let position: Int
+  /// The server's opaque cursor, for reads that page by cursor rather than by page number.
+  var token: String? = nil
 }
 /// One page of results. `next` is nil on the last page; `total` is reported only by some reads.
 public struct Page<Element: Sendable>: Sendable {
@@ -352,8 +358,8 @@ public enum ErrorKind: String, Hashable, Sendable {
 public struct MapRouletteError: Error, CustomStringConvertible, Hashable, Sendable {
   public let kind: ErrorKind, status: Int?, retryAfter: String?
   public let problem: WriteProblem?
-  /// Why a `.validation` error was raised, e.g. "pageSize must be 1...100". Never contains
-  /// credentials or server bodies; nil for other kinds.
+  /// Why a `.validation` error was raised, e.g. "pageSize must be 1...100", or the server's error
+  /// code for guest calls, e.g. "guest_claimed". Never contains credentials or server bodies.
   public let reason: String?
   public init(
     _ kind: ErrorKind, status: Int? = nil, retryAfter: String? = nil, problem: WriteProblem? = nil,

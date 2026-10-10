@@ -1,0 +1,49 @@
+{
+  "_comment": "Synthetic guest (deferred sign-up) fixtures; see design deferred-signup-api.md §3.3-3.5. Swift suite only until Kotlin parity. Task 101, challenge 7.",
+  "status": {
+    "guestId": "6f1c2a9e-0000-4000-8000-000000000001",
+    "state": "active",
+    "email": "pending",
+    "pending": 14,
+    "published": 0,
+    "expiresAt": "2026-11-09T18:00:00Z",
+    "claimedAs": null
+  },
+  "status_claimed": {
+    "guestId": "6f1c2a9e-0000-4000-8000-000000000001",
+    "state": "claimed",
+    "email": "verified",
+    "pending": 0,
+    "published": 14,
+    "expiresAt": "2026-11-09T18:00:00.250Z",
+    "claimedAs": {"displayName": "rosa_slc", "osmId": 123}
+  },
+  "pending_submit": {
+    "taskId": 101,
+    "state": "pending",
+    "answeredAt": "2026-10-10T18:00:00Z",
+    "holdUntil": "2026-10-17T18:00:00Z",
+    "expiresAt": "2026-11-09T18:00:00Z"
+  },
+  "pending_list": {
+    "items": [
+      {"taskId": 101, "challengeId": 7, "state": "pending", "answeredAt": "2026-10-10T18:00:00Z",
+       "holdUntil": "2026-10-17T18:00:00Z", "result": null},
+      {"taskId": 102, "challengeId": 7, "state": "published", "answeredAt": "2026-10-09T18:00:00Z",
+       "holdUntil": "2026-10-16T18:00:00Z",
+       "result": {"changesetId": 1234567, "applied": {"shelter": "yes"}, "dropped": ["bench"], "reason": null, "agrees": null}},
+      {"taskId": 103, "challengeId": 7, "state": "skipped_stale", "answeredAt": "2026-10-08T18:00:00Z",
+       "holdUntil": null, "result": {"changesetId": null, "applied": {}, "dropped": [], "reason": "element changed", "agrees": null}}
+    ],
+    "next": "c2"
+  },
+  "errors": [
+    {"status": 409, "body": {"error": "guest_claimed"}, "kind": "conflict", "reason": "guest_claimed"},
+    {"status": 409, "body": {"error": "task_completed"}, "kind": "conflict", "reason": "task_completed"},
+    {"status": 429, "body": {"error": "pending_limit"}, "kind": "rateLimit", "reason": "pending_limit"},
+    {"status": 429, "body": {"error": "email_rate_limited"}, "kind": "rateLimit", "reason": "email_rate_limited"},
+    {"status": 503, "body": {"error": "mail_unavailable"}, "kind": "server", "reason": "mail_unavailable"},
+    {"status": 401, "body": {"error": "invalid_token"}, "kind": "authentication", "reason": "invalid_token"},
+    {"status": 400, "body": {"error": "Bad request: see rosa@example.org"}, "kind": "http", "reason": null}
+  ]
+}
