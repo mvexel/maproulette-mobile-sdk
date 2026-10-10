@@ -93,15 +93,18 @@ public final class InMemoryCredentialStore: CredentialStore, @unchecked Sendable
 }
 
 /// A signed-in account. `generation` changes on every sign-in and sign-out; a client bound to an
-/// older generation can no longer use credentials.
+/// older generation can no longer use credentials. `displayName` is the OSM display name, or nil
+/// when the server didn't send one (or the account was restored from storage written before it).
 public struct MobileAccount: Hashable, Sendable {
   public let userID: Int64
   public let scopes: Set<String>
   public let generation: Int
-  public init(userID: Int64, scopes: Set<String>, generation: Int) {
+  public let displayName: String?
+  public init(userID: Int64, scopes: Set<String>, generation: Int, displayName: String? = nil) {
     self.userID = userID
     self.scopes = scopes
     self.generation = generation
+    self.displayName = displayName
   }
   public var canWriteTasks: Bool { scopes.contains(MobileSignInConfiguration.writeScope) }
   public var canEditOsm: Bool { canWriteTasks && scopes.contains(MobileSignInConfiguration.tagfixScope) }
@@ -221,6 +224,7 @@ public actor MobileSignIn {
     var binding: String
     var grant: Grant?
     var userID: Int64?
+    var displayName: String?
     var refreshPending = false
     var guest: GuestCredential?
   }
@@ -248,7 +252,8 @@ public actor MobileSignIn {
       self.grant = grant
       generation += 1
       if let credential = saved.guest { guest = MobileGuest(guestID: credential.id, generation: generation) }
-      let account = MobileAccount(userID: user, scopes: grant.scopes, generation: generation)
+      let account = MobileAccount(
+        userID: user, scopes: grant.scopes, generation: generation, displayName: saved.displayName)
       self.account = account
       return .signedIn(account)
     } catch {
@@ -263,8 +268,8 @@ public actor MobileSignIn {
 
   private func persist(refreshPending: Bool = false) throws {
     let saved = Saved(
-      binding: configuration.storageBinding, grant: grant, userID: account?.userID, refreshPending: refreshPending,
-      guest: guestCredential)
+      binding: configuration.storageBinding, grant: grant, userID: account?.userID,
+      displayName: account?.displayName, refreshPending: refreshPending, guest: guestCredential)
     try store.write(JSONEncoder().encode(saved))
   }
 
@@ -355,7 +360,8 @@ public actor MobileSignIn {
     grant = next
     generation += 1
     guestToken = nil
-    let account = MobileAccount(userID: identity.id, scopes: next.scopes, generation: generation)
+    let account = MobileAccount(
+      userID: identity.id, scopes: next.scopes, generation: generation, displayName: identity.displayName)
     self.account = account
     if let credential = guestCredential { guest = MobileGuest(guestID: credential.id, generation: generation) }
     do {
@@ -533,7 +539,8 @@ public actor MobileSignIn {
     guestToken = nil
     guest = nil
     generation += 1
-    let account = MobileAccount(userID: identity.id, scopes: next.scopes, generation: generation)
+    let account = MobileAccount(
+      userID: identity.id, scopes: next.scopes, generation: generation, displayName: identity.displayName)
     self.account = account
     do {
       try persist()

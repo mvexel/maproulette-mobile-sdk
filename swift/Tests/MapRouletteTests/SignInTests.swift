@@ -17,7 +17,7 @@ private func token(_ access: String, _ refresh: String, scope: Set<String> = all
 private func me(scope: Set<String> = all) -> HTTPResponse {
   HTTPResponse(
     status: 200,
-    body: json(["id": 900, "osmId": 12345, "displayName": "Example", "scope": scope.sorted().joined(separator: " ")]))
+    body: json(["id": 900, "osmId": 12345, "displayName": "mapper_demo", "scope": scope.sorted().joined(separator: " ")]))
 }
 private let unauthorized = HTTPResponse(status: 401, body: json(["message": "Unauthorized"]))
 
@@ -117,6 +117,7 @@ private func failure(_ operation: () async throws -> Void) async -> SignInFailur
   let store = InMemoryCredentialStore()
   let (session, account) = try await signIn(backend, store: store, browser: browser)
   #expect(account.userID == 900 && account.canWriteTasks && account.canEditOsm)
+  #expect(account.displayName == "mapper_demo")
   #expect(await session.account == account)
 
   let opened = try #require(browser.opened)
@@ -139,7 +140,24 @@ private func failure(_ operation: () async throws -> Void) async -> SignInFailur
   let next = MobileSignIn(configuration: try configuration(), store: store, transport: backend)
   guard case .signedIn(let restored) = await next.restore() else { Issue.record("not restored"); return }
   #expect(restored.userID == 900 && restored.scopes == all)
+  #expect(restored.displayName == "mapper_demo")
   #expect(try await next.accessToken(generation: restored.generation) == "access-1")
+}
+
+@Test func accountDisplayNameIsOptional() async throws {
+  // The identity route may omit the name: the account has none, and none is stored.
+  let unnamed = HTTPResponse(
+    status: 200, body: json(["id": 900, "osmId": 12345, "scope": all.sorted().joined(separator: " ")]))
+  let store = InMemoryCredentialStore()
+  let (_, account) = try await signIn(
+    Backend(tokens: [token("access-1", "refresh-1")], identities: [unnamed]), store: store)
+  #expect(account.displayName == nil)
+  let saved = try #require(try JSONSerialization.jsonObject(with: try #require(try store.read())) as? [String: Any])
+  #expect(saved["displayName"] == nil)
+  // Storage written before display names existed still restores, without a name.
+  let next = MobileSignIn(configuration: try configuration(), store: store, transport: Backend(tokens: []))
+  guard case .signedIn(let restored) = await next.restore() else { Issue.record("not restored"); return }
+  #expect(restored.userID == 900 && restored.displayName == nil)
 }
 
 @Test func callbackMustMatchStateAndRedirect() async throws {

@@ -27,6 +27,10 @@ minor version, so add a default branch when you switch on them.
   `upgradeGuest`, `forgetGuest`). It stores through a `CredentialStore`;
   `InMemoryCredentialStore` is included, and Android apps supply an encrypted
   store. A client from an older sign-in fails with `CancellationException`.
+- Swift and Kotlin: optional `displayName` (the OSM display name) on
+  `UserIdentity` and `MobileAccount`. `getCurrentUser` reads `displayName` from
+  `oauth/mobile/me` and `osmProfile.displayName` from `user/whoami`; it is
+  null / nil when absent. `MobileSignIn` stores it with the grant.
 
 ### Changed
 
@@ -34,6 +38,8 @@ minor version, so add a default branch when you switch on them.
   new case.
 - Kotlin: `HttpMethod` gains `DELETE`, and `MapRouletteException` gains
   `reason`. Exhaustive `when` over `HttpMethod` needs the new case.
+- `getCurrentUser` with a bearer token no longer requires `displayName` in the
+  `oauth/mobile/me` response; a present one must still be a string.
 
 - Swift: `MobileSignIn`, an optional browser sign-in helper for mobile-enabled
   backends. It runs authorization code with S256 PKCE, checks the callback and

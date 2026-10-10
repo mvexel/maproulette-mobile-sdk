@@ -43,7 +43,7 @@ class SignInTest {
         ),
     )
     private fun me(scope: Set<String> = ALL_SCOPES) = HttpResponse(
-        200, body = json("id" to 900, "osmId" to 12345, "displayName" to "Example", "scope" to scope.sorted().joinToString(" ")),
+        200, body = json("id" to 900, "osmId" to 12345, "displayName" to "mapper_demo", "scope" to scope.sorted().joinToString(" ")),
     )
     private val unauthorized = HttpResponse(401, body = json("message" to "Unauthorized"))
 
@@ -112,6 +112,7 @@ class SignInTest {
         val store = InMemoryCredentialStore()
         val (session, account) = signIn(backend, store, browser = browser)
         assertEquals(900, account.userId); assertTrue(account.canWriteTasks && account.canEditOsm)
+        assertEquals("mapper_demo", account.displayName)
         assertEquals(account, session.account)
 
         val opened = assertNotNull(browser.opened)
@@ -131,7 +132,20 @@ class SignInTest {
         val next = MobileSignIn(configuration(), store, backend)
         val restored = assertIs<RestoreResult.SignedIn>(next.restore()).account
         assertEquals(900, restored.userId); assertEquals(ALL_SCOPES, restored.scopes)
+        assertEquals("mapper_demo", restored.displayName)
         assertEquals("access-1", next.accessToken(restored.generation))
+    }
+
+    @Test fun accountDisplayNameIsOptional() = runBlocking<Unit> {
+        // The identity route may omit the name: the account has none, and none is stored.
+        val unnamed = HttpResponse(200, body = json("id" to 900, "osmId" to 12345, "scope" to ALL_SCOPES.sorted().joinToString(" ")))
+        val store = InMemoryCredentialStore()
+        val (_, account) = signIn(Backend(listOf(token("access-1", "refresh-1")), listOf(unnamed)), store)
+        assertNull(account.displayName)
+        assertFalse(Json.parseToJsonElement(assertNotNull(store.read())).jsonObject.containsKey("displayName"))
+        // Storage written before display names existed still restores, without a name.
+        val restored = assertIs<RestoreResult.SignedIn>(MobileSignIn(configuration(), store, Backend(emptyList())).restore()).account
+        assertEquals(900, restored.userId); assertNull(restored.displayName)
     }
 
     @Test fun callbackMustMatchStateAndRedirect() = runBlocking<Unit> {

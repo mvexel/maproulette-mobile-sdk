@@ -46,6 +46,10 @@ The contract tests cover:
 - All-challenge spatial search (empty/default challenge IDs), preserving other filters,
   versus selected-challenge membership validation and separate page-cursor scopes.
 - Minimal identity extraction, credential validation and nonsecret error descriptions.
+- The optional OSM display name: top-level `displayName` on `oauth/mobile/me`,
+  `osmProfile.displayName` on `user/whoami` (backend `MobileOAuthController.me` and
+  `UserController.whoami`, which serializes the full `User` with its `OSMProfile`),
+  plus responses without it.
 - Per-user credential isolation across clients sharing a transport, anonymous requests,
   key rotation and logout without retaining an earlier key.
 - Empty 404 bodies, invalid successful JSON, rate limits and Retry-After.

@@ -55,6 +55,13 @@ identities have `scopes == null`, `canWriteTasks == true` (unless the user is
 a guest) and `canEditOsm == false`. If a grant lacks a scope you need, ask the user to sign
 in again.
 
+`displayName` is the user's OSM display name (for example to show "signed in as
+mapper_demo"). It is optional: null / nil when the server leaves it out. The SDK
+reads it from `displayName` on `oauth/mobile/me` and from `osmProfile.displayName`
+on `user/whoami`. `MobileSignIn` copies it onto `MobileAccount.displayName` and
+stores it with the grant, so a restored account keeps it; an account restored
+from storage written by an older SDK has none until the next sign-in.
+
 Never log credentials, and never log the raw `user/whoami` response: it
 contains the user's API key. The SDK keeps both out of its own error text.
 
