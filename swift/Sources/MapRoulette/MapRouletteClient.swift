@@ -313,6 +313,7 @@ public final class MapRouletteClient: Sendable {
     switch submission {
     case .answers: edits = true
     case .outcome(let outcome): edits = outcome.deletesElement
+    case .moved: edits = false
     }
     try await startForCommit(id)
     let first: MapRouletteError
@@ -525,6 +526,7 @@ public final class MapRouletteClient: Sendable {
       switch error {
       case "invalid_submission": return .choice(.invalidSubmission(detail: field("detail")))
       case "unsupported_task": return .choice(.unsupportedTask)
+      case "moved_too_far": return .choice(.movedTooFar)
       default: return nil
       }
     case 500:
@@ -797,7 +799,7 @@ private func provesNotApplied(_ problem: WriteProblem?) -> Bool {
   switch problem {
   case .choice(.taskIneligible)?, .choice(.invalidSubmission)?, .choice(.elementInUse)?,
     .choice(.osmReauthRequired)?, .choice(.osmScopeRequired)?, .choice(.osmUnavailable)?,
-    .choice(.unsupportedTask)?, .insufficientScope?:
+    .choice(.unsupportedTask)?, .choice(.movedTooFar)?, .insufficientScope?:
     true
   default: false
   }

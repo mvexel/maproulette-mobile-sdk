@@ -403,7 +403,7 @@ enum TaskScreen: Sendable {
     case .outcomeUnknown?:
       if action == .skip { return .skipped(loaded, uncertain: true) }
       return checkAgain("The connection failed before MapRoulette confirmed the result. It was not sent again.", .unknown)
-    case .choice(.invalidSubmission)?:
+    case .choice(.invalidSubmission)?, .choice(.movedTooFar)?:
       return answering("MapRoulette did not accept this submission. Nothing was recorded.")
     case .choice(.unsupportedTask)?:
       return .notAvailable(

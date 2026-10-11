@@ -82,6 +82,7 @@ private func problemName(_ problem: WriteProblem?) -> String? {
         case .statusPending: "statusPending"
         case .invalidSubmission: "invalidSubmission"
         case .unsupportedTask: "unsupportedTask"
+        case .movedTooFar: "movedTooFar"
         }
     }
 }
@@ -302,5 +303,61 @@ private func submission(_ task: MapRouletteTask, _ row: [String: Any], deletion:
                 #expect(items.first { $0.name == key }?.value == (choiceOnly ? value : nil), "\(request.url)")
             }
         }
+    }
+}
+
+@Test func notHereAndMovedAreBuiltInOutcomes() async throws {
+    let ok = (rows("flows")[0]["responses"] as! [Any]).map(response)
+    let task = try await slcTask()
+    #expect(!MapRouletteClient().choiceOutcomes(task).contains { [ChoiceOutcome.notHereID, ChoiceOutcome.movedID].contains($0.id) })
+    let moved = try MovedLocation(latitude: 40.739123449, longitude: -111.8624, source: .tap)
+    let cases: [(ChoiceSubmission, String)] = [
+        (.outcome(.notHere), #"{"outcome":"not-here"}"#),
+        (.moved(moved), #"{"outcome":"moved","location":{"lat":40.739123,"lon":-111.862400,"source":"tap"}}"#),
+    ]
+    for (submission, body) in cases {
+        let script = Script(ok)
+        _ = try await client(script).submitChoice(task, submission)
+        #expect(await script.calls() == ["GET /api/v2/task/101/start", "POST /api/v2/task/101/choice"])
+        #expect(await script.requests[1].body.map { String(decoding: $0, as: UTF8.self) } == body)
+    }
+    #expect(ChoiceOutcome.notHere.resolution == .tooHard)
+}
+
+@Test func movedNeedsItsLocationAndRange() async throws {
+    let task = try await slcTask()
+    let bare = ChoiceOutcome(id: ChoiceOutcome.movedID, label: "It's moved", description: nil, resolution: .tooHard, deletesElement: false)
+    let relabeled = ChoiceOutcome(id: ChoiceOutcome.notHereID, label: "Gone", description: nil, resolution: .notAnIssue, deletesElement: false)
+    for submission in [ChoiceSubmission.outcome(bare), .outcome(relabeled)] {
+        let script = Script([])
+        let error = await failure { try await client(script).submitChoice(task, submission) }
+        #expect(error?.kind == .validation)
+        #expect(await script.requests.isEmpty)
+    }
+    for (lat, lon) in [(91.0, 0.0), (0.0, -180.5)] {
+        #expect(throws: MapRouletteError.self) { try MovedLocation(latitude: lat, longitude: lon, source: .here) }
+    }
+}
+
+@Test func movedTooFarReleasesTheLock() async throws {
+    let start = HTTPResponse(status: 200, body: data(fixtures["start"]!))
+    let released = HTTPResponse(status: 200, body: data(fixtures["task"]!))
+    let failed = HTTPResponse(status: 422, body: data(["error": "moved_too_far"]))
+    let script = Script([start, failed, released])
+    let moved = try MovedLocation(latitude: 40.8, longitude: -111.8, source: .tap)
+    let error = await failure { try await client(script).submitChoice(try await slcTask(), .moved(moved)) }
+    #expect(error?.problem == .choice(.movedTooFar))
+    #expect(await script.calls() == [
+        "GET /api/v2/task/101/start", "POST /api/v2/task/101/choice", "GET /api/v2/task/101/release",
+    ])
+}
+
+@Test func campaignOutcomesCantUseBuiltInIDs() async throws {
+    for id in [ChoiceOutcome.notHereID, ChoiceOutcome.movedID] {
+        var payload = fixtures["slc"] as! [String: Any]
+        payload["outcomes"] = [["id": id, "label": "X", "status": 6]]
+        let task = try await decode(taskJSON(payload))
+        guard case .choice = task.work() else { continue }
+        Issue.record("\(id) decoded as a campaign outcome")
     }
 }

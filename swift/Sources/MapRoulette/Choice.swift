@@ -36,9 +36,22 @@ public struct ChoiceOption: Hashable, Identifiable, Sendable {
 /// 2 or 6, Not an issue for "gone" without deletion, or Fixed for an enabled delete.
 /// `deletesElement` is true only when the payload declares a delete AND deletion is enabled.
 /// The built-in Too hard has the id `ChoiceOutcome.tooHardID`; its English label is a fallback.
+/// "It's not here" (`ChoiceOutcome.notHere`) and "It's moved" (`ChoiceSubmission.moved`) are
+/// offered by every choice task but are not in `choiceOutcomes(_:)`; both set Too hard and never
+/// edit OSM. Campaign outcomes can't use their ids.
 public struct ChoiceOutcome: Hashable, Identifiable, Sendable {
   /// Id of the built-in Too hard outcome, for localizing its label.
   public static let tooHardID = "too-hard"
+  /// Id of the built-in "It's not here": the element isn't at its mapped position.
+  public static let notHereID = "not-here"
+  /// Id of the built-in "It's moved". Submit it with `ChoiceSubmission.moved(_:)`, which carries
+  /// the reported position; `.outcome` with this id is refused.
+  public static let movedID = "moved"
+  /// The built-in "It's not here", for `submitChoice(task, .outcome(.notHere))`. Every choice task
+  /// accepts it. Its English label is a fallback.
+  public static let notHere = ChoiceOutcome(
+    id: notHereID, label: "It's not here", description: nil, resolution: .tooHard,
+    deletesElement: false)
   public let id: String, label: String, description: String?
   public let resolution: TaskResolution
   public let deletesElement: Bool
@@ -66,8 +79,31 @@ public struct ChoiceOutcome: Hashable, Identifiable, Sendable {
 public enum ChoiceSubmission: Hashable, Sendable {
   /// Question id → option id; non-empty. Questions left out are "Can't tell".
   case answers([String: String])
-  /// One of the client's `choiceOutcomes(_:)`, or its `withoutDeletion()` form.
+  /// One of the client's `choiceOutcomes(_:)`, or its `withoutDeletion()` form. Not "moved".
   case outcome(ChoiceOutcome)
+  /// The built-in "It's moved", with where the element is now. Sets Too hard; never edits OSM.
+  case moved(MovedLocation)
+}
+/// Where a person reports a moved element to be. `source` says how they picked it. Coordinates
+/// are sent rounded to 6 decimals. The server refuses one more than 500 m from the element
+/// (`ChoiceProblem.movedTooFar`).
+public struct MovedLocation: Hashable, Sendable {
+  public enum Source: String, Hashable, Sendable {
+    /// Picked on the map.
+    case tap
+    /// The device's location while standing at the element.
+    case here
+  }
+  public let latitude: Double, longitude: Double, source: Source
+  /// Throws `.validation` for a latitude outside -90...90 or a longitude outside -180...180.
+  public init(latitude: Double, longitude: Double, source: Source) throws {
+    guard (-90...90).contains(latitude), (-180...180).contains(longitude) else {
+      throw MapRouletteError(.validation, reason: "coordinates out of range")
+    }
+    self.latitude = latitude
+    self.longitude = longitude
+    self.source = source
+  }
 }
 /// `changesetID` is nil when nothing was edited in OSM. After an interrupted response the result
 /// comes from a fresh task read, which may not report the changeset: then it is nil even for an
@@ -125,9 +161,15 @@ public enum ChoiceProblem: Hashable, Sendable {
   case invalidSubmission(detail: String?)
   /// 422 unsupported_task: the stored payload fails server validation.
   case unsupportedTask
+  /// 422 moved_too_far: the reported position is more than 500 m from the element. Nothing was
+  /// recorded.
+  case movedTooFar
 }
 
 let tooHardID = ChoiceOutcome.tooHardID
+private let builtInIDs: Set<String> = [
+  ChoiceOutcome.tooHardID, ChoiceOutcome.notHereID, ChoiceOutcome.movedID,
+]
 
 extension MapRouletteTask {
   /// Declared outcomes plus the built-in Too hard; empty when the task is not a valid choice task.
@@ -163,6 +205,15 @@ extension MapRouletteTask {
         })
       else { throw MapRouletteError(.validation, reason: "unknown question or option id") }
       return .fixed
+    case .outcome(let outcome) where outcome.id == ChoiceOutcome.movedID:
+      throw MapRouletteError(.validation, reason: "submit moved with its location")
+    case .outcome(let outcome) where outcome.id == ChoiceOutcome.notHereID:
+      guard outcome == .notHere else {
+        throw MapRouletteError(.validation, reason: "use ChoiceOutcome.notHere")
+      }
+      return .tooHard
+    case .moved:
+      return .tooHard
     case .outcome(let outcome):
       // Must equal what this client decodes (or its no-delete form), so a UI built with another
       // deletion setting fails here.
@@ -186,7 +237,16 @@ func choiceBody(_ submission: ChoiceSubmission) -> String {
     return "{\"answers\":{" + pairs.joined(separator: ",") + "}}"
   case .outcome(let outcome):
     return "{\"outcome\":\"\(outcome.id)\"" + (outcome.deletesElement ? ",\"delete\":true" : "") + "}"
+  case .moved(let location):
+    return "{\"outcome\":\"\(ChoiceOutcome.movedID)\",\"location\":{\"lat\":\(degrees(location.latitude)),"
+      + "\"lon\":\(degrees(location.longitude)),\"source\":\"\(location.source.rawValue)\"}}"
   }
+}
+
+/// Fixed 6 decimals, without a negative zero.
+private func degrees(_ value: Double) -> String {
+  let text = String(format: "%.6f", locale: Locale(identifier: "en_US_POSIX"), value)
+  return text == "-0.000000" ? "0.000000" : text
 }
 
 private struct Invalid: Error {}
@@ -220,7 +280,7 @@ func choiceWork(_ raw: [String: JSONValue], allowElementDeletion: Bool) throws -
   let outcomes = try declared.map { item -> ChoiceOutcome in
     let o = try object(item)
     let id = try choiceID(text(required(o["id"])))
-    guard id != tooHardID else { throw Invalid() }
+    guard !builtInIDs.contains(id) else { throw Invalid() }
     let status = try present(o["status"]).map { try whole($0) }
     var delete = false
     if let value = present(o["delete"]) {

@@ -275,6 +275,13 @@ public struct TaskSummary: Hashable, Identifiable, Sendable {
     self.pending = pending
   }
 }
+/// A built-in report on a task: the element isn't there, or it has moved to the given position.
+/// The campaign status read (E1, not built yet) will carry them per task; apps use it today for
+/// reports made on the device.
+public enum TaskReport: Hashable, Sendable {
+  case notHere
+  case moved(latitude: Double, longitude: Double)
+}
 /// `scopes` is the bearer grant's scope set, or nil for API-key and anonymous identities.
 /// `displayName` is the OSM display name, or nil when the server didn't send one.
 public struct UserIdentity: Hashable, Identifiable, Sendable {
