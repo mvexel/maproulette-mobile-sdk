@@ -211,6 +211,12 @@ let pending = try await client.submitPendingChoice(task, .answers(["shelter": "y
   status read (not built yet). In Kotlin: `ChoiceSubmission.Outcome(ChoiceOutcome.NOT_HERE)`,
   `ChoiceSubmission.Moved(MovedLocation(...))` and `ChoiceProblem.MovedTooFar`.
 
+A guest who then signs in with OSM on the phone keeps the guest credential. Claim the saved
+answers with `MobileSignIn.claimGuest()` (Kotlin): the backend publishes them with the account's
+OSM token in the background, and `getClaimStatus(claimId)` reports progress per answer. The guest
+is forgotten once the claim is accepted. A claim made while the backend's writes are off is
+`waiting` and publishes when they are turned on.
+
 Kotlin has the same calls and types (`submitPendingChoice`, `withdrawPendingChoice`,
 `listPendingChoices`, `getGuestStatus`, `setGuestEmail`, `deleteGuest`; `GuestStatus`,
 `PendingChoice`, `PendingState`). `MobileSignIn` registers the guest (`startGuest()`), supplies

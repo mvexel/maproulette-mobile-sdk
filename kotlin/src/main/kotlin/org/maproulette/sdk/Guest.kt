@@ -47,3 +47,43 @@ data class PendingChoice(
     /** Questions whose answers were not applied because the element changed meanwhile. */
     val droppedQuestionIds: List<String> = emptyList(),
 )
+
+/** Where a claim of a guest's answers is (`mobile-claim`). [WAITING]: accepted while the backend's
+ * field write switch is off; published once it is turned on. */
+enum class ClaimState(internal val wire: String) {
+    WAITING("waiting"), QUEUED("queued"), RUNNING("running"), DONE("done"), FAILED("failed"),
+}
+
+/** A guest's answers claimed for the signed-in account ([MobileSignIn.claimGuest]). The backend
+ * publishes them in the background; follow with [MapRouletteClient.getClaimStatus]. */
+data class GuestClaim(
+    val claimId: Long,
+    val state: ClaimState,
+    /** Answers the claim will publish. */
+    val pending: Int,
+    /** The account the answers now belong to. */
+    val account: ClaimedAccount,
+)
+
+/** One claimed answer: its task, where it is, and the changeset once published. */
+data class ClaimItem(
+    val taskId: TaskId,
+    val state: PendingState,
+    val changesetId: Long? = null,
+    /** Questions whose answers were not applied because the element changed meanwhile. */
+    val droppedQuestionIds: List<String> = emptyList(),
+)
+
+/** A claim's progress (`GET mobile-claim/{id}`), for the account that claimed. */
+data class ClaimStatus(
+    val claimId: Long,
+    val state: ClaimState,
+    val total: Int,
+    val published: Int,
+    /** Not applied because the element no longer needed the answer. */
+    val skipped: Int,
+    /** Replaced by a later answer for the same task. */
+    val superseded: Int,
+    val failed: Int,
+    val items: List<ClaimItem>,
+)

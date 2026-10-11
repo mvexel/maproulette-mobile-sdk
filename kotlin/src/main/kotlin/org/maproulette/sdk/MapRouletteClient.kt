@@ -591,6 +591,27 @@ class MapRouletteClient(
         guestCall("mobile-guest", HttpMethod.DELETE, write = Write.PENDING)
     }
 
+    /** Claims a guest's saved answers for the signed-in account (`POST mobile-claim` with the guest
+     * id and secret; API plan §3.10). Call it through [MobileSignIn.claimGuest], which holds the
+     * secret and forgets the guest afterwards. A repeat by the same account returns the same claim. */
+    internal suspend fun claimGuest(guestId: String, guestSecret: String): GuestClaim {
+        requireWrites()
+        val body = buildJsonObject {
+            put("guestId", guestId)
+            put("guestSecret", guestSecret)
+        }.toString()
+        val response = guestCall("mobile-claim", HttpMethod.POST, body = body)
+        return decode { guestClaim(Json.parseToJsonElement(response.body)) }
+    }
+
+    /** A claim's progress (`GET mobile-claim/{id}`), for the account that made it; NOT_FOUND for
+     * anyone else. Poll it every few seconds until [ClaimState.DONE] or [ClaimState.FAILED]. */
+    suspend fun getClaimStatus(claimId: Long): ClaimStatus {
+        require(claimId > 0) { "claimId must be positive" }
+        val response = guestCall("mobile-claim/$claimId", HttpMethod.GET)
+        return decode { claimStatus(Json.parseToJsonElement(response.body)).also { require(it.claimId == claimId) } }
+    }
+
     private suspend fun guestCall(
         path: String, method: HttpMethod, params: Map<String, String> = emptyMap(), body: String? = null,
         write: Write? = null,
@@ -860,6 +881,40 @@ private fun pendingChoice(value: JsonElement): PendingChoice {
             require(it.jsonPrimitive.isString)
             it.jsonPrimitive.content
         } ?: emptyList(),
+    )
+}
+
+private fun claimState(wire: String): ClaimState = ClaimState.entries.single { it.wire == wire }
+
+private fun count(o: JsonObject, key: String): Int = o.long(key).also { require(it in 0..Int.MAX_VALUE) }.toInt()
+
+private fun guestClaim(value: JsonElement): GuestClaim {
+    val o = value.obj()
+    val user = o.getValue("user").obj()
+    return GuestClaim(
+        claimId = o.long("claimId").also { require(it > 0) }, state = claimState(o.str("state")),
+        pending = count(o, "pending"), account = ClaimedAccount(user.str("displayName"), user.long("osmId")),
+    )
+}
+
+private fun claimStatus(value: JsonElement): ClaimStatus {
+    val o = value.obj()
+    val items = o.getValue("items").jsonArray.map { element ->
+        val item = element.obj()
+        ClaimItem(
+            taskId = TaskId(item.long("taskId")),
+            state = item.str("state").let { wire -> PendingState.entries.single { it.wire == wire } },
+            changesetId = item.optionalLong("changesetId")?.takeIf { it > 0 },
+            droppedQuestionIds = item["dropped"]?.takeUnless { it == JsonNull }?.jsonArray?.map {
+                require(it.jsonPrimitive.isString)
+                it.jsonPrimitive.content
+            } ?: emptyList(),
+        )
+    }
+    return ClaimStatus(
+        claimId = o.long("claimId"), state = claimState(o.str("state")), total = count(o, "total"),
+        published = count(o, "published"), skipped = count(o, "skipped"), superseded = count(o, "superseded"),
+        failed = count(o, "failed"), items = items,
     )
 }
 

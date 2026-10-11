@@ -12,6 +12,11 @@ minor version, so add a default branch when you switch on them.
 
 ### Added
 
+- Kotlin: `MobileSignIn.claimGuest()` claims the kept guest's saved answers for the signed-in
+  account ("I already use OpenStreetMap" after answering as a guest; deferred-signup API plan
+  §3.10). It returns `GuestClaim` (`claimId`, `ClaimState`, `pending`, `account`) and forgets the
+  guest once the claim is accepted, or when the backend answers `not_found` or `guest_claimed`.
+  `MapRouletteClient.getClaimStatus(claimId)` returns `ClaimStatus` with per-answer `ClaimItem`s.
 - Kotlin: `TaskFilter.includePending` (default false) and `TaskSummary.pending`. With it,
   `findTasksInBounds` sends `includePending=true` instead of `excludePending`, keeps tasks held by
   a guest's pending answer, and reports `pending` true or false for each (backend `tasks/box`,

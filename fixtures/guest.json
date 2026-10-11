@@ -65,5 +65,22 @@
   ]},
   "tasks_box_pending_invalid": {"total": 1, "tasks": [
     {"id": 101, "parentId": 7, "title": "Stop 101", "status": 0, "point": {"lat": 40.7608, "lng": -111.8910}, "pending": "yes"}
-  ]}
+  ]},
+  "_claim": "Phone claim (API plan §3.7, §3.10): POST mobile-claim with the signed-in account's bearer and {guestId, guestSecret}; 202 new, 200 repeat by the same account. GET mobile-claim/{id} for progress. claim_errors: forget says whether the guest credential is dropped.",
+  "claim_accepted": {"claimId": 9, "state": "queued", "pending": 14, "user": {"displayName": "rosa_slc", "osmId": 123}},
+  "claim_waiting": {"claimId": 9, "state": "waiting", "pending": 14, "user": {"displayName": "rosa_slc", "osmId": 123}},
+  "claim_status": {"claimId": 9, "state": "running", "total": 3, "published": 1, "skipped": 1, "superseded": 0, "failed": 0,
+    "items": [
+      {"taskId": 101, "state": "published", "changesetId": 1234567, "dropped": ["bench"]},
+      {"taskId": 102, "state": "skipped_stale", "changesetId": null, "dropped": []},
+      {"taskId": 103, "state": "pending", "changesetId": null, "dropped": []}
+    ]},
+  "claim_errors": [
+    {"status": 404, "body": {"error": "not_found"}, "kind": "notFound", "reason": "not_found", "forget": true},
+    {"status": 409, "body": {"error": "guest_claimed", "claimedAs": "other_mapper"}, "kind": "conflict", "reason": "guest_claimed", "forget": true},
+    {"status": 401, "body": {"error": "osm_reauth_required"}, "kind": "authentication", "reason": "osm_reauth_required", "forget": false},
+    {"status": 403, "body": {"error": "mobile_writes_disabled"}, "kind": "permission", "reason": "mobile_writes_disabled", "forget": false},
+    {"status": 404, "body": "<html>Not Found</html>", "kind": "notFound", "reason": null, "forget": false},
+    {"status": 503, "body": {"error": "unavailable"}, "kind": "server", "reason": "unavailable", "forget": false}
+  ]
 }
