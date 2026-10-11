@@ -196,3 +196,46 @@ private func date(_ text: String) -> Date { ISO8601DateFormatter().date(from: te
     let items = URLComponents(url: await script.requests[0].url, resolvingAgainstBaseURL: false)!.queryItems ?? []
     #expect(!items.contains { $0.name == "excludePending" })
 }
+
+@Test func includePendingFlagsHeldTasksOnTheBoxSearch() async throws {
+    let bounds = try Bounds(west: -111.91, south: 40.75, east: -111.87, north: 40.78)
+    let script = Script([ok(guest["tasks_box_pending"]!), ok([] as [Any])])
+    let c = client(script)
+    let filter = TaskFilter(bounds: bounds, choiceOnly: true, includePending: true)
+    let page = try await c.findTasksInBounds(filter: filter)
+    #expect(page.items.map(\.id.value) == [101, 103])
+    #expect(page.items.map(\.pending) == [true, false])
+    _ = try await c.findTaskMarkers(filter: filter)
+    let requests = await script.requests
+    let box = URLComponents(url: requests[0].url, resolvingAgainstBaseURL: false)!.queryItems ?? []
+    #expect(box.first { $0.name == "includePending" }?.value == "true")
+    // Held tasks are kept, so excludePending is not sent with includePending.
+    #expect(!box.contains { $0.name == "excludePending" })
+    // The markers route has no includePending; it keeps leaving held tasks out.
+    let markers = URLComponents(url: requests[1].url, resolvingAgainstBaseURL: false)!.queryItems ?? []
+    #expect(!markers.contains { $0.name == "includePending" })
+    #expect(markers.first { $0.name == "excludePending" }?.value == "true")
+}
+
+@Test func pendingIsNilUnlessReported() async throws {
+    let bounds = try Bounds(west: -111.91, south: 40.75, east: -111.87, north: 40.78)
+    let script = Script([ok(guest["tasks_box_without_pending"]!)])
+    let page = try await client(script).findTasksInBounds(filter: TaskFilter(bounds: bounds, choiceOnly: true))
+    #expect(page.items.count == 1)
+    #expect(page.items.first?.pending == nil)
+    let items = URLComponents(url: await script.requests[0].url, resolvingAgainstBaseURL: false)!.queryItems ?? []
+    #expect(!items.contains { $0.name == "includePending" })
+    #expect(!TaskFilter(bounds: bounds).includePending)
+}
+
+@Test func nonBooleanPendingIsAProtocolError() async throws {
+    let bounds = try Bounds(west: -111.91, south: 40.75, east: -111.87, north: 40.78)
+    let script = Script([ok(guest["tasks_box_pending_invalid"]!)])
+    do {
+        _ = try await client(script).findTasksInBounds(
+            filter: TaskFilter(bounds: bounds, choiceOnly: true, includePending: true))
+        Issue.record("expected a protocol failure")
+    } catch let error as MapRouletteError {
+        #expect(error.kind == .protocolFailure)
+    }
+}

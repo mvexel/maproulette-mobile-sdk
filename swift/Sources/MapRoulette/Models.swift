@@ -159,9 +159,15 @@ public struct TaskFilter: Hashable, Sendable {
   /// With `choiceOnly`: leave out tasks held by a guest's pending answer (default true).
   /// Backends without guest support ignore it.
   public var excludePending: Bool
+  /// Keep tasks held by a guest's pending answer in `findTasksInBounds` and send
+  /// `includePending=true`, so each `TaskSummary.pending` says whether one holds the task (for
+  /// progress tallies). It replaces `excludePending` on that call only; `findTaskMarkers` has no
+  /// such flag and keeps applying `excludePending` (default false).
+  public var includePending: Bool
   public init(
     challengeIDs: [ChallengeID] = [], bounds: Bounds, statuses: [Int]? = [0, 3, 6],
-    includeArchived: Bool = false, choiceOnly: Bool = false, excludePending: Bool = true
+    includeArchived: Bool = false, choiceOnly: Bool = false, excludePending: Bool = true,
+    includePending: Bool = false
   ) {
     self.challengeIDs = challengeIDs
     self.bounds = bounds
@@ -169,6 +175,7 @@ public struct TaskFilter: Hashable, Sendable {
     self.includeArchived = includeArchived
     self.choiceOnly = choiceOnly
     self.excludePending = excludePending
+    self.includePending = includePending
   }
 }
 public struct Challenge: Hashable, Identifiable, Sendable {
@@ -253,15 +260,19 @@ public struct MapRouletteTask: Hashable, Identifiable, Sendable {
 public struct TaskSummary: Hashable, Identifiable, Sendable {
   public let id: TaskID, challengeID: ChallengeID
   public let title: String, status: TaskStatus?, point: JSONValue?
+  /// Whether a guest's pending answer holds the task. Reported only by `findTasksInBounds` with
+  /// `TaskFilter.includePending`; nil otherwise, or from a backend without guest support.
+  public let pending: Bool?
   public init(
     id: TaskID, challengeID: ChallengeID, title: String, status: TaskStatus? = nil,
-    point: JSONValue? = nil
+    point: JSONValue? = nil, pending: Bool? = nil
   ) {
     self.id = id
     self.challengeID = challengeID
     self.title = title
     self.status = status
     self.point = point
+    self.pending = pending
   }
 }
 /// `scopes` is the bearer grant's scope set, or nil for API-key and anonymous identities.
