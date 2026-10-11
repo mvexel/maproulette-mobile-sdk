@@ -54,5 +54,16 @@
     {"status": 503, "body": {"error": "mail_unavailable"}, "kind": "server", "reason": "mail_unavailable"},
     {"status": 401, "body": {"error": "invalid_token"}, "kind": "authentication", "reason": "invalid_token"},
     {"status": 400, "body": {"error": "Bad request: see rosa@example.org"}, "kind": "http", "reason": null}
-  ]
+  ],
+  "_tasks_box_pending": "GET tasks/box with includePending=true (backend #16): held tasks stay in and each task carries pending true|false. Without the parameter there is no pending key. A non-boolean pending is a protocol error.",
+  "tasks_box_pending": {"total": 2, "tasks": [
+    {"id": 101, "parentId": 7, "title": "Stop 101", "status": 0, "point": {"lat": 40.7608, "lng": -111.8910}, "pending": true},
+    {"id": 103, "parentId": 7, "title": "Stop 103", "status": 0, "point": {"lat": 40.7612, "lng": -111.8902}, "pending": false}
+  ]},
+  "tasks_box_without_pending": {"total": 1, "tasks": [
+    {"id": 103, "parentId": 7, "title": "Stop 103", "status": 0, "point": {"lat": 40.7612, "lng": -111.8902}}
+  ]},
+  "tasks_box_pending_invalid": {"total": 1, "tasks": [
+    {"id": 101, "parentId": 7, "title": "Stop 101", "status": 0, "point": {"lat": 40.7608, "lng": -111.8910}, "pending": "yes"}
+  ]}
 }

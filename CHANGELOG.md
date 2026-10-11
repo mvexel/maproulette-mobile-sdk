@@ -10,6 +10,14 @@ minor version, so add a default branch when you switch on them.
 
 ## [Unreleased]
 
+### Added
+
+- Kotlin: `TaskFilter.includePending` (default false) and `TaskSummary.pending`. With it,
+  `findTasksInBounds` sends `includePending=true` instead of `excludePending`, keeps tasks held by
+  a guest's pending answer, and reports `pending` true or false for each (backend `tasks/box`,
+  mobile backend PR #16). `pending` is null when not requested or not reported. `findTaskMarkers`
+  is unchanged. Swift follows.
+
 ## [0.2.0] - 2026-10-11
 
 ### Added

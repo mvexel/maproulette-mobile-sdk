@@ -127,8 +127,9 @@ class MapRouletteClient(
         }
         if (filter.choiceOnly) {
             params += choiceOnlyParams
-            if (filter.excludePending) params["excludePending"] = "true"
+            if (filter.excludePending && !filter.includePending) params["excludePending"] = "true"
         }
+        if (filter.includePending) params["includePending"] = "true"
         val result = page(
             "tasks/box/${filter.bounds.path()}", params, pageSize, after,
             offset = false, parse = ::summary, envelope = true,
@@ -931,5 +932,6 @@ private fun summary(value: JsonElement): TaskSummary {
             TaskStatus(it.toInt())
         },
         point = o.objectOrNull("point"),
+        pending = o.bool("pending"),
     )
 }
