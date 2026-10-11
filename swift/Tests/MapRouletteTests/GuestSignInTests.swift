@@ -28,10 +28,13 @@ private let me = HTTPResponse(
 private actor Backend: Transport {
   var guests: [HTTPResponse]
   var tokens: [HTTPResponse]
+  /// Answers to `POST mobile-claim`; nil throws a network error.
+  var claims: [HTTPResponse?]
   var requests: [HTTPRequest] = []
-  init(guests: [HTTPResponse] = [registered], tokens: [HTTPResponse] = []) {
+  init(guests: [HTTPResponse] = [registered], tokens: [HTTPResponse] = [], claims: [HTTPResponse?] = []) {
     self.guests = guests
     self.tokens = tokens
+    self.claims = claims
   }
   func execute(_ request: HTTPRequest) async throws -> HTTPResponse {
     requests.append(request)
@@ -42,6 +45,9 @@ private actor Backend: Transport {
       return tokens.removeFirst()
     case "/oauth/mobile/me": return me
     case "/oauth/mobile/revoke": return HTTPResponse(status: 200, body: Data())
+    case "/api/v2/mobile-claim":
+      guard let next = claims.removeFirst() else { throw URLError(.networkConnectionLost) }
+      return next
     default: return HTTPResponse(status: 404, body: Data())
     }
   }
@@ -183,4 +189,82 @@ private func approve(_ url: URL) -> URL {
     }
   }
   #expect(await s.guest == nil)
+}
+
+// MARK: Phone claim (B5)
+
+private func claimed(_ status: Int) -> HTTPResponse {
+  HTTPResponse(
+    status: status,
+    body: json(["claimId": 41, "state": "queued", "pending": 3, "user": ["displayName": "Example", "osmId": 12345]]))
+}
+
+/// A guest who then signs in with OSM on the phone.
+private func signedInGuest(_ backend: Backend, store: InMemoryCredentialStore = InMemoryCredentialStore()) async throws
+  -> MobileSignIn
+{
+  let s = try session(backend, store: store)
+  _ = try await s.startGuest()
+  _ = try await s.signIn(scopes: all) { approve($0) }
+  return s
+}
+
+@Test func claimPutsTheGuestsAnswersOnTheAccount() async throws {
+  let backend = Backend(tokens: [grant("access-1", "refresh-1")], claims: [claimed(202)])
+  let store = InMemoryCredentialStore()
+  let s = try await signedInGuest(backend, store: store)
+  let claim = try await s.claimGuest()
+  #expect(claim == GuestClaim(
+    claimID: 41, state: .queued, pendingCount: 3, account: ClaimedAccount(displayName: "Example", osmID: 12345),
+    isNew: true))
+  let sent = try #require(await backend.requests.last { $0.url.path == "/api/v2/mobile-claim" })
+  #expect(sent.method == .post && sent.headers["Authorization"] == "Bearer access-1")
+  let body = try #require(JSONSerialization.jsonObject(with: sent.body ?? Data()) as? [String: String])
+  #expect(body == ["guestId": "6f1c2a9e-0000-4000-8000-000000000001", "guestSecret": secret])
+  // The secret is spent: the guest is gone, the account stays, and so it is stored.
+  #expect(await s.guest == nil && s.account != nil)
+  let reopened = try session(Backend(), store: store)
+  guard case .signedIn = await reopened.restore() else { Issue.record("not signed in"); return }
+  #expect(await reopened.guest == nil)
+}
+
+@Test func claimAfterALostResponseIsRetriedSafely() async throws {
+  let backend = Backend(tokens: [grant("access-1", "refresh-1")], claims: [nil, claimed(200)])
+  let s = try await signedInGuest(backend)
+  await #expect(throws: (any Error).self) { try await s.claimGuest() }
+  #expect(await s.guest != nil)  // Kept: the claim may or may not have happened.
+  let claim = try await s.claimGuest()
+  #expect(claim.claimID == 41 && !claim.isNew)
+  #expect(await s.guest == nil)
+}
+
+@Test func claimFailuresKeepOrDropTheGuest() async throws {
+  let reauth = HTTPResponse(status: 401, body: json(["error": "osm_reauth_required"]))
+  let gone = HTTPResponse(status: 404, body: json(["error": "not_found"]))
+  let backend = Backend(tokens: [grant("access-1", "refresh-1")], claims: [reauth, gone])
+  let s = try await signedInGuest(backend)
+  do {
+    _ = try await s.claimGuest()
+    Issue.record("expected osm_reauth_required")
+  } catch let error as MapRouletteError {
+    #expect(error.kind == .authentication && error.reason == "osm_reauth_required")
+  }
+  #expect(await s.guest != nil && s.account != nil)  // No refresh, no sign-out.
+  #expect(await backend.forms("/oauth/mobile/token").count == 1)
+  do {
+    _ = try await s.claimGuest()
+    Issue.record("expected not_found")
+  } catch let error as MapRouletteError {
+    #expect(error.kind == .notFound && error.reason == "not_found")
+  }
+  #expect(await s.guest == nil && s.account != nil)
+}
+
+@Test func claimNeedsAGuestAndAnEditingAccount() async throws {
+  let guestOnly = try session(Backend())
+  _ = try await guestOnly.startGuest()
+  await #expect(throws: MapRouletteError.self) { try await guestOnly.claimGuest() }
+  let noGuest = try session(Backend(tokens: [grant("access-1", "refresh-1")]))
+  _ = try await noGuest.signIn(scopes: all) { approve($0) }
+  await #expect(throws: MapRouletteError.self) { try await noGuest.claimGuest() }
 }

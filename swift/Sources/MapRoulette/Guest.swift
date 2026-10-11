@@ -70,3 +70,66 @@ public struct PendingChoice: Hashable, Sendable {
     self.droppedQuestionIDs = droppedQuestionIDs
   }
 }
+
+/// Where a claim is. The claim only records; a background job publishes the answers to OSM.
+/// `waiting` means publishing is switched off on the backend for now.
+public enum ClaimState: String, Hashable, Sendable { case waiting, queued, running, done, failed }
+
+/// What `MobileSignIn.claimGuest()` started: the guest's saved answers, now the account's.
+public struct GuestClaim: Hashable, Sendable {
+  public let claimID: Int64
+  public let state: ClaimState
+  /// Saved answers the claim took over.
+  public let pendingCount: Int
+  public let account: ClaimedAccount
+  /// False when this account had already claimed the guest (a repeated request).
+  public let isNew: Bool
+  public init(claimID: Int64, state: ClaimState, pendingCount: Int, account: ClaimedAccount, isNew: Bool) {
+    self.claimID = claimID
+    self.state = state
+    self.pendingCount = pendingCount
+    self.account = account
+    self.isNew = isNew
+  }
+}
+
+/// One answer of a claim.
+public struct ClaimItem: Hashable, Sendable {
+  public let taskID: TaskID
+  public let state: PendingState
+  public let changesetID: Int64?
+  /// Questions whose answers were not applied because the element changed meanwhile.
+  public let droppedQuestionIDs: [String]
+  public init(taskID: TaskID, state: PendingState, changesetID: Int64? = nil, droppedQuestionIDs: [String] = []) {
+    self.taskID = taskID
+    self.state = state
+    self.changesetID = changesetID
+    self.droppedQuestionIDs = droppedQuestionIDs
+  }
+}
+
+/// A claim's progress (`GET mobile-claim/{id}`), for the account that made it.
+public struct ClaimStatus: Hashable, Sendable {
+  public let claimID: Int64
+  public let state: ClaimState
+  public let total: Int
+  public let published: Int
+  /// Not applied because the element changed meanwhile (`skipped_stale`).
+  public let skipped: Int
+  public let superseded: Int
+  public let failed: Int
+  public let items: [ClaimItem]
+  public init(
+    claimID: Int64, state: ClaimState, total: Int, published: Int, skipped: Int, superseded: Int, failed: Int,
+    items: [ClaimItem]
+  ) {
+    self.claimID = claimID
+    self.state = state
+    self.total = total
+    self.published = published
+    self.skipped = skipped
+    self.superseded = superseded
+    self.failed = failed
+    self.items = items
+  }
+}
