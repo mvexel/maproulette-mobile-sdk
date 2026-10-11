@@ -181,6 +181,11 @@ same rules when decoding, and any failure makes the task unsupported.
 4. `outcomes`: 0 to 4 entries.
    - `id` uses the question-id pattern, must be unique, and must not be
      `too-hard`.
+   - `label` is 1 to 60 characters, with no `;` and no leading or
+     trailing whitespace. The results download tallies outcome labels as
+     `label count;label count`. Only ingest (task upload and edit)
+     checks this. Submit and the SDK's decoding don't, so tasks stored
+     before the rule still work.
    - Each outcome has exactly one of `status` (in {2, 6}) or
      `delete: true`.
    - At most one outcome may have `delete`. It is allowed only when
