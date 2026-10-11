@@ -10,7 +10,7 @@ minor version, so add a default branch when you switch on them.
 
 ## [Unreleased]
 
-## [0.2.0] - 2026-10-10
+## [0.2.0] - 2026-10-11
 
 ### Added
 
