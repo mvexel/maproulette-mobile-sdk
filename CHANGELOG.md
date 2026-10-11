@@ -18,10 +18,28 @@ minor version, so add a default branch when you switch on them.
   mobile backend PR #16). `pending` is null when not requested or not reported. `findTaskMarkers`
   is unchanged. Swift follows.
 
-## [0.2.0] - 2026-10-10
+## [0.2.0] - 2026-10-11
 
 ### Added
 
+- Swift: `MobileSignIn`, an optional browser sign-in helper for mobile-enabled
+  backends. It runs authorization code with S256 PKCE, checks the callback and
+  the grant, stores it through a `CredentialStore` (`KeychainCredentialStore`,
+  `InMemoryCredentialStore`), refreshes one token at a time, signs out safely
+  after an interrupted or failed refresh, and revokes on sign-out. It is UI-free:
+  the app passes in the web authentication session. `client()` returns a client
+  bound to the signed-in account. See the
+  [authentication guide](docs/guide/authentication.md#ios-mobilesignin).
+- Opt-in writes for your own backend: `MapRouletteEnvironment(serviceUrl,
+  allowWrites = true)` in Kotlin, `MapRouletteEnvironment(serviceURL:allowWrites:)`
+  in Swift. The default stays `false`, so existing calls compile unchanged.
+  `allowsWrites` is now true for staging, loopback hosts, and opted-in hosts.
+  Opting in for `maproulette.org` or a subdomain fails at construction; production
+  stays read-only.
+- Swift and Kotlin: `ChoiceEligibility` gains optional `questionIDs`
+  (`questionIds` in Kotlin): for tasks whose questions are filtered against
+  live OSM tags, the IDs of the questions still missing their tags. Absent
+  otherwise. The new initializer parameter defaults to nil / null.
 - Swift: guest calls for deferred sign-up (backend `mobileOAuth.guests`):
   `submitPendingChoice`, `withdrawPendingChoice`, `listPendingChoices`,
   `getGuestStatus`, `setGuestEmail` and `deleteGuest`, with `GuestStatus`,
@@ -52,31 +70,11 @@ minor version, so add a default branch when you switch on them.
   `reason`. Exhaustive `when` over `HttpMethod` needs the new case.
 - `getCurrentUser` with a bearer token no longer requires `displayName` in the
   `oauth/mobile/me` response; a present one must still be a string.
-
-- Swift: `MobileSignIn`, an optional browser sign-in helper for mobile-enabled
-  backends. It runs authorization code with S256 PKCE, checks the callback and
-  the grant, stores it through a `CredentialStore` (`KeychainCredentialStore`,
-  `InMemoryCredentialStore`), refreshes one token at a time, signs out safely
-  after an interrupted or failed refresh, and revokes on sign-out. It is UI-free:
-  the app passes in the web authentication session. `client()` returns a client
-  bound to the signed-in account. See the
-  [authentication guide](docs/guide/authentication.md#ios-mobilesignin).
-
-- Opt-in writes for your own backend: `MapRouletteEnvironment(serviceUrl,
-  allowWrites = true)` in Kotlin, `MapRouletteEnvironment(serviceURL:allowWrites:)`
-  in Swift. The default stays `false`, so existing calls compile unchanged.
-  `allowsWrites` is now true for staging, loopback hosts, and opted-in hosts.
-  Opting in for `maproulette.org` or a subdomain fails at construction; production
-  stays read-only.
-
-### Changed
-
 - Documentation: the README's "Environments and backends" section and the
   getting-started guide say what works where. Reads work against any deployment,
   anonymously too; only choice tasks can be completed, and only against a
   mobile-enabled fork backend. The authentication guide has a "Your own backend"
   section.
-
 - Partial answers closing the task is now the intended behavior (decision D7),
   no longer a known limitation. A submission that leaves some questions as
   "Can't tell" sets Fixed, as in upstream MapRoulette. Challenge maintainers
