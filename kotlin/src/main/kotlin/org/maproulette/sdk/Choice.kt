@@ -23,7 +23,10 @@ data class ChoiceOption(
 
 /** A task-level result that is not an answer. [resolution] is the status it will set: the declared
  * 2 or 6, Not an issue for "gone" without deletion, or Fixed for an enabled delete. [deletesElement]
- * is true only when the payload declares a delete AND element deletion is enabled. */
+ * is true only when the payload declares a delete AND element deletion is enabled.
+ * "It's not here" ([NOT_HERE]) and "It's moved" ([ChoiceSubmission.Moved]) are offered by every
+ * choice task but are not in [MapRouletteClient.choiceOutcomes]; both set Too hard and never edit
+ * OSM. Campaign outcomes can't use their ids. */
 data class ChoiceOutcome(
     val id: String,
     val label: String,
@@ -41,6 +44,18 @@ data class ChoiceOutcome(
     companion object {
         /** Id of the built-in Too hard outcome, for localizing its label ("Too hard" is a fallback). */
         const val TOO_HARD_ID: String = "too-hard"
+
+        /** Id of the built-in "It's not here": the element isn't at its mapped position. */
+        const val NOT_HERE_ID: String = "not-here"
+
+        /** Id of the built-in "It's moved". Submit it with [ChoiceSubmission.Moved], which carries the
+         * reported position; [ChoiceSubmission.Outcome] with this id is refused. */
+        const val MOVED_ID: String = "moved"
+
+        /** The built-in "It's not here", for `submitChoice(task, ChoiceSubmission.Outcome(ChoiceOutcome.NOT_HERE))`.
+         * Every choice task accepts it. Its English label is a fallback. */
+        @JvmField
+        val NOT_HERE: ChoiceOutcome = ChoiceOutcome(NOT_HERE_ID, "It's not here", null, TaskResolution.TOO_HARD, false)
     }
 }
 
@@ -48,8 +63,29 @@ sealed interface ChoiceSubmission {
     /** Question id → option id; non-empty. Questions left out are "Can't tell". */
     data class Answers(val byQuestion: Map<String, String>) : ChoiceSubmission
 
-    /** One of [MapRouletteClient.choiceOutcomes], or its [ChoiceOutcome.withoutDeletion] form. */
+    /** One of [MapRouletteClient.choiceOutcomes], or its [ChoiceOutcome.withoutDeletion] form, or
+     * [ChoiceOutcome.NOT_HERE]. Not "moved". */
     data class Outcome(val outcome: ChoiceOutcome) : ChoiceSubmission
+
+    /** The built-in "It's moved", with where the element is now. Sets Too hard; never edits OSM. */
+    data class Moved(val location: MovedLocation) : ChoiceSubmission
+}
+
+/** Where a person reports a moved element to be. [source] says how they picked it. Coordinates are
+ * sent rounded to 6 decimals. The server refuses one more than 500 m from the element
+ * ([ChoiceProblem.MovedTooFar]). Throws IllegalArgumentException for a latitude outside -90..90 or a
+ * longitude outside -180..180. */
+data class MovedLocation(val latitude: Double, val longitude: Double, val source: Source) {
+    init {
+        require(latitude in -90.0..90.0 && longitude in -180.0..180.0) { "coordinates out of range" }
+    }
+
+    enum class Source(internal val wire: String) {
+        /** Picked on the map. */
+        TAP("tap"),
+        /** The device's location while standing at the element. */
+        HERE("here"),
+    }
 }
 
 /** [changesetId] is null when nothing was edited in OSM. After an interrupted response the result
@@ -72,6 +108,7 @@ data class ChoiceEligibility(
 )
 
 internal const val TOO_HARD_ID = ChoiceOutcome.TOO_HARD_ID
+private val BUILT_IN_IDS = setOf(TOO_HARD_ID, ChoiceOutcome.NOT_HERE_ID, ChoiceOutcome.MOVED_ID)
 
 /** Declared outcomes plus the built-in Too hard; empty when the task is not a valid choice task.
  * Apps use [MapRouletteClient.choiceOutcomes], which applies the client's setting. */
@@ -100,7 +137,7 @@ internal fun choiceWork(raw: JsonObject, allowElementDeletion: Boolean): TaskWor
     val outcomes = raw.opt("outcomes")?.arr().orEmpty().also { require(it.size <= 4) }.map { item ->
         val o = item.objValue()
         val id = choiceId(o.req("id").str())
-        require(id != TOO_HARD_ID)
+        require(id !in BUILT_IN_IDS)
         val status = o.opt("status")?.let { (it as? JsonPrimitive ?: fail()).wholeNumberOrNull() ?: fail() }
         val delete = o.opt("delete")?.let { require(it == JsonPrimitive(true)); true } ?: false
         require((status != null) != delete && (status == null || status == 2L || status == 6L))
@@ -185,7 +222,15 @@ internal fun choiceBody(submission: ChoiceSubmission): String = when (submission
         .entries.joinToString(",", "{\"answers\":{", "}}") { (q, o) -> "\"$q\":\"$o\"" }
     is ChoiceSubmission.Outcome ->
         "{\"outcome\":\"${submission.outcome.id}\"" + (if (submission.outcome.deletesElement) ",\"delete\":true" else "") + "}"
+    is ChoiceSubmission.Moved -> submission.location.let {
+        "{\"outcome\":\"${ChoiceOutcome.MOVED_ID}\",\"location\":{\"lat\":${degrees(it.latitude)}," +
+            "\"lon\":${degrees(it.longitude)},\"source\":\"${it.source.wire}\"}}"
+    }
 }
+
+/** Fixed 6 decimals, without a negative zero. */
+private fun degrees(value: Double): String =
+    String.format(java.util.Locale.ROOT, "%.6f", value).let { if (it == "-0.000000") "0.000000" else it }
 
 /** Checks the submission against the task's payload before anything is sent. Returns the status the
  * server will set on success. Throws IllegalArgumentException for any mismatch. */
@@ -202,7 +247,13 @@ internal fun Task.validateChoice(submission: ChoiceSubmission, allowElementDelet
             }
             TaskResolution.FIXED
         }
+        is ChoiceSubmission.Moved -> TaskResolution.TOO_HARD
         is ChoiceSubmission.Outcome -> {
+            require(submission.outcome.id != ChoiceOutcome.MOVED_ID) { "Submit moved with its location" }
+            if (submission.outcome.id == ChoiceOutcome.NOT_HERE_ID) {
+                require(submission.outcome == ChoiceOutcome.NOT_HERE) { "Use ChoiceOutcome.NOT_HERE" }
+                return TaskResolution.TOO_HARD
+            }
             // Must equal what this client decodes (or its no-delete form), so a UI built with another
             // deletion setting fails here.
             val allowed = choiceOutcomes(allowElementDeletion)

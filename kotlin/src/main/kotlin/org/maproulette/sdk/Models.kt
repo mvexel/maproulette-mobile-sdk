@@ -147,6 +147,14 @@ data class TaskSummary(
     val pending: Boolean? = null,
 )
 
+/** A built-in report on a task: the element isn't there, or it has moved to the given position.
+ * The campaign status read (E1, not built yet) will carry them per task; apps use it today for
+ * reports made on the device. */
+sealed interface TaskReport {
+    data object NotHere : TaskReport
+    data class Moved(val latitude: Double, val longitude: Double) : TaskReport
+}
+
 /** [scopes] is the bearer grant's scope set, or null for API-key and anonymous identities.
  * [displayName] is the OSM display name, or null when the server didn't send one. */
 data class UserIdentity(
@@ -267,6 +275,10 @@ sealed interface ChoiceProblem : WriteProblem {
 
     /** 422 unsupported_task: the stored payload fails server validation. */
     data object UnsupportedTask : ChoiceProblem
+
+    /** 422 moved_too_far: the reported position is more than 500 m from the element. Nothing was
+     * recorded. */
+    data object MovedTooFar : ChoiceProblem
 }
 
 /** Interpretation of a fresh task read after an interrupted status write (see [verifyResolution]). */

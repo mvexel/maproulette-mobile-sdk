@@ -86,6 +86,7 @@ class ChoiceTest {
         is ChoiceProblem.StatusPending -> "statusPending"
         is ChoiceProblem.InvalidSubmission -> "invalidSubmission"
         ChoiceProblem.UnsupportedTask -> "unsupportedTask"
+        ChoiceProblem.MovedTooFar -> "movedTooFar"
     }
     private fun camel(name: String) = name.lowercase().split('_')
         .mapIndexed { i, part -> if (i == 0) part else part.replaceFirstChar(Char::uppercase) }.joinToString("")
@@ -301,5 +302,66 @@ class ChoiceTest {
             assertTrue(post.getHeader("Content-Type")!!.startsWith("application/json"))
             assertNull(post.getHeader("Transfer-Encoding")); assertEquals("Bearer wire-bearer", post.getHeader("Authorization"))
         } }
+    }
+
+    @Test fun notHereAndMovedAreBuiltInOutcomes() = runBlocking<Unit> {
+        val ok = fixtures.getValue("flows").jsonArray.first().jsonObject.getValue("responses").jsonArray
+        val task = slcTask()
+        val builtIn = setOf(ChoiceOutcome.NOT_HERE_ID, ChoiceOutcome.MOVED_ID)
+        assertTrue(MapRouletteClient(transport = Script(emptyList())).choiceOutcomes(task).none { it.id in builtIn })
+        val moved = MovedLocation(40.739123449, -111.8624, MovedLocation.Source.TAP)
+        val cases = listOf(
+            ChoiceSubmission.Outcome(ChoiceOutcome.NOT_HERE) to """{"outcome":"not-here"}""",
+            ChoiceSubmission.Moved(moved) to """{"outcome":"moved","location":{"lat":40.739123,"lon":-111.862400,"source":"tap"}}""",
+        )
+        for ((submission, body) in cases) {
+            val script = Script(ok.map(::response))
+            client(script).submitChoice(task, submission)
+            assertEquals(listOf("GET /api/v2/task/101/start", "POST /api/v2/task/101/choice"), script.calls())
+            assertEquals(body, script.requests.last().body)
+        }
+        assertEquals(TaskResolution.TOO_HARD, ChoiceOutcome.NOT_HERE.resolution)
+        // Fixed decimals with no negative zero.
+        val zero = Script(ok.map(::response))
+        client(zero).submitChoice(task, ChoiceSubmission.Moved(MovedLocation(-0.0000001, 0.0, MovedLocation.Source.HERE)))
+        assertEquals("""{"outcome":"moved","location":{"lat":0.000000,"lon":0.000000,"source":"here"}}""", zero.requests.last().body)
+    }
+
+    @Test fun movedNeedsItsLocationAndRange() = runBlocking<Unit> {
+        val task = slcTask()
+        val bare = ChoiceOutcome(ChoiceOutcome.MOVED_ID, "It's moved", null, TaskResolution.TOO_HARD, false)
+        val relabeled = ChoiceOutcome(ChoiceOutcome.NOT_HERE_ID, "Gone", null, TaskResolution.NOT_AN_ISSUE, false)
+        for (submission in listOf(ChoiceSubmission.Outcome(bare), ChoiceSubmission.Outcome(relabeled))) {
+            val script = Script(emptyList())
+            assertFailsWith<IllegalArgumentException> { client(script).submitChoice(task, submission) }
+            assertEquals(emptyList(), script.requests)
+        }
+        for ((lat, lon) in listOf(91.0 to 0.0, 0.0 to -180.5)) {
+            assertFailsWith<IllegalArgumentException> { MovedLocation(lat, lon, MovedLocation.Source.HERE) }
+        }
+    }
+
+    @Test fun movedTooFarReleasesTheLock() = runBlocking<Unit> {
+        val start = HttpResponse(200, body = fixtures.getValue("start").toString())
+        val released = HttpResponse(200, body = fixtures.getValue("task").toString())
+        val failed = HttpResponse(422, body = """{"error":"moved_too_far","maxM":500}""")
+        val script = Script(listOf(start, failed, released))
+        val moved = MovedLocation(40.8, -111.8, MovedLocation.Source.TAP)
+        val error = assertFailsWith<MapRouletteException> { client(script).submitChoice(slcTask(), ChoiceSubmission.Moved(moved)) }
+        assertEquals(ChoiceProblem.MovedTooFar, error.problem)
+        assertEquals(
+            listOf("GET /api/v2/task/101/start", "POST /api/v2/task/101/choice", "GET /api/v2/task/101/release"),
+            script.calls(),
+        )
+    }
+
+    @Test fun campaignOutcomesCantUseBuiltInIds() = runBlocking<Unit> {
+        for (id in listOf(ChoiceOutcome.NOT_HERE_ID, ChoiceOutcome.MOVED_ID)) {
+            val payload = JsonObject(fixtures.getValue("slc").jsonObject + mapOf("outcomes" to buildJsonArray {
+                add(buildJsonObject { put("id", id); put("label", "X"); put("status", 6) })
+            }))
+            val task = decode(taskJson(payload))
+            assertIs<TaskWork.Unknown>(task.work(), id)
+        }
     }
 }
