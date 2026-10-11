@@ -83,6 +83,24 @@ extension MapRouletteClient {
     _ = try await guestCall("mobile-guest", .delete, write: .pending)
   }
 
+  /// The claim request behind `MobileSignIn.claimGuest()`, which holds the secret
+  /// (`POST mobile-claim` with the guest id and secret, deferred sign-up B5). Returns the raw
+  /// claim for 200 (a repeat by this account) and 202 (new); throws otherwise, with the
+  /// server's code in `reason` ("not_found", "osm_reauth_required", "insufficient_scope").
+  func postGuestClaim(guestID: String, secret: String) async throws -> GuestClaim {
+    try requireWrites()
+    let body = try JSONSerialization.data(withJSONObject: ["guestId": guestID, "guestSecret": secret])
+    let response = try await guestCall("mobile-claim", .post, body: body)
+    guard response.status == 200 || response.status == 202 else { throw MapRouletteError(.protocolFailure) }
+    return try parse(response) { o in try guestClaim(o, isNew: response.status == 202) }
+  }
+
+  /// A claim's progress (`GET mobile-claim/{id}`). `.notFound` for a claim of another account.
+  public func getClaimStatus(_ id: Int64) async throws -> ClaimStatus {
+    guard id > 0 else { throw MapRouletteError(.validation, reason: "claim id must be positive") }
+    return try parse(try await guestCall("mobile-claim/\(id)", .get), claimStatus)
+  }
+
   private func guestCall(
     _ path: String, _ method: HTTPMethod, params: [String: String] = [:], body: Data? = nil,
     write operation: Write? = nil
@@ -125,6 +143,47 @@ private func guestStatus(_ o: [String: JSONValue]) throws -> GuestStatus {
   return try GuestStatus(
     guestID: o.required("guestId").string(), state: state, email: email, pendingCount: Int(pending),
     publishedCount: Int(published), expiresAt: date(o.required("expiresAt")), claimedAs: claimed)
+}
+
+private func claimState(_ value: JSONValue) throws -> ClaimState {
+  guard let state = ClaimState(rawValue: try value.string()) else { throw MapRouletteError(.protocolFailure) }
+  return state
+}
+
+private func nonNegative(_ o: [String: JSONValue], _ key: String) throws -> Int {
+  let n = try o.required(key).integer()
+  guard n >= 0, n <= Int32.max else { throw MapRouletteError(.protocolFailure) }
+  return Int(n)
+}
+
+private func guestClaim(_ o: [String: JSONValue], isNew: Bool) throws -> GuestClaim {
+  let id = try o.required("claimId").integer()
+  guard id > 0 else { throw MapRouletteError(.protocolFailure) }
+  let user = try o.required("user").object()
+  return try GuestClaim(
+    claimID: id, state: claimState(o.required("state")), pendingCount: nonNegative(o, "pending"),
+    account: ClaimedAccount(displayName: user.required("displayName").string(), osmID: user.required("osmId").integer()),
+    isNew: isNew)
+}
+
+private func claimStatus(_ o: [String: JSONValue]) throws -> ClaimStatus {
+  let id = try o.required("claimId").integer()
+  guard id > 0 else { throw MapRouletteError(.protocolFailure) }
+  let items = try o.required("items").array().map { value -> ClaimItem in
+    let item = try value.object()
+    guard let state = PendingState(rawValue: try item.required("state").string()) else {
+      throw MapRouletteError(.protocolFailure)
+    }
+    let changeset = try item.optional("changesetId")?.integer()
+    return try ClaimItem(
+      taskID: TaskID(item.required("taskId").integer()), state: state,
+      changesetID: changeset.flatMap { $0 > 0 ? $0 : nil },
+      droppedQuestionIDs: item.optional("dropped")?.array().map { try $0.string() } ?? [])
+  }
+  return try ClaimStatus(
+    claimID: id, state: claimState(o.required("state")), total: nonNegative(o, "total"),
+    published: nonNegative(o, "published"), skipped: nonNegative(o, "skipped"), superseded: nonNegative(o, "superseded"),
+    failed: nonNegative(o, "failed"), items: items)
 }
 
 private func pendingChoice(_ o: [String: JSONValue]) throws -> PendingChoice {

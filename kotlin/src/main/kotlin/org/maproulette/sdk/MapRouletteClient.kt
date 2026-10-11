@@ -601,7 +601,8 @@ class MapRouletteClient(
             put("guestSecret", guestSecret)
         }.toString()
         val response = guestCall("mobile-claim", HttpMethod.POST, body = body)
-        return decode { guestClaim(Json.parseToJsonElement(response.body)) }
+        if (response.status != 200 && response.status != 202) throw MapRouletteException(ErrorKind.PROTOCOL, response.status)
+        return decode { guestClaim(Json.parseToJsonElement(response.body), isNew = response.status == 202) }
     }
 
     /** A claim's progress (`GET mobile-claim/{id}`), for the account that made it; NOT_FOUND for
@@ -888,12 +889,13 @@ private fun claimState(wire: String): ClaimState = ClaimState.entries.single { i
 
 private fun count(o: JsonObject, key: String): Int = o.long(key).also { require(it in 0..Int.MAX_VALUE) }.toInt()
 
-private fun guestClaim(value: JsonElement): GuestClaim {
+private fun guestClaim(value: JsonElement, isNew: Boolean): GuestClaim {
     val o = value.obj()
     val user = o.getValue("user").obj()
     return GuestClaim(
         claimId = o.long("claimId").also { require(it > 0) }, state = claimState(o.str("state")),
-        pending = count(o, "pending"), account = ClaimedAccount(user.str("displayName"), user.long("osmId")),
+        pendingCount = count(o, "pending"), account = ClaimedAccount(user.str("displayName"), user.long("osmId")),
+        isNew = isNew,
     )
 }
 

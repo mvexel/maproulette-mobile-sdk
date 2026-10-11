@@ -551,6 +551,46 @@ public actor MobileSignIn {
     return .signedIn(account)
   }
 
+  /// Puts the guest's saved answers on the map with the signed-in account, from the phone
+  /// (`POST mobile-claim` with the guest id and secret, deferred sign-up B5). The account needs
+  /// `osm:tagfix`, and the environment must allow writes. The claim only records; a backend job
+  /// publishes, so follow it with `MapRouletteClient.getClaimStatus(_:)`.
+  ///
+  /// A successful claim spends the secret, so the guest is dropped (the account stays). A repeat
+  /// by the same account returns the same claim, so after a network failure the guest stays and
+  /// trying again is safe. `.notFound` (unknown, expired, deleted, or claimed by another account)
+  /// drops the guest too. `.authentication` with reason "osm_reauth_required" and other failures
+  /// keep it. Throws `.validation` without a guest or a signed-in OSM-editing account.
+  /// `environment` and `transport` are as for `client(environment:transport:)`; the environment
+  /// must allow writes.
+  public func claimGuest(environment: MapRouletteEnvironment? = nil, transport: (any Transport)? = nil)
+    async throws -> GuestClaim
+  {
+    guard let credential = guestCredential else {
+      throw MapRouletteError(.validation, reason: "no guest to claim")
+    }
+    guard let account, account.canEditOsm else {
+      throw MapRouletteError(.validation, reason: "sign in with osm:tagfix before claiming")
+    }
+    let expected = generation
+    do {
+      let claim = try await client(environment: environment, transport: transport)
+        .postGuestClaim(guestID: credential.id, secret: credential.secret)
+      try check(expected)
+      try dropGuest(credential)
+      return claim
+    } catch let error as MapRouletteError where error.kind == .notFound || error.reason == "guest_claimed" {
+      if generation == expected { try? dropGuest(credential) }
+      throw error
+    }
+  }
+
+  /// Drops `credential` if it is still the guest, keeping a signed-in account.
+  private func dropGuest(_ credential: GuestCredential) throws {
+    guard guestCredential?.id == credential.id else { return }
+    try forgetGuest()
+  }
+
   /// Drops the guest credential, e.g. after `MapRouletteClient.deleteGuest()`. Unclaimed answers
   /// can no longer be reached from this phone. A signed-in account stays.
   public func forgetGuest() throws {

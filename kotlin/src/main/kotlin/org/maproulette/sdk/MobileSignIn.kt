@@ -662,15 +662,19 @@ class MobileSignIn(
      * OSM token in the background ([MapRouletteClient.getClaimStatus]). The guest is forgotten once
      * the claim is accepted, and also when the backend says it can no longer be claimed from here
      * (NOT_FOUND with reason "not_found", or CONFLICT "guest_claimed" by another account). Other
-     * failures keep it for a retry. IllegalStateException when signed out or without a guest. */
-    suspend fun claimGuest(): GuestClaim {
+     * failures keep it for a retry; a repeat by the same account returns the same claim. A 401 with
+     * reason "osm_reauth_required" means signing in again. IllegalStateException without a guest or
+     * without a signed-in account that can edit OSM. [environment] and [transport] are as for
+     * [client]; the environment must allow writes. */
+    suspend fun claimGuest(environment: MapRouletteEnvironment? = null, transport: Transport? = null): GuestClaim {
         val (expected, credential) = lock.withLock {
             val credential = guestCredential
-            check(account != null && credential != null) { "sign in with a kept guest to claim its answers" }
+            checkNotNull(credential) { "no guest to claim" }
+            check(account?.canEditOsm == true) { "sign in with osm:tagfix before claiming" }
             generation to credential
         }
         val claim = try {
-            client().claimGuest(credential.id, credential.secret)
+            client(environment, transport).claimGuest(credential.id, credential.secret)
         } catch (e: MapRouletteException) {
             val spent = (e.kind == ErrorKind.NOT_FOUND && e.reason == "not_found") ||
                 (e.kind == ErrorKind.CONFLICT && e.reason == "guest_claimed")

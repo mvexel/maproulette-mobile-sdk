@@ -59,10 +59,12 @@ enum class ClaimState(internal val wire: String) {
 data class GuestClaim(
     val claimId: Long,
     val state: ClaimState,
-    /** Answers the claim will publish. */
-    val pending: Int,
+    /** Saved answers the claim took over. */
+    val pendingCount: Int,
     /** The account the answers now belong to. */
     val account: ClaimedAccount,
+    /** False when this account had already claimed the guest (a repeated request). */
+    val isNew: Boolean,
 )
 
 /** One claimed answer: its task, where it is, and the changeset once published. */

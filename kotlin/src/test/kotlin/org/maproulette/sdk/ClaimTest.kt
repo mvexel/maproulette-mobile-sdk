@@ -52,7 +52,7 @@ class ClaimTest {
         val backend = Backend(listOf(HttpResponse(202, body = fixtures.getValue("claim_accepted").toString())))
         val s = signedInGuest(backend, store)
         val claim = s.claimGuest()
-        assertEquals(GuestClaim(9, ClaimState.QUEUED, 14, ClaimedAccount("rosa_slc", 123)), claim)
+        assertEquals(GuestClaim(9, ClaimState.QUEUED, 14, ClaimedAccount("rosa_slc", 123), isNew = true), claim)
         val sent = backend.claimRequests().single()
         assertEquals(HttpMethod.POST, sent.method)
         assertEquals("Bearer account-access-1", sent.headers["Authorization"])
@@ -67,6 +67,13 @@ class ClaimTest {
         assertIs<RestoreResult.SignedIn>(reopened.restore())
         assertNull(reopened.guest)
         assertFailsWith<IllegalStateException> { s.claimGuest() }
+    }
+
+    @Test fun aRepeatByTheSameAccountIsNotNew() = runBlocking<Unit> {
+        val backend = Backend(listOf(HttpResponse(200, body = fixtures.getValue("claim_accepted").toString())))
+        val claim = signedInGuest(backend).claimGuest()
+        assertFalse(claim.isNew)
+        assertEquals(9, claim.claimId)
     }
 
     @Test fun aClaimMadeWhileWritesAreOffWaits() = runBlocking<Unit> {

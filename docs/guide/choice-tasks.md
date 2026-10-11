@@ -211,12 +211,6 @@ let pending = try await client.submitPendingChoice(task, .answers(["shelter": "y
   status read (not built yet). In Kotlin: `ChoiceSubmission.Outcome(ChoiceOutcome.NOT_HERE)`,
   `ChoiceSubmission.Moved(MovedLocation(...))` and `ChoiceProblem.MovedTooFar`.
 
-A guest who then signs in with OSM on the phone keeps the guest credential. Claim the saved
-answers with `MobileSignIn.claimGuest()` (Kotlin): the backend publishes them with the account's
-OSM token in the background, and `getClaimStatus(claimId)` reports progress per answer. The guest
-is forgotten once the claim is accepted. A claim made while the backend's writes are off is
-`waiting` and publishes when they are turned on.
-
 Kotlin has the same calls and types (`submitPendingChoice`, `withdrawPendingChoice`,
 `listPendingChoices`, `getGuestStatus`, `setGuestEmail`, `deleteGuest`; `GuestStatus`,
 `PendingChoice`, `PendingState`). `MobileSignIn` registers the guest (`startGuest()`), supplies
@@ -234,6 +228,23 @@ when (val upgrade = signIn.upgradeGuest()) {
     GuestUpgrade.NotYet -> { /* still a guest */ }
 }
 ```
+
+A guest who signs in with OSM on the phone puts the saved answers on the map with
+`claimGuest()` (`POST mobile-claim`, deferred sign-up B5). It needs a signed-in account with
+`osm:tagfix` and a kept guest. The claim only records; a backend job publishes, and
+`getClaimStatus(claimId)` reports its progress. Success spends the guest secret, so the guest is
+dropped. After a network failure the guest stays, and trying again returns the same claim.
+`.notFound` (expired, deleted, or claimed by another account) drops the guest. A 401 with reason
+`osm_reauth_required` keeps it, and the account should sign in again. In Swift:
+
+```swift
+let claim = try await signIn.claimGuest()   // GuestClaim: claimID, state, pendingCount, account, isNew
+let status = try await signIn.client().getClaimStatus(claim.claimID)  // published, skipped, failed, items
+```
+
+Kotlin has the same calls (`signIn.claimGuest()`, `client.getClaimStatus(claim.claimId)`), and a
+claim made while the backend's writes are off is `ClaimState.WAITING` on both: it publishes once
+they are turned on.
 
 Errors carry the server's code in `MapRouletteException.reason`. Local validation fails with
 `IllegalArgumentException`, and production with `IllegalStateException`, as for
