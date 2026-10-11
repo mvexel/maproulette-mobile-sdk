@@ -222,7 +222,8 @@ private func signedInGuest(_ backend: Backend, store: InMemoryCredentialStore = 
   let body = try #require(JSONSerialization.jsonObject(with: sent.body ?? Data()) as? [String: String])
   #expect(body == ["guestId": "6f1c2a9e-0000-4000-8000-000000000001", "guestSecret": secret])
   // The secret is spent: the guest is gone, the account stays, and so it is stored.
-  #expect(await s.guest == nil && s.account != nil)
+  #expect(await s.guest == nil)
+  #expect(await s.account != nil)
   let reopened = try session(Backend(), store: store)
   guard case .signedIn = await reopened.restore() else { Issue.record("not signed in"); return }
   #expect(await reopened.guest == nil)
@@ -249,7 +250,8 @@ private func signedInGuest(_ backend: Backend, store: InMemoryCredentialStore = 
   } catch let error as MapRouletteError {
     #expect(error.kind == .authentication && error.reason == "osm_reauth_required")
   }
-  #expect(await s.guest != nil && s.account != nil)  // No refresh, no sign-out.
+  #expect(await s.guest != nil)
+  #expect(await s.account != nil)  // No refresh, no sign-out.
   #expect(await backend.forms("/oauth/mobile/token").count == 1)
   do {
     _ = try await s.claimGuest()
@@ -257,7 +259,8 @@ private func signedInGuest(_ backend: Backend, store: InMemoryCredentialStore = 
   } catch let error as MapRouletteError {
     #expect(error.kind == .notFound && error.reason == "not_found")
   }
-  #expect(await s.guest == nil && s.account != nil)
+  #expect(await s.guest == nil)
+  #expect(await s.account != nil)
 }
 
 @Test func claimNeedsAGuestAndAnEditingAccount() async throws {
@@ -269,7 +272,7 @@ private func signedInGuest(_ backend: Backend, store: InMemoryCredentialStore = 
   await #expect(throws: MapRouletteError.self) { try await noGuest.claimGuest() }
 }
 
-private let guestFixtures = try! JSONSerialization.jsonObject(
+nonisolated(unsafe) private let guestFixtures = try! JSONSerialization.jsonObject(
   with: Data(contentsOf: URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
     .deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("fixtures/guest.json")))
   as! [String: Any]
@@ -287,6 +290,7 @@ private let guestFixtures = try! JSONSerialization.jsonObject(
   }
   for row in guestFixtures["claim_errors"] as! [[String: Any]] {
     let status = row["status"] as! Int
+    let kind = row["kind"] as? String, reason = row["reason"] as? String, forget = row["forget"] as! Bool
     let raw = row["body"]!
     let body = raw is String ? Data((raw as! String).utf8) : try JSONSerialization.data(withJSONObject: raw)
     let s = try await signedInGuest(
@@ -295,9 +299,10 @@ private let guestFixtures = try! JSONSerialization.jsonObject(
       _ = try await s.claimGuest()
       Issue.record("\(status) did not throw")
     } catch let error as MapRouletteError {
-      #expect(error.kind.rawValue == row["kind"] as? String, "\(status)")
-      #expect(error.reason == row["reason"] as? String, "\(status)")
+      #expect(error.kind.rawValue == kind, "\(status)")
+      #expect(error.reason == reason, "\(status)")
     }
-    #expect(await (s.guest == nil) == (row["forget"] as! Bool), "\(status) \(String(describing: row["reason"]))")
+    let dropped = await s.guest == nil
+    #expect(dropped == forget, "\(status) \(reason ?? "no reason")")
   }
 }
