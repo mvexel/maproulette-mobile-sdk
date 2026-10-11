@@ -76,7 +76,6 @@ minor version, so add a default branch when you switch on them.
   development, and the iOS example uses its own staging client,
   `maproulette-ios-example`.
 
-
 ## [0.1.0] - 2026-10-06
 
 First release of the Kotlin and Swift SDKs.
