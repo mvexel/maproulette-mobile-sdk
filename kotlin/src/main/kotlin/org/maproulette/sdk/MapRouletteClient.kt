@@ -314,8 +314,11 @@ class MapRouletteClient(
         val target = task.validateChoice(submission, allowElementDeletion)
         val id = task.id
         val body = choiceBody(submission)
-        val edits = submission is ChoiceSubmission.Answers ||
-            (submission as ChoiceSubmission.Outcome).outcome.deletesElement
+        val edits = when (submission) {
+            is ChoiceSubmission.Answers -> true
+            is ChoiceSubmission.Outcome -> submission.outcome.deletesElement
+            is ChoiceSubmission.Moved -> false
+        }
         startForCommit(id)
         val first = try {
             return postChoice(id, body)
@@ -495,6 +498,7 @@ class MapRouletteClient(
             422 -> when (error) {
                 "invalid_submission" -> ChoiceProblem.InvalidSubmission(field("detail"))
                 "unsupported_task" -> ChoiceProblem.UnsupportedTask
+                "moved_too_far" -> ChoiceProblem.MovedTooFar
                 else -> null
             }
             500 -> if (error == "status_pending") {
@@ -764,7 +768,7 @@ private fun JsonElement.obj() = jsonObject
 private fun WriteProblem?.provesNotApplied() = when (this) {
     is ChoiceProblem.TaskIneligible, is ChoiceProblem.InvalidSubmission, ChoiceProblem.ElementInUse,
     ChoiceProblem.OsmReauthRequired, ChoiceProblem.OsmScopeRequired, ChoiceProblem.OsmUnavailable,
-    ChoiceProblem.UnsupportedTask, WriteProblem.InsufficientScope -> true
+    ChoiceProblem.UnsupportedTask, ChoiceProblem.MovedTooFar, WriteProblem.InsufficientScope -> true
     else -> false
 }
 
