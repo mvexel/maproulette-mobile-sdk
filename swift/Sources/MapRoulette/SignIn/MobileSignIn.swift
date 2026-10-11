@@ -561,7 +561,11 @@ public actor MobileSignIn {
   /// trying again is safe. `.notFound` (unknown, expired, deleted, or claimed by another account)
   /// drops the guest too. `.authentication` with reason "osm_reauth_required" and other failures
   /// keep it. Throws `.validation` without a guest or a signed-in OSM-editing account.
-  public func claimGuest() async throws -> GuestClaim {
+  /// `environment` and `transport` are as for `client(environment:transport:)`; the environment
+  /// must allow writes.
+  public func claimGuest(environment: MapRouletteEnvironment? = nil, transport: (any Transport)? = nil)
+    async throws -> GuestClaim
+  {
     guard let credential = guestCredential else {
       throw MapRouletteError(.validation, reason: "no guest to claim")
     }
@@ -570,7 +574,8 @@ public actor MobileSignIn {
     }
     let expected = generation
     do {
-      let claim = try await client().postGuestClaim(guestID: credential.id, secret: credential.secret)
+      let claim = try await client(environment: environment, transport: transport)
+        .postGuestClaim(guestID: credential.id, secret: credential.secret)
       try check(expected)
       try dropGuest(credential)
       return claim
