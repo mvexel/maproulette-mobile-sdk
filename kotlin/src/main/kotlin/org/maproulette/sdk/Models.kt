@@ -66,7 +66,11 @@ data class Bounds(
  * `cct=3&excludeStale=true` (fork backend): only choice challenges, without tasks found
  * stale. Servers without the filter ignore it, so still check [Task.mobileSupport].
  * With [choiceOnly], [excludePending] (default true) also sends `excludePending=true`: tasks held
- * by a guest's pending answer are left out. Backends without guest support ignore it. */
+ * by a guest's pending answer are left out. Backends without guest support ignore it.
+ * [includePending] (default false) keeps held tasks in [MapRouletteClient.findTasksInBounds] instead
+ * and sends `includePending=true`, so each [TaskSummary.pending] says whether a guest's pending
+ * answer holds the task (for progress tallies). It replaces `excludePending` on that call only;
+ * [MapRouletteClient.findTaskMarkers] has no such flag and keeps applying [excludePending]. */
 data class TaskFilter(
     val challengeIds: List<ChallengeId> = emptyList(),
     val bounds: Bounds,
@@ -74,6 +78,7 @@ data class TaskFilter(
     val includeArchived: Boolean = false,
     val choiceOnly: Boolean = false,
     val excludePending: Boolean = true,
+    val includePending: Boolean = false,
 )
 
 data class Challenge(
@@ -137,6 +142,9 @@ data class TaskSummary(
     val title: String,
     val status: TaskStatus?,
     val point: JsonObject?,
+    /** Whether a guest's pending answer holds the task. Reported only by [MapRouletteClient.findTasksInBounds]
+     * with [TaskFilter.includePending]; null otherwise, or from a backend without guest support. */
+    val pending: Boolean? = null,
 )
 
 /** [scopes] is the bearer grant's scope set, or null for API-key and anonymous identities.

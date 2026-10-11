@@ -213,6 +213,42 @@ class GuestTest {
         assertTrue(TaskFilter(bounds = bounds).excludePending)
     }
 
+    @Test fun includePendingFlagsHeldTasksOnTheBoxSearch() = runBlocking<Unit> {
+        val bounds = Bounds(-111.91, 40.75, -111.87, 40.78)
+        val script = Script(listOf(ok(guest.getValue("tasks_box_pending")), HttpResponse(200, body = "[]")))
+        val c = client(script)
+        val filter = TaskFilter(bounds = bounds, choiceOnly = true, includePending = true)
+        val page = c.findTasksInBounds(filter)
+        assertEquals(mapOf(101L to true, 103L to false), page.items.associate { it.id.value to it.pending })
+        val box = script.requests[0].url.toHttpUrl()
+        assertEquals("true", box.queryParameter("includePending"))
+        // Held tasks are kept, so excludePending is not sent with includePending.
+        assertNull(box.queryParameter("excludePending"))
+        // The markers route has no includePending; it keeps leaving held tasks out.
+        c.findTaskMarkers(filter)
+        val markers = script.requests[1].url.toHttpUrl()
+        assertNull(markers.queryParameter("includePending"))
+        assertEquals("true", markers.queryParameter("excludePending"))
+    }
+
+    @Test fun pendingIsNullUnlessReported() = runBlocking<Unit> {
+        val bounds = Bounds(-111.91, 40.75, -111.87, 40.78)
+        val script = Script(listOf(ok(guest.getValue("tasks_box_without_pending"))))
+        val page = client(script).findTasksInBounds(TaskFilter(bounds = bounds, choiceOnly = true))
+        assertNull(page.items.single().pending)
+        assertNull(script.requests[0].url.toHttpUrl().queryParameter("includePending"))
+        assertFalse(TaskFilter(bounds = bounds).includePending)
+    }
+
+    @Test fun nonBooleanPendingIsAProtocolError() = runBlocking<Unit> {
+        val bounds = Bounds(-111.91, 40.75, -111.87, 40.78)
+        val error = assertFailsWith<MapRouletteException> {
+            client(Script(listOf(ok(guest.getValue("tasks_box_pending_invalid")))))
+                .findTasksInBounds(TaskFilter(bounds = bounds, choiceOnly = true, includePending = true))
+        }
+        assertEquals(ErrorKind.PROTOCOL, error.kind)
+    }
+
     @Test fun okHttpSendsDeleteWithoutABody() = runBlocking<Unit> {
         MockWebServer().use { server ->
             server.enqueue(MockResponse().setResponseCode(204))
