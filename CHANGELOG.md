@@ -24,8 +24,11 @@ minor version, so add a default branch when you switch on them.
   (6 decimals, source `tap` or `here`); both set Too hard and never edit OSM. They work on the
   pending path too. 422 `moved_too_far` maps to `ChoiceProblem.movedTooFar`. `TaskReport` (`.notHere`,
   `.moved(latitude:longitude:)`) is for the campaign status read to come (E2). A campaign outcome with id
-  `not-here` or `moved` makes the payload invalid. `choiceOutcomes(_:)` is unchanged. Kotlin
-  follows.
+  `not-here` or `moved` makes the payload invalid. `choiceOutcomes(_:)` is unchanged.
+- Kotlin: the same built-in reports. `ChoiceSubmission.Outcome(ChoiceOutcome.NOT_HERE)`,
+  `ChoiceSubmission.Moved(MovedLocation(lat, lon, MovedLocation.Source.TAP | HERE))`,
+  `ChoiceProblem.MovedTooFar`, `TaskReport` (`NotHere`, `Moved`) and the `NOT_HERE_ID`/`MOVED_ID`
+  constants, with the same bodies, validation and decoder rule as Swift.
 
 ## [0.2.0] - 2026-10-11
 
