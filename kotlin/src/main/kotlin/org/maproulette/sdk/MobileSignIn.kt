@@ -657,6 +657,41 @@ class MobileSignIn(
         }
     }
 
+    /** Claims the kept guest's saved answers for the signed-in account ("I already use OpenStreetMap"
+     * after answering as a guest; API plan §3.10). The backend then publishes them with this account's
+     * OSM token in the background ([MapRouletteClient.getClaimStatus]). The guest is forgotten once
+     * the claim is accepted, and also when the backend says it can no longer be claimed from here
+     * (NOT_FOUND with reason "not_found", or CONFLICT "guest_claimed" by another account). Other
+     * failures keep it for a retry; a repeat by the same account returns the same claim. A 401 with
+     * reason "osm_reauth_required" means signing in again. IllegalStateException without a guest or
+     * without a signed-in account that can edit OSM. [environment] and [transport] are as for
+     * [client]; the environment must allow writes. */
+    suspend fun claimGuest(environment: MapRouletteEnvironment? = null, transport: Transport? = null): GuestClaim {
+        val (expected, credential) = lock.withLock {
+            val credential = guestCredential
+            checkNotNull(credential) { "no guest to claim" }
+            check(account?.canEditOsm == true) { "sign in with osm:tagfix before claiming" }
+            generation to credential
+        }
+        val claim = try {
+            client(environment, transport).claimGuest(credential.id, credential.secret)
+        } catch (e: MapRouletteException) {
+            val spent = (e.kind == ErrorKind.NOT_FOUND && e.reason == "not_found") ||
+                (e.kind == ErrorKind.CONFLICT && e.reason == "guest_claimed")
+            if (spent) forgetClaimed(expected, credential)
+            throw e
+        }
+        forgetClaimed(expected, credential)
+        return claim
+    }
+
+    /** Drops [credential] once claimed, unless the session moved on meanwhile. */
+    private suspend fun forgetClaimed(expected: Int, credential: GuestCredential) {
+        lock.withLock {
+            if (generation == expected && guestCredential === credential) quietly { forgetGuestLocked() }
+        }
+    }
+
     /** Drops the guest credential, e.g. after [MapRouletteClient.deleteGuest]. Unclaimed answers can
      * no longer be reached from this phone. A signed-in account stays. Store failures propagate. */
     suspend fun forgetGuest() {

@@ -12,6 +12,15 @@ minor version, so add a default branch when you switch on them.
 
 ### Added
 
+- Swift: the phone claim (deferred sign-up B5). `MobileSignIn.claimGuest()` sends
+  `POST mobile-claim` with the kept guest id and secret, under the signed-in account (needs
+  `osm:tagfix`), and returns `GuestClaim` (`claimID`, `state`, `pendingCount`, `account`, `isNew`).
+  Success and `.notFound` drop the guest; other failures keep it, and a repeat returns the same
+  claim. `MapRouletteClient.getClaimStatus(_:)` reads `GET mobile-claim/{id}` as `ClaimStatus`
+  with `ClaimItem`s. `ClaimState`: waiting, queued, running, done, failed.
+- Kotlin: the same phone claim. `MobileSignIn.claimGuest()` returns `GuestClaim` (`claimId`,
+  `state`, `pendingCount`, `account`, `isNew`), and `MapRouletteClient.getClaimStatus(claimId)`
+  returns `ClaimStatus`. Misuse throws `IllegalStateException`.
 - Kotlin: `TaskFilter.includePending` (default false) and `TaskSummary.pending`. With it,
   `findTasksInBounds` sends `includePending=true` instead of `excludePending`, keeps tasks held by
   a guest's pending answer, and reports `pending` true or false for each (backend `tasks/box`,
