@@ -203,7 +203,7 @@ let pending = try await client.submitPendingChoice(task, .answers(["shelter": "y
 - For progress tallies, `TaskFilter.includePending` (default false) keeps held tasks in
   `findTasksInBounds` and sets `TaskSummary.pending` on each one (backend `includePending=true`
   on `tasks/box`). It is yes/no only. `findTaskMarkers` has no such flag and still leaves held
-  tasks out. Kotlin only so far; Swift follows with the same names.
+  tasks out. Swift and Kotlin use the same names.
 
 Kotlin has the same calls and types (`submitPendingChoice`, `withdrawPendingChoice`,
 `listPendingChoices`, `getGuestStatus`, `setGuestEmail`, `deleteGuest`; `GuestStatus`,

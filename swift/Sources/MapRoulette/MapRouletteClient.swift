@@ -147,8 +147,9 @@ public final class MapRouletteClient: Sendable {
     }
     if filter.choiceOnly {
       params.merge(choiceOnlyParams) { $1 }
-      if filter.excludePending { params["excludePending"] = "true" }
+      if filter.excludePending && !filter.includePending { params["excludePending"] = "true" }
     }
+    if filter.includePending { params["includePending"] = "true" }
     let result = try await page(
       path: "tasks/box/\(b.west)/\(b.south)/\(b.east)/\(b.north)", params: params, size: pageSize,
       after: after, offset: false, envelope: true, parse: summary)
@@ -818,7 +819,7 @@ private func summary(_ value: JSONValue) throws -> TaskSummary {
   guard id > 0, parent > 0 else { throw MapRouletteError(.protocolFailure) }
   return try TaskSummary(
     id: TaskID(id), challengeID: ChallengeID(parent), title: o.required("title").string(),
-    status: o.status(), point: o.optionalObject("point"))
+    status: o.status(), point: o.optionalObject("point"), pending: o.optional("pending")?.boolean())
 }
 
 // 502 osm_unavailable: OSM unreachable. 503 osm_edits_unavailable: stored OSM tokens unusable.

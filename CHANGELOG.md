@@ -16,7 +16,8 @@ minor version, so add a default branch when you switch on them.
   `findTasksInBounds` sends `includePending=true` instead of `excludePending`, keeps tasks held by
   a guest's pending answer, and reports `pending` true or false for each (backend `tasks/box`,
   mobile backend PR #16). `pending` is null when not requested or not reported. `findTaskMarkers`
-  is unchanged. Swift follows.
+  is unchanged.
+- Swift: the same `TaskFilter.includePending` and `TaskSummary.pending` (`Bool?`).
 
 ## [0.2.0] - 2026-10-11
 
