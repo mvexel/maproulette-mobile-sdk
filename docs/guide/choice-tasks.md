@@ -204,6 +204,11 @@ let pending = try await client.submitPendingChoice(task, .answers(["shelter": "y
   `findTasksInBounds` and sets `TaskSummary.pending` on each one (backend `includePending=true`
   on `tasks/box`). It is yes/no only. `findTaskMarkers` has no such flag and still leaves held
   tasks out. Swift and Kotlin use the same names.
+- Every choice task also accepts two built-in reports that never edit OSM and set Too hard:
+  `.outcome(.notHere)` and `.moved(MovedLocation(latitude:longitude:source:))`. They are not in
+  `choiceOutcomes(_:)`; the app offers them itself. The server refuses a moved spot more than
+  500 m away (`.choice(.movedTooFar)`). `TaskSummary.report` (`.notHere` or `.moved(latitude:longitude:)`)
+  says a task was reported; leave those out of "next nearest". Swift only so far.
 
 Kotlin has the same calls and types (`submitPendingChoice`, `withdrawPendingChoice`,
 `listPendingChoices`, `getGuestStatus`, `setGuestEmail`, `deleteGuest`; `GuestStatus`,

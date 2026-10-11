@@ -263,9 +263,13 @@ public struct TaskSummary: Hashable, Identifiable, Sendable {
   /// Whether a guest's pending answer holds the task. Reported only by `findTasksInBounds` with
   /// `TaskFilter.includePending`; nil otherwise, or from a backend without guest support.
   public let pending: Bool?
+  /// The latest "It's not here" or "It's moved" report on the task, from `findTasksInBounds`; nil
+  /// when there is none or the backend doesn't report them. Leave reported tasks out of "next
+  /// nearest".
+  public let report: TaskReport?
   public init(
     id: TaskID, challengeID: ChallengeID, title: String, status: TaskStatus? = nil,
-    point: JSONValue? = nil, pending: Bool? = nil
+    point: JSONValue? = nil, pending: Bool? = nil, report: TaskReport? = nil
   ) {
     self.id = id
     self.challengeID = challengeID
@@ -273,7 +277,13 @@ public struct TaskSummary: Hashable, Identifiable, Sendable {
     self.status = status
     self.point = point
     self.pending = pending
+    self.report = report
   }
+}
+/// A built-in report on a task: the element isn't there, or it has moved to the given position.
+public enum TaskReport: Hashable, Sendable {
+  case notHere
+  case moved(latitude: Double, longitude: Double)
 }
 /// `scopes` is the bearer grant's scope set, or nil for API-key and anonymous identities.
 /// `displayName` is the OSM display name, or nil when the server didn't send one.

@@ -313,6 +313,7 @@ public final class MapRouletteClient: Sendable {
     switch submission {
     case .answers: edits = true
     case .outcome(let outcome): edits = outcome.deletesElement
+    case .moved: edits = false
     }
     try await startForCommit(id)
     let first: MapRouletteError
@@ -525,6 +526,7 @@ public final class MapRouletteClient: Sendable {
       switch error {
       case "invalid_submission": return .choice(.invalidSubmission(detail: field("detail")))
       case "unsupported_task": return .choice(.unsupportedTask)
+      case "moved_too_far": return .choice(.movedTooFar)
       default: return nil
       }
     case 500:
@@ -700,6 +702,14 @@ extension JSONValue {
     guard case .bool(let v) = self else { throw MapRouletteError(.protocolFailure) }
     return v
   }
+  /// A finite number, integral or not.
+  func number() throws -> Double {
+    switch self {
+    case .integer(let v): return Double(v)
+    case .number(let v) where v.isFinite: return v
+    default: throw MapRouletteError(.protocolFailure)
+    }
+  }
 }
 extension Optional {
   fileprivate func unwrap() throws -> Wrapped {
@@ -797,7 +807,7 @@ private func provesNotApplied(_ problem: WriteProblem?) -> Bool {
   switch problem {
   case .choice(.taskIneligible)?, .choice(.invalidSubmission)?, .choice(.elementInUse)?,
     .choice(.osmReauthRequired)?, .choice(.osmScopeRequired)?, .choice(.osmUnavailable)?,
-    .choice(.unsupportedTask)?, .insufficientScope?:
+    .choice(.unsupportedTask)?, .choice(.movedTooFar)?, .insufficientScope?:
     true
   default: false
   }
@@ -819,7 +829,22 @@ private func summary(_ value: JSONValue) throws -> TaskSummary {
   guard id > 0, parent > 0 else { throw MapRouletteError(.protocolFailure) }
   return try TaskSummary(
     id: TaskID(id), challengeID: ChallengeID(parent), title: o.required("title").string(),
-    status: o.status(), point: o.optionalObject("point"), pending: o.optional("pending")?.boolean())
+    status: o.status(), point: o.optionalObject("point"), pending: o.optional("pending")?.boolean(),
+    report: report(o))
+}
+// `reported` (backend "not here / moved"): unknown kinds are ignored; "moved" needs its position.
+private func report(_ o: [String: JSONValue]) throws -> TaskReport? {
+  switch try o.optional("reported")?.string() {
+  case ChoiceOutcome.notHereID?: return .notHere
+  case ChoiceOutcome.movedID?:
+    let at = try o.required("reportedLocation").object()
+    let lat = try at.required("lat").number(), lon = try at.required("lon").number()
+    guard (-90...90).contains(lat), (-180...180).contains(lon) else {
+      throw MapRouletteError(.protocolFailure)
+    }
+    return .moved(latitude: lat, longitude: lon)
+  default: return nil
+  }
 }
 
 // 502 osm_unavailable: OSM unreachable. 503 osm_edits_unavailable: stored OSM tokens unusable.

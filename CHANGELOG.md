@@ -18,6 +18,14 @@ minor version, so add a default branch when you switch on them.
   mobile backend PR #16). `pending` is null when not requested or not reported. `findTaskMarkers`
   is unchanged.
 - Swift: the same `TaskFilter.includePending` and `TaskSummary.pending` (`Bool?`).
+- Swift: built-in "It's not here" and "It's moved" (design/not-here-moved.md in the project).
+  `submitChoice(task, .outcome(.notHere))` and `submitChoice(task, .moved(MovedLocation(...)))`
+  send `{"outcome":"not-here"}` and `{"outcome":"moved","location":{"lat","lon","source"}}`
+  (6 decimals, source `tap` or `here`); both set Too hard and never edit OSM. They work on the
+  pending path too. 422 `moved_too_far` maps to `ChoiceProblem.movedTooFar`. `TaskSummary.report`
+  reads `reported` and `reportedLocation` from `findTasksInBounds`. A campaign outcome with id
+  `not-here` or `moved` makes the payload invalid. `choiceOutcomes(_:)` is unchanged. Kotlin
+  follows.
 
 ## [0.2.0] - 2026-10-10
 
