@@ -361,31 +361,3 @@ private func submission(_ task: MapRouletteTask, _ row: [String: Any], deletion:
         Issue.record("\(id) decoded as a campaign outcome")
     }
 }
-
-@Test func boxSearchReadsReports() async throws {
-    func row(_ id: Int, _ extra: [String: Any]) -> [String: Any] {
-        let base: [String: Any] = ["id": id, "parentId": 7, "title": "Stop \(id)", "status": 6, "point": ["lat": 40.76, "lng": -111.89]]
-        return base.merging(extra) { $1 }
-    }
-    let bounds = try Bounds(west: -111.91, south: 40.75, east: -111.87, north: 40.78)
-    let body: [String: Any] = ["total": 4, "tasks": [
-        row(101, ["reported": "not-here"]),
-        row(102, ["reported": "moved", "reportedLocation": ["lat": 40.7612, "lon": -111.8902]]),
-        row(103, ["reported": "something-new"]),
-        row(104, [:]),
-    ]]
-    let page = try await client(Script([HTTPResponse(status: 200, body: data(body))])).findTasksInBounds(filter: TaskFilter(bounds: bounds))
-    #expect(page.items.map(\.report) == [.notHere, .moved(latitude: 40.7612, longitude: -111.8902), nil, nil])
-    for broken in [
-        ["reported": "moved"],
-        ["reported": "moved", "reportedLocation": ["lat": 95, "lon": 0]],
-        ["reported": "moved", "reportedLocation": ["lat": "40.7", "lon": 0]],
-        ["reported": 3],
-    ] as [[String: Any]] {
-        let one: [String: Any] = ["total": 1, "tasks": [row(101, broken)]]
-        let error = await failure {
-            try await client(Script([HTTPResponse(status: 200, body: data(one))])).findTasksInBounds(filter: TaskFilter(bounds: bounds))
-        }
-        #expect(error?.kind == .protocolFailure, "\(broken)")
-    }
-}

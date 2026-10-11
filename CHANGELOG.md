@@ -22,8 +22,8 @@ minor version, so add a default branch when you switch on them.
   `submitChoice(task, .outcome(.notHere))` and `submitChoice(task, .moved(MovedLocation(...)))`
   send `{"outcome":"not-here"}` and `{"outcome":"moved","location":{"lat","lon","source"}}`
   (6 decimals, source `tap` or `here`); both set Too hard and never edit OSM. They work on the
-  pending path too. 422 `moved_too_far` maps to `ChoiceProblem.movedTooFar`. `TaskSummary.report`
-  reads `reported` and `reportedLocation` from `findTasksInBounds`. A campaign outcome with id
+  pending path too. 422 `moved_too_far` maps to `ChoiceProblem.movedTooFar`. `TaskReport` (`.notHere`,
+  `.moved(latitude:longitude:)`) is for the campaign status read to come (E2). A campaign outcome with id
   `not-here` or `moved` makes the payload invalid. `choiceOutcomes(_:)` is unchanged. Kotlin
   follows.
 

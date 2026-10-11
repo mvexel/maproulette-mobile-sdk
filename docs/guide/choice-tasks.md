@@ -207,8 +207,8 @@ let pending = try await client.submitPendingChoice(task, .answers(["shelter": "y
 - Every choice task also accepts two built-in reports that never edit OSM and set Too hard:
   `.outcome(.notHere)` and `.moved(MovedLocation(latitude:longitude:source:))`. They are not in
   `choiceOutcomes(_:)`; the app offers them itself. The server refuses a moved spot more than
-  500 m away (`.choice(.movedTooFar)`). `TaskSummary.report` (`.notHere` or `.moved(latitude:longitude:)`)
-  says a task was reported; leave those out of "next nearest". Swift only so far.
+  500 m away (`.choice(.movedTooFar)`). Which tasks were reported will come from the campaign
+  status read (not built yet). Swift only so far.
 
 Kotlin has the same calls and types (`submitPendingChoice`, `withdrawPendingChoice`,
 `listPendingChoices`, `getGuestStatus`, `setGuestEmail`, `deleteGuest`; `GuestStatus`,
