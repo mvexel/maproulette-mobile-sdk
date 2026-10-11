@@ -558,8 +558,9 @@ public actor MobileSignIn {
   ///
   /// A successful claim spends the secret, so the guest is dropped (the account stays). A repeat
   /// by the same account returns the same claim, so after a network failure the guest stays and
-  /// trying again is safe. `.notFound` (unknown, expired, deleted, or claimed by another account)
-  /// drops the guest too. `.authentication` with reason "osm_reauth_required" and other failures
+  /// trying again is safe. `.notFound` with reason "not_found" (unknown, expired, deleted, or
+  /// claimed by another account) and "guest_claimed" drop the guest too; a 404 without that code
+  /// (a backend without the route) keeps it. `.authentication` with reason "osm_reauth_required" and other failures
   /// keep it. Throws `.validation` without a guest or a signed-in OSM-editing account.
   /// `environment` and `transport` are as for `client(environment:transport:)`; the environment
   /// must allow writes.
@@ -579,7 +580,10 @@ public actor MobileSignIn {
       try check(expected)
       try dropGuest(credential)
       return claim
-    } catch let error as MapRouletteError where error.kind == .notFound || error.reason == "guest_claimed" {
+    } catch let error as MapRouletteError
+      where (error.kind == .notFound && error.reason == "not_found") || error.reason == "guest_claimed"
+    {
+      // A bare 404 (a backend without the route) keeps the guest: the secret is the only way to claim.
       if generation == expected { try? dropGuest(credential) }
       throw error
     }

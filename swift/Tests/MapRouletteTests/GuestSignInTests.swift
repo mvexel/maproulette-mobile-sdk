@@ -268,3 +268,36 @@ private func signedInGuest(_ backend: Backend, store: InMemoryCredentialStore = 
   _ = try await noGuest.signIn(scopes: all) { approve($0) }
   await #expect(throws: MapRouletteError.self) { try await noGuest.claimGuest() }
 }
+
+private let guestFixtures = try! JSONSerialization.jsonObject(
+  with: Data(contentsOf: URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+    .deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("fixtures/guest.json")))
+  as! [String: Any]
+
+/// fixtures/guest.json claim_accepted, claim_waiting and claim_errors (shared with Kotlin).
+@Test func claimFixtures() async throws {
+  for (name, state) in [("claim_accepted", ClaimState.queued), ("claim_waiting", .waiting)] {
+    let body = try JSONSerialization.data(withJSONObject: guestFixtures[name]!)
+    let s = try await signedInGuest(
+      Backend(tokens: [grant("access-1", "refresh-1")], claims: [HTTPResponse(status: 202, body: body)]))
+    let claim = try await s.claimGuest()
+    #expect(claim == GuestClaim(
+      claimID: 9, state: state, pendingCount: 14, account: ClaimedAccount(displayName: "rosa_slc", osmID: 123),
+      isNew: true))
+  }
+  for row in guestFixtures["claim_errors"] as! [[String: Any]] {
+    let status = row["status"] as! Int
+    let raw = row["body"]!
+    let body = raw is String ? Data((raw as! String).utf8) : try JSONSerialization.data(withJSONObject: raw)
+    let s = try await signedInGuest(
+      Backend(tokens: [grant("access-1", "refresh-1")], claims: [HTTPResponse(status: status, body: body)]))
+    do {
+      _ = try await s.claimGuest()
+      Issue.record("\(status) did not throw")
+    } catch let error as MapRouletteError {
+      #expect(error.kind.rawValue == row["kind"] as? String, "\(status)")
+      #expect(error.reason == row["reason"] as? String, "\(status)")
+    }
+    #expect(await (s.guest == nil) == (row["forget"] as! Bool), "\(status) \(String(describing: row["reason"]))")
+  }
+}
