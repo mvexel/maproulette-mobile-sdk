@@ -218,6 +218,16 @@ private func date(_ text: String) -> Date { ISO8601DateFormatter().date(from: te
     #expect(markers.first { $0.name == "excludePending" }?.value == "true")
 }
 
+@Test func heldKindSaysWhatHoldsTheTask() async throws {
+    let bounds = try Bounds(west: -111.91, south: 40.75, east: -111.87, north: 40.78)
+    let script = Script([ok(guest["tasks_box_held_kinds"]!)])
+    let page = try await client(script).findTasksInBounds(
+        filter: TaskFilter(bounds: bounds, choiceOnly: true, includePending: true))
+    // 104: a kind this version doesn't know; 105: an older backend that sends no heldKind.
+    #expect(page.items.map(\.heldKind) == [.answer, .report, nil, nil, nil])
+    #expect(page.items.map(\.pending) == [true, true, false, true, true])
+}
+
 @Test func pendingIsNilUnlessReported() async throws {
     let bounds = try Bounds(west: -111.91, south: 40.75, east: -111.87, north: 40.78)
     let script = Script([ok(guest["tasks_box_without_pending"]!)])
