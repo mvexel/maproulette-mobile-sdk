@@ -12,6 +12,11 @@ minor version, so add a default branch when you switch on them.
 
 ### Added
 
+- Kotlin: `TaskSummary.heldKind` (`HeldKind.ANSWER` or `REPORT`) on `findTasksInBounds` with
+  `includePending`: what a guest's pending submission on a held task is (backend `heldKind`; a
+  report is any status-6 outcome). Null when not held, not requested, from an older backend, or
+  for a kind this version doesn't know.
+
 - Swift: the phone claim (deferred sign-up B5). `MobileSignIn.claimGuest()` sends
   `POST mobile-claim` with the kept guest id and secret, under the signed-in account (needs
   `osm:tagfix`), and returns `GuestClaim` (`claimID`, `state`, `pendingCount`, `account`, `isNew`).

@@ -231,6 +231,21 @@ class GuestTest {
         assertEquals("true", markers.queryParameter("excludePending"))
     }
 
+    @Test fun heldKindSaysWhatHoldsTheTask() = runBlocking<Unit> {
+        val bounds = Bounds(-111.91, 40.75, -111.87, 40.78)
+        val page = client(Script(listOf(ok(guest.getValue("tasks_box_held_kinds")))))
+            .findTasksInBounds(TaskFilter(bounds = bounds, choiceOnly = true, includePending = true))
+        assertEquals(
+            mapOf(101L to HeldKind.ANSWER, 102L to HeldKind.REPORT, 103L to null, 104L to null),
+            page.items.associate { it.id.value to it.heldKind },
+        )
+        assertEquals(listOf(true, true, false, true), page.items.map { it.pending })
+        // An older backend sends no heldKind.
+        val old = client(Script(listOf(ok(guest.getValue("tasks_box_pending")))))
+            .findTasksInBounds(TaskFilter(bounds = bounds, choiceOnly = true, includePending = true))
+        assertEquals(listOf(null, null), old.items.map { it.heldKind })
+    }
+
     @Test fun pendingIsNullUnlessReported() = runBlocking<Unit> {
         val bounds = Bounds(-111.91, 40.75, -111.87, 40.78)
         val script = Script(listOf(ok(guest.getValue("tasks_box_without_pending"))))

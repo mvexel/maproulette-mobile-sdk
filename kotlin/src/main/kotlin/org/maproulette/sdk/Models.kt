@@ -145,7 +145,14 @@ data class TaskSummary(
     /** Whether a guest's pending answer holds the task. Reported only by [MapRouletteClient.findTasksInBounds]
      * with [TaskFilter.includePending]; null otherwise, or from a backend without guest support. */
     val pending: Boolean? = null,
+    /** What holds the task when [pending] is true: a guest's answer or a guest's report (any status-6
+     * outcome). Null when not held, when not requested, from an older backend, or for a kind this
+     * version doesn't know. */
+    val heldKind: HeldKind? = null,
 )
+
+/** What a guest's pending submission on a held task is (`heldKind` on `tasks/box` with includePending). */
+enum class HeldKind { ANSWER, REPORT }
 
 /** A built-in report on a task: the element isn't there, or it has moved to the given position.
  * The campaign status read (E1, not built yet) will carry them per task; apps use it today for

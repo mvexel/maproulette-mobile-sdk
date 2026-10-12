@@ -994,5 +994,10 @@ private fun summary(value: JsonElement): TaskSummary {
         },
         point = o.objectOrNull("point"),
         pending = o.bool("pending"),
+        heldKind = when (o.text("heldKind")) {
+            "answer" -> HeldKind.ANSWER
+            "report" -> HeldKind.REPORT
+            else -> null
+        },
     )
 }
