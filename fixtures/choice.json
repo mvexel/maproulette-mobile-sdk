@@ -6969,6 +6969,17 @@
    }
   },
   {
+   "name": "mobile_writes_disabled",
+   "status": 403,
+   "body": {
+    "error": "mobile_writes_disabled"
+   },
+   "error": {
+    "kind": "permission",
+    "problem": "writesPaused"
+   }
+  },
+  {
    "name": "insufficient_scope",
    "status": 403,
    "body": {

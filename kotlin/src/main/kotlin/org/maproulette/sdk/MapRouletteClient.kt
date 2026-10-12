@@ -361,8 +361,11 @@ class MapRouletteClient(
     suspend fun checkChoice(id: TaskId): ChoiceEligibility {
         val response = send("task/${id.value}/choice/check")
         if (response.status != 200) {
-            throw failure(response, ChoiceProblem.OsmUnavailable.takeIf {
-                osmUnavailable(response.status, errorBody(response)?.text("error"))
+            val error = errorBody(response)?.text("error")
+            throw failure(response, when {
+                response.status == 403 && error == "mobile_writes_disabled" -> WriteProblem.WritesPaused
+                osmUnavailable(response.status, error) -> ChoiceProblem.OsmUnavailable
+                else -> null
             })
         }
         return decode {

@@ -357,8 +357,11 @@ public final class MapRouletteClient: Sendable {
   public func checkChoice(_ id: TaskID) async throws -> ChoiceEligibility {
     let response = try await send("task/\(id.value)/choice/check")
     guard response.status == 200 else {
-      let unavailable = osmUnavailable(response.status, errorField(response, "error"))
-      throw failure(response, problem: unavailable ? .choice(.osmUnavailable) : nil)
+      let error = errorField(response, "error")
+      if response.status == 403 && error == "mobile_writes_disabled" {
+        throw failure(response, problem: .writesPaused)
+      }
+      throw failure(response, problem: osmUnavailable(response.status, error) ? .choice(.osmUnavailable) : nil)
     }
     do {
       let o = try JSONDecoder().decode(JSONValue.self, from: response.body).object()
