@@ -12,6 +12,10 @@ minor version, so add a default branch when you switch on them.
 
 ### Added
 
+- Every server failure carries the server's error code in `reason` (Kotlin
+  `MapRouletteException.reason`, Swift `MapRouletteError.reason`) when the body has a plain
+  `error` code, not only guest calls. For example a 403 `mobile_writes_disabled` from the choice
+  check, start, skip or choice while a backend's mobile write switch is off.
 - `TaskSummary.heldKind` (`HeldKind.answer` / `.report`; Kotlin `ANSWER` / `REPORT`) from the
   `heldKind` field on `tasks/box` rows with `includePending`. A report hold is an outcome that
   would set status 6 and needs another look; an answer counts as checked. Nil when absent, null

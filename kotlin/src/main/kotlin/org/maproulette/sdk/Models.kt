@@ -307,7 +307,7 @@ enum class ResolutionCheck {
 }
 
 /** Server bodies and credentials are deliberately excluded from error descriptions.
- * [reason] is the server's error code for guest and sign-in calls, e.g. "guest_claimed", and only
+ * [reason] is the server's error code, e.g. "guest_claimed" or "mobile_writes_disabled", and only
  * when it is a plain code (`[a-z_]{1,40}`); never other server text. */
 class MapRouletteException(
     val kind: ErrorKind,

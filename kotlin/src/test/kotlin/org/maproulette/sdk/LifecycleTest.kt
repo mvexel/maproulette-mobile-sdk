@@ -96,6 +96,7 @@ class LifecycleTest {
             val error = assertFailsWith<MapRouletteException>(row.toString()) { call(client(script), row) }
             assertEquals(row.text("kind"), camel(error.kind.name), row.toString())
             assertEquals(row.text("problem"), problemName(error.problem), row.toString())
+            if ("code" in row) assertEquals(row.text("code"), error.reason, row.toString())
             assertEquals(1, script.requests.size)
             assertFalse(error.toString().contains("other-mapper")); assertFalse(error.toString().contains("synthetic"))
         }

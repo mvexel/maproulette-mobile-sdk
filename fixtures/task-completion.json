@@ -68,6 +68,9 @@
   "status": "Forbidden",
   "message": "Task is currently locked by user other-mapper"
  },
+ "writes_off_403": {
+  "error": "mobile_writes_disabled"
+ },
  "start_409_own": {
   "status": "Conflict",
   "message": "User already holds a lock",
@@ -206,6 +209,22 @@
   }
  ],
  "errors": [
+  {
+   "call": "start",
+   "status": 403,
+   "body": "writes_off_403",
+   "kind": "permission",
+   "problem": null,
+   "code": "mobile_writes_disabled"
+  },
+  {
+   "call": "skip",
+   "status": 403,
+   "body": "writes_off_403",
+   "kind": "permission",
+   "problem": null,
+   "code": "mobile_writes_disabled"
+  },
   {
    "call": "start",
    "status": 403,

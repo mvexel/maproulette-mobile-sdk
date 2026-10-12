@@ -270,6 +270,7 @@ private func submission(_ task: MapRouletteTask, _ row: [String: Any], deletion:
             let error = await failure { try await client(script).checkChoice(taskID) }
             #expect(error.map { kindName($0.kind) } == expected["kind"] as? String, "\(name)")
             #expect(problemName(error?.problem) == expected["problem"] as? String, "\(name)")
+            if expected.keys.contains("code") { #expect(error?.reason == expected["code"] as? String, "\(name)") }
         }
         let requests = await script.requests
         #expect(await script.calls() == ["GET /api/v2/task/101/choice/check"])

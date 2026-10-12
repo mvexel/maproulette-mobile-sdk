@@ -253,6 +253,7 @@ class ChoiceTest {
                 val error = assertFailsWith<MapRouletteException>(name) { client(script).checkChoice(id) }
                 assertEquals(expected.text("kind"), camel(error.kind.name), name)
                 assertEquals(expected.text("problem"), problemName(error.problem), name)
+                if ("code" in expected) assertEquals(expected.text("code"), error.reason, name)
             }
             val request = script.requests.single()
             assertEquals("GET /api/v2/task/101/choice/check", script.calls().single())

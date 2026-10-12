@@ -6910,6 +6910,18 @@
    }
   },
   {
+   "name": "writes_disabled",
+   "status": 403,
+   "body": {
+    "error": "mobile_writes_disabled"
+   },
+   "error": {
+    "kind": "permission",
+    "problem": null,
+    "code": "mobile_writes_disabled"
+   }
+  },
+  {
    "name": "not_json",
    "status": 200,
    "body": "ok",
