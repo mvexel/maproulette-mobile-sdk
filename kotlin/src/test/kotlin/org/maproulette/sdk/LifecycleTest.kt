@@ -57,6 +57,7 @@ class LifecycleTest {
         WriteProblem.LockLost -> "lockLost"
         WriteProblem.InvalidTransition -> "invalidTransition"
         WriteProblem.InsufficientScope -> "insufficientScope"
+        WriteProblem.WritesPaused -> "writesPaused"
         WriteProblem.OutcomeUnknown -> "outcomeUnknown"
         is ChoiceProblem -> "choice"
     }
@@ -177,7 +178,11 @@ class LifecycleTest {
     }
 
     @Test fun commitRequiresWritePermissionAndValidSession() = runBlocking<Unit> {
-        for ((name, status, problem) in listOf(Triple("gate_403_scope", 403, WriteProblem.InsufficientScope), Triple("gate_401_invalid", 401, null))) {
+        for ((name, status, problem) in listOf(
+            Triple("gate_403_scope", 403, WriteProblem.InsufficientScope),
+            Triple("gate_403_writes_disabled", 403, WriteProblem.WritesPaused),
+            Triple("gate_401_invalid", 401, null),
+        )) {
             val script = Script(ok(name, status))
             val error = assertFailsWith<MapRouletteException> { client(script).commitResolution(id, TaskResolution.FIXED) }
             assertEquals(problem, error.problem); assertEquals(1, script.requests.size)

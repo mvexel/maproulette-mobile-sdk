@@ -5293,6 +5293,16 @@
    "release": true
   },
   {
+   "name": "mobile_writes_disabled",
+   "status": 403,
+   "body": {
+    "error": "mobile_writes_disabled"
+   },
+   "kind": "permission",
+   "problem": "writesPaused",
+   "release": true
+  },
+  {
    "name": "mobile_only",
    "status": 403,
    "body": {
@@ -6956,6 +6966,17 @@
    "error": {
     "kind": "server",
     "problem": null
+   }
+  },
+  {
+   "name": "mobile_writes_disabled",
+   "status": 403,
+   "body": {
+    "error": "mobile_writes_disabled"
+   },
+   "error": {
+    "kind": "permission",
+    "problem": "writesPaused"
    }
   },
   {

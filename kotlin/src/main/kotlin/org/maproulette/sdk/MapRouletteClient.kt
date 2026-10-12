@@ -361,8 +361,11 @@ class MapRouletteClient(
     suspend fun checkChoice(id: TaskId): ChoiceEligibility {
         val response = send("task/${id.value}/choice/check")
         if (response.status != 200) {
-            throw failure(response, ChoiceProblem.OsmUnavailable.takeIf {
-                osmUnavailable(response.status, errorBody(response)?.text("error"))
+            val error = errorBody(response)?.text("error")
+            throw failure(response, when {
+                response.status == 403 && error == "mobile_writes_disabled" -> WriteProblem.WritesPaused
+                osmUnavailable(response.status, error) -> ChoiceProblem.OsmUnavailable
+                else -> null
             })
         }
         return decode {
@@ -451,6 +454,7 @@ class MapRouletteClient(
     private fun writeProblem(operation: Write, response: HttpResponse): WriteProblem? {
         val body = errorBody(response)
         fun field(name: String) = (body?.get(name) as? JsonPrimitive)?.takeIf { it.isString }?.content
+        if (response.status == 403 && field("error") == "mobile_writes_disabled") return WriteProblem.WritesPaused
         if (operation == Write.CHOICE || operation == Write.PENDING) return choiceProblem(response.status, body, ::field)
         return when (response.status) {
             400 -> WriteProblem.InvalidTransition.takeIf {
@@ -790,7 +794,8 @@ private fun JsonElement.obj() = jsonObject
 private fun WriteProblem?.provesNotApplied() = when (this) {
     is ChoiceProblem.TaskIneligible, is ChoiceProblem.InvalidSubmission, ChoiceProblem.ElementInUse,
     ChoiceProblem.OsmReauthRequired, ChoiceProblem.OsmScopeRequired, ChoiceProblem.OsmUnavailable,
-    ChoiceProblem.UnsupportedTask, ChoiceProblem.MovedTooFar, WriteProblem.InsufficientScope -> true
+    ChoiceProblem.UnsupportedTask, ChoiceProblem.MovedTooFar, WriteProblem.InsufficientScope,
+    WriteProblem.WritesPaused -> true
     else -> false
 }
 

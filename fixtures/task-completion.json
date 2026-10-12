@@ -108,6 +108,9 @@
  "gate_403_scope": {
   "error": "insufficient_scope"
  },
+ "gate_403_writes_disabled": {
+  "error": "mobile_writes_disabled"
+ },
  "legacy_401": {
   "status": "NotAuthorized",
   "message": "User not authorized"
