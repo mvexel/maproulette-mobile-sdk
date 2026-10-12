@@ -392,7 +392,8 @@ public struct MapRouletteError: Error, CustomStringConvertible, Hashable, Sendab
   public let kind: ErrorKind, status: Int?, retryAfter: String?
   public let problem: WriteProblem?
   /// Why a `.validation` error was raised, e.g. "pageSize must be 1...100", or the server's error
-  /// code for guest calls, e.g. "guest_claimed". Never contains credentials or server bodies.
+  /// code, e.g. "guest_claimed" or "mobile_writes_disabled", only when it is a plain code
+  /// (`[a-z_]{1,40}`). Never contains credentials or server bodies.
   public let reason: String?
   public init(
     _ kind: ErrorKind, status: Int? = nil, retryAfter: String? = nil, problem: WriteProblem? = nil,

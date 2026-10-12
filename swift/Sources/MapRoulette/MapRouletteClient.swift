@@ -639,7 +639,9 @@ public final class MapRouletteClient: Sendable {
     return MapRouletteError(
       kind, status: response.status,
       retryAfter: response.headers.first { $0.key.lowercased() == "retry-after" }?.value,
-      problem: problem)
+      problem: problem,
+      // The server's error code (e.g. mobile_writes_disabled), only when it is a plain code.
+      reason: errorField(response, "error").flatMap(plainErrorCode))
   }
 
   func send(

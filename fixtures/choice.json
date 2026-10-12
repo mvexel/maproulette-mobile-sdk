@@ -6976,7 +6976,8 @@
    },
    "error": {
     "kind": "permission",
-    "problem": "writesPaused"
+    "problem": "writesPaused",
+    "code": "mobile_writes_disabled"
    }
   },
   {

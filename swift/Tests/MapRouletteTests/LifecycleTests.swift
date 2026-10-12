@@ -102,6 +102,7 @@ private func problemName(_ problem: WriteProblem?) -> String? {
         let error = try #require(await failure { try await call(client, row) })
         #expect(error.kind.rawValue == (row["kind"] as! String) || (error.kind == .protocolFailure && row["kind"] as! String == "protocol"), "\(row)")
         #expect(problemName(error.problem) == row["problem"] as? String, "\(row)")
+        if row.keys.contains("code") { #expect(error.reason == row["code"] as? String, "\(row)") }
         #expect(await script.requests.count == 1)
         #expect(!String(describing: error).contains("other-mapper")); #expect(!String(describing: error).contains("synthetic"))
     }
