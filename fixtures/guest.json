@@ -57,8 +57,8 @@
   ],
   "_tasks_box_pending": "GET tasks/box with includePending=true (backend #16): held tasks stay in and each task carries pending true|false. Without the parameter there is no pending key. A non-boolean pending is a protocol error.",
   "tasks_box_pending": {"total": 2, "tasks": [
-    {"id": 101, "parentId": 7, "title": "Stop 101", "status": 0, "point": {"lat": 40.7608, "lng": -111.8910}, "pending": true},
-    {"id": 103, "parentId": 7, "title": "Stop 103", "status": 0, "point": {"lat": 40.7612, "lng": -111.8902}, "pending": false}
+    {"id": 101, "parentId": 7, "title": "Stop 101", "status": 0, "point": {"lat": 40.7608, "lng": -111.8910}, "pending": true, "heldKind": "report"},
+    {"id": 103, "parentId": 7, "title": "Stop 103", "status": 0, "point": {"lat": 40.7612, "lng": -111.8902}, "pending": false, "heldKind": null}
   ]},
   "tasks_box_without_pending": {"total": 1, "tasks": [
     {"id": 103, "parentId": 7, "title": "Stop 103", "status": 0, "point": {"lat": 40.7612, "lng": -111.8902}}

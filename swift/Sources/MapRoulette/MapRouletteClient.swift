@@ -821,7 +821,8 @@ private func summary(_ value: JSONValue) throws -> TaskSummary {
   guard id > 0, parent > 0 else { throw MapRouletteError(.protocolFailure) }
   return try TaskSummary(
     id: TaskID(id), challengeID: ChallengeID(parent), title: o.required("title").string(),
-    status: o.status(), point: o.optionalObject("point"), pending: o.optional("pending")?.boolean())
+    status: o.status(), point: o.optionalObject("point"), pending: o.optional("pending")?.boolean(),
+    heldKind: o.optional("heldKind").flatMap { HeldKind(rawValue: try $0.string()) })
 }
 
 // 502 osm_unavailable: OSM unreachable. 503 osm_edits_unavailable: stored OSM tokens unusable.

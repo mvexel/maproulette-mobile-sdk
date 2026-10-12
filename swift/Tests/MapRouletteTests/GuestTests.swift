@@ -205,6 +205,7 @@ private func date(_ text: String) -> Date { ISO8601DateFormatter().date(from: te
     let page = try await c.findTasksInBounds(filter: filter)
     #expect(page.items.map(\.id.value) == [101, 103])
     #expect(page.items.map(\.pending) == [true, false])
+    #expect(page.items.map(\.heldKind) == [.report, nil])
     _ = try await c.findTaskMarkers(filter: filter)
     let requests = await script.requests
     let box = URLComponents(url: requests[0].url, resolvingAgainstBaseURL: false)!.queryItems ?? []
@@ -223,6 +224,7 @@ private func date(_ text: String) -> Date { ISO8601DateFormatter().date(from: te
     let page = try await client(script).findTasksInBounds(filter: TaskFilter(bounds: bounds, choiceOnly: true))
     #expect(page.items.count == 1)
     #expect(page.items.first?.pending == nil)
+    #expect(page.items.first?.heldKind == nil)
     let items = URLComponents(url: await script.requests[0].url, resolvingAgainstBaseURL: false)!.queryItems ?? []
     #expect(!items.contains { $0.name == "includePending" })
     #expect(!TaskFilter(bounds: bounds).includePending)

@@ -994,5 +994,6 @@ private fun summary(value: JsonElement): TaskSummary {
         },
         point = o.objectOrNull("point"),
         pending = o.bool("pending"),
+        heldKind = o.text("heldKind")?.let { wire -> HeldKind.entries.firstOrNull { it.wire == wire } },
     )
 }
