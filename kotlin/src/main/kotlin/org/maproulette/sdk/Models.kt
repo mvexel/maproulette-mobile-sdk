@@ -242,6 +242,10 @@ sealed interface WriteProblem {
     /** 403 insufficient_scope: the bearer grant lacks `tasks:write`; sign in again to grant it. */
     data object InsufficientScope : WriteProblem
 
+    /** 403 mobile_writes_disabled: the server has mobile writes switched off. Nothing was changed;
+     * try again later. */
+    data object WritesPaused : WriteProblem
+
     /** The request may have been applied (network failure, 5xx or unreadable success). Re-read the
      * task before acting; never resend a skip or status write blindly. */
     data object OutcomeUnknown : WriteProblem

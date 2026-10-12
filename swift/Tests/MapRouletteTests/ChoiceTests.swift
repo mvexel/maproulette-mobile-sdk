@@ -70,6 +70,7 @@ private func problemName(_ problem: WriteProblem?) -> String? {
     case .lockLost?: "lockLost"
     case .invalidTransition?: "invalidTransition"
     case .insufficientScope?: "insufficientScope"
+    case .writesPaused?: "writesPaused"
     case .outcomeUnknown?: "outcomeUnknown"
     case .choice(let choice)?:
         switch choice {

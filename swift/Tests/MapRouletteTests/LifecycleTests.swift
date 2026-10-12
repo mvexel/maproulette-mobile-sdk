@@ -58,6 +58,7 @@ private func problemName(_ problem: WriteProblem?) -> String? {
     case .lockLost?: "lockLost"
     case .invalidTransition?: "invalidTransition"
     case .insufficientScope?: "insufficientScope"
+    case .writesPaused?: "writesPaused"
     case .outcomeUnknown?: "outcomeUnknown"
     case .choice?: "choice"
     }
@@ -191,7 +192,10 @@ private func problemName(_ problem: WriteProblem?) -> String? {
 }
 
 @Test func commitRequiresWritePermissionAndValidSession() async throws {
-    for (name, status, problem) in [("gate_403_scope", 403, WriteProblem.insufficientScope), ("gate_401_invalid", 401, nil)] {
+    for (name, status, problem) in [
+        ("gate_403_scope", 403, WriteProblem.insufficientScope), ("gate_403_writes_disabled", 403, .writesPaused),
+        ("gate_401_invalid", 401, nil),
+    ] {
         let script = Script(ok(name, status))
         let client = try client(script)
         let error = await failure { try await client.commitResolution(taskID, as: .fixed) }

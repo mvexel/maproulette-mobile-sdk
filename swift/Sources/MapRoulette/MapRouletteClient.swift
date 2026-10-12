@@ -465,6 +465,7 @@ public final class MapRouletteClient: Sendable {
       if case .string(let value) = body?[name] { return value }
       return nil
     }
+    if response.status == 403 && field("error") == "mobile_writes_disabled" { return .writesPaused }
     if operation == .choice || operation == .pending { return choiceProblem(response.status, body, field) }
     switch response.status {
     case 400:
@@ -799,7 +800,7 @@ private func provesNotApplied(_ problem: WriteProblem?) -> Bool {
   switch problem {
   case .choice(.taskIneligible)?, .choice(.invalidSubmission)?, .choice(.elementInUse)?,
     .choice(.osmReauthRequired)?, .choice(.osmScopeRequired)?, .choice(.osmUnavailable)?,
-    .choice(.unsupportedTask)?, .choice(.movedTooFar)?, .insufficientScope?:
+    .choice(.unsupportedTask)?, .choice(.movedTooFar)?, .insufficientScope?, .writesPaused?:
     true
   default: false
   }

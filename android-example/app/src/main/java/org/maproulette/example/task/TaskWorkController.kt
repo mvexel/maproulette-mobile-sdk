@@ -326,6 +326,7 @@ class TaskWorkController(
                 "This sign-in cannot edit OpenStreetMap. Nothing was changed. Sign in again to enable editing.")
             WriteProblem.InsufficientScope -> TaskScreen.SignInRequired(task, challenge,
                 "This sign-in can only read tasks. Nothing was recorded. Sign in again to enable task actions.")
+            WriteProblem.WritesPaused -> answering("Saving is paused right now. Nothing was recorded. Try again later.")
             ChoiceProblem.OsmUnavailable -> answering(
                 "OpenStreetMap edits are not available right now, so nothing was changed. Your answers are kept; try again later.")
             ChoiceProblem.SubmissionPending -> checkAgain(

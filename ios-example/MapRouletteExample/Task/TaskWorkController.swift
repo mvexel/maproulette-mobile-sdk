@@ -390,6 +390,8 @@ enum TaskScreen: Sendable {
     case .insufficientScope?:
       return .signInRequired(
         loaded, reason: "This sign-in can only read tasks. Nothing was recorded. Sign in again to enable task actions.")
+    case .writesPaused?:
+      return answering("Saving is paused right now. Nothing was recorded. Try again later.")
     case .choice(.osmUnavailable)?:
       return answering(
         "OpenStreetMap edits are not available right now, so nothing was changed. Your answers are kept; try again later.")

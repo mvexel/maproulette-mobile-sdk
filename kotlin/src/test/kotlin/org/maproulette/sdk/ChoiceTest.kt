@@ -76,6 +76,7 @@ class ChoiceTest {
         WriteProblem.LockLost -> "lockLost"
         WriteProblem.InvalidTransition -> "invalidTransition"
         WriteProblem.InsufficientScope -> "insufficientScope"
+        WriteProblem.WritesPaused -> "writesPaused"
         WriteProblem.OutcomeUnknown -> "outcomeUnknown"
         is ChoiceProblem.TaskIneligible -> "taskIneligible"
         ChoiceProblem.ElementInUse -> "elementInUse"

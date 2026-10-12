@@ -12,6 +12,8 @@ minor version, so add a default branch when you switch on them.
 
 ### Added
 
+- `WriteProblem.writesPaused` (Kotlin `WritesPaused`) for 403 `mobile_writes_disabled` on any write,
+  when the server has mobile writes switched off. Nothing was changed; try again later.
 - `TaskSummary.heldKind` (`HeldKind.answer` / `.report`; Kotlin `ANSWER` / `REPORT`) from the
   `heldKind` field on `tasks/box` rows with `includePending`. A report hold is an outcome that
   would set status 6 and needs another look; an answer counts as checked. Nil when absent, null
