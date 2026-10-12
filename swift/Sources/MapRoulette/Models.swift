@@ -263,9 +263,12 @@ public struct TaskSummary: Hashable, Identifiable, Sendable {
   /// Whether a guest's pending answer holds the task. Reported only by `findTasksInBounds` with
   /// `TaskFilter.includePending`; nil otherwise, or from a backend without guest support.
   public let pending: Bool?
+  /// What the latest pending answer holding the task is, when `pending` is true and the backend
+  /// says; nil otherwise. Unknown kinds read as nil.
+  public let heldKind: HeldKind?
   public init(
     id: TaskID, challengeID: ChallengeID, title: String, status: TaskStatus? = nil,
-    point: JSONValue? = nil, pending: Bool? = nil
+    point: JSONValue? = nil, pending: Bool? = nil, heldKind: HeldKind? = nil
   ) {
     self.id = id
     self.challengeID = challengeID
@@ -273,7 +276,13 @@ public struct TaskSummary: Hashable, Identifiable, Sendable {
     self.status = status
     self.point = point
     self.pending = pending
+    self.heldKind = heldKind
   }
+}
+/// A held task's kind: an `answer` counts as checked; a `report` (any outcome that would set
+/// status 6: not here, moved, too hard, a campaign outcome with status 6) needs another look.
+public enum HeldKind: String, Hashable, Sendable {
+  case answer, report
 }
 /// A built-in report on a task: the element isn't there, or it has moved to the given position.
 /// The campaign status read (E1, not built yet) will carry them per task; apps use it today for

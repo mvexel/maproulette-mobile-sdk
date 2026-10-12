@@ -12,6 +12,10 @@ minor version, so add a default branch when you switch on them.
 
 ### Added
 
+- `TaskSummary.heldKind` (`HeldKind.answer` / `.report`; Kotlin `ANSWER` / `REPORT`) from the
+  `heldKind` field on `tasks/box` rows with `includePending`. A report hold is an outcome that
+  would set status 6 and needs another look; an answer counts as checked. Nil when absent, null
+  or unknown.
 - Swift: the phone claim (deferred sign-up B5). `MobileSignIn.claimGuest()` sends
   `POST mobile-claim` with the kept guest id and secret, under the signed-in account (needs
   `osm:tagfix`), and returns `GuestClaim` (`claimID`, `state`, `pendingCount`, `account`, `isNew`).

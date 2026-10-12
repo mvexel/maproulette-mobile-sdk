@@ -205,6 +205,7 @@ private func date(_ text: String) -> Date { ISO8601DateFormatter().date(from: te
     let page = try await c.findTasksInBounds(filter: filter)
     #expect(page.items.map(\.id.value) == [101, 103])
     #expect(page.items.map(\.pending) == [true, false])
+    #expect(page.items.map(\.heldKind) == [.report, nil])
     _ = try await c.findTaskMarkers(filter: filter)
     let requests = await script.requests
     let box = URLComponents(url: requests[0].url, resolvingAgainstBaseURL: false)!.queryItems ?? []
@@ -217,12 +218,23 @@ private func date(_ text: String) -> Date { ISO8601DateFormatter().date(from: te
     #expect(markers.first { $0.name == "excludePending" }?.value == "true")
 }
 
+@Test func heldKindSaysWhatHoldsTheTask() async throws {
+    let bounds = try Bounds(west: -111.91, south: 40.75, east: -111.87, north: 40.78)
+    let script = Script([ok(guest["tasks_box_held_kinds"]!)])
+    let page = try await client(script).findTasksInBounds(
+        filter: TaskFilter(bounds: bounds, choiceOnly: true, includePending: true))
+    // 104: a kind this version doesn't know; 105: an older backend that sends no heldKind.
+    #expect(page.items.map(\.heldKind) == [.answer, .report, nil, nil, nil])
+    #expect(page.items.map(\.pending) == [true, true, false, true, true])
+}
+
 @Test func pendingIsNilUnlessReported() async throws {
     let bounds = try Bounds(west: -111.91, south: 40.75, east: -111.87, north: 40.78)
     let script = Script([ok(guest["tasks_box_without_pending"]!)])
     let page = try await client(script).findTasksInBounds(filter: TaskFilter(bounds: bounds, choiceOnly: true))
     #expect(page.items.count == 1)
     #expect(page.items.first?.pending == nil)
+    #expect(page.items.first?.heldKind == nil)
     let items = URLComponents(url: await script.requests[0].url, resolvingAgainstBaseURL: false)!.queryItems ?? []
     #expect(!items.contains { $0.name == "includePending" })
     #expect(!TaskFilter(bounds: bounds).includePending)

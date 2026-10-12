@@ -202,7 +202,9 @@ let pending = try await client.submitPendingChoice(task, .answers(["shelter": "y
 - Choice-only searches leave out tasks held by guests (`TaskFilter.excludePending`, default true).
 - For progress tallies, `TaskFilter.includePending` (default false) keeps held tasks in
   `findTasksInBounds` and sets `TaskSummary.pending` on each one (backend `includePending=true`
-  on `tasks/box`). It is yes/no only. `findTaskMarkers` has no such flag and still leaves held
+  on `tasks/box`). With it, `TaskSummary.heldKind` says what holds the task: `answer` (counts as
+  checked) or `report` (an outcome that would set status 6; needs another look). Nil when the
+  backend doesn't say. `findTaskMarkers` has no such flag and still leaves held
   tasks out. Swift and Kotlin use the same names.
 - Every choice task also accepts two built-in reports that never edit OSM and set Too hard:
   `.outcome(.notHere)` and `.moved(MovedLocation(latitude:longitude:source:))`. They are not in
