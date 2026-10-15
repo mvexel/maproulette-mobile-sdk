@@ -10,6 +10,8 @@ minor version, so add a default branch when you switch on them.
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-16
+
 ### Added
 
 - `WriteProblem.writesPaused` (Kotlin `WritesPaused`) for 403 `mobile_writes_disabled` on any write and on `checkChoice`,
@@ -44,6 +46,12 @@ minor version, so add a default branch when you switch on them.
   `ChoiceSubmission.Moved(MovedLocation(lat, lon, MovedLocation.Source.TAP | HERE))`,
   `ChoiceProblem.MovedTooFar`, `TaskReport` (`NotHere`, `Moved`) and the `NOT_HERE_ID`/`MOVED_ID`
   constants, with the same bodies, validation and decoder rule as Swift.
+
+### Changed
+
+- Spec (docs/design/mobile-choice-challenges.md): a campaign outcome `label` is 1 to 60
+  characters with no `;` and no leading or trailing whitespace. Only the backend's task ingest
+  checks it; submit and the SDK's decoding don't, so tasks stored before the rule still work.
 
 ## [0.2.0] - 2026-10-11
 
@@ -161,6 +169,7 @@ First release of the Kotlin and Swift SDKs.
   loopback hosts.
 - No DocC catalog for the Swift SDK yet.
 
-[Unreleased]: https://github.com/mvexel/maproulette-mobile-sdk/compare/0.2.0...HEAD
+[Unreleased]: https://github.com/mvexel/maproulette-mobile-sdk/compare/0.3.0...HEAD
+[0.3.0]: https://github.com/mvexel/maproulette-mobile-sdk/compare/0.2.0...0.3.0
 [0.2.0]: https://github.com/mvexel/maproulette-mobile-sdk/compare/0.1.0...0.2.0
 [0.1.0]: https://github.com/mvexel/maproulette-mobile-sdk/releases/tag/0.1.0
