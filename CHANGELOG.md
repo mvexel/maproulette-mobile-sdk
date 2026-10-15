@@ -10,6 +10,8 @@ minor version, so add a default branch when you switch on them.
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-16
+
 ### Added
 
 - `WriteProblem.writesPaused` (Kotlin `WritesPaused`) for 403 `mobile_writes_disabled` on any write and on `checkChoice`,
@@ -24,7 +26,7 @@ minor version, so add a default branch when you switch on them.
   Success and `.notFound` drop the guest; other failures keep it, and a repeat returns the same
   claim. `MapRouletteClient.getClaimStatus(_:)` reads `GET mobile-claim/{id}` as `ClaimStatus`
   with `ClaimItem`s. `ClaimState`: waiting, queued, running, done, failed.
-- Kotlin: the same phone claim. `MobileSignIn.claimGuest()` returns `GuestClaim` (`claimId`,
+- Kotlin: the same phone claim. `MobileSignIn.claimGuest(environment, transport)` (both optional) returns `GuestClaim` (`claimId`,
   `state`, `pendingCount`, `account`, `isNew`), and `MapRouletteClient.getClaimStatus(claimId)`
   returns `ClaimStatus`. Misuse throws `IllegalStateException`.
 - Kotlin: `TaskFilter.includePending` (default false) and `TaskSummary.pending`. With it,
@@ -41,9 +43,15 @@ minor version, so add a default branch when you switch on them.
   `.moved(latitude:longitude:)`) is for the campaign status read to come (E2). A campaign outcome with id
   `not-here` or `moved` makes the payload invalid. `choiceOutcomes(_:)` is unchanged.
 - Kotlin: the same built-in reports. `ChoiceSubmission.Outcome(ChoiceOutcome.NOT_HERE)`,
-  `ChoiceSubmission.Moved(MovedLocation(lat, lon, MovedLocation.Source.TAP | HERE))`,
+  `ChoiceSubmission.Moved(MovedLocation(latitude, longitude, MovedLocation.Source.TAP | HERE))`,
   `ChoiceProblem.MovedTooFar`, `TaskReport` (`NotHere`, `Moved`) and the `NOT_HERE_ID`/`MOVED_ID`
   constants, with the same bodies, validation and decoder rule as Swift.
+
+### Changed
+
+- Spec (docs/design/mobile-choice-challenges.md): a campaign outcome `label` is 1 to 60
+  characters with no `;` and no leading or trailing whitespace. Only the backend's task ingest
+  checks it; submit and the SDK's decoding don't, so tasks stored before the rule still work.
 
 ## [0.2.0] - 2026-10-11
 
@@ -161,6 +169,7 @@ First release of the Kotlin and Swift SDKs.
   loopback hosts.
 - No DocC catalog for the Swift SDK yet.
 
-[Unreleased]: https://github.com/mvexel/maproulette-mobile-sdk/compare/0.2.0...HEAD
+[Unreleased]: https://github.com/mvexel/maproulette-mobile-sdk/compare/0.3.0...HEAD
+[0.3.0]: https://github.com/mvexel/maproulette-mobile-sdk/compare/0.2.0...0.3.0
 [0.2.0]: https://github.com/mvexel/maproulette-mobile-sdk/compare/0.1.0...0.2.0
 [0.1.0]: https://github.com/mvexel/maproulette-mobile-sdk/releases/tag/0.1.0

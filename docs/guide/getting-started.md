@@ -1,7 +1,7 @@
 # Getting started
 
 This guide takes you from install to a completed task. It covers SDK version
-0.2.0. Kotlin and Swift mirror each other; names differ only where each
+0.3.0. Kotlin and Swift mirror each other; names differ only where each
 language has its own conventions.
 
 Longer topics have their own pages:
@@ -51,7 +51,7 @@ dependencyResolutionManagement {
 
 // app/build.gradle.kts
 dependencies {
-    implementation("com.github.mvexel:maproulette-mobile-sdk:0.2.0")
+    implementation("com.github.mvexel:maproulette-mobile-sdk:0.3.0")
 }
 ```
 
@@ -65,7 +65,7 @@ In `Package.swift`:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/mvexel/maproulette-mobile-sdk", from: "0.2.0"),
+    .package(url: "https://github.com/mvexel/maproulette-mobile-sdk", from: "0.3.0"),
 ],
 targets: [
     .target(name: "MyApp", dependencies: [
@@ -75,13 +75,13 @@ targets: [
 ```
 
 In Xcode: File > Add Package Dependencies, paste the URL, choose "Up to Next
-Minor Version" from 0.2.0, and add the `MapRoulette` library to your app target.
+Minor Version" from 0.3.0, and add the `MapRoulette` library to your app target.
 
 ### Versions
 
-In SDK 0.x, a minor version (0.2.0) may break the API. A patch version (0.1.1)
-does not. In SwiftPM, `from: "0.1.0"` also accepts 0.2.0 and later. To get
-patch releases only, use `.upToNextMinor(from: "0.1.0")`. In Gradle, the
+In SDK 0.x, a minor version (0.3.0) may break the API. A patch version (0.2.1)
+does not. In SwiftPM, `from: "0.2.0"` also accepts 0.3.0 and later. To get
+patch releases only, use `.upToNextMinor(from: "0.2.0")`. In Gradle, the
 version is exact.
 
 `ErrorKind`, `WriteProblem` and `ChoiceProblem` may gain cases in a minor
