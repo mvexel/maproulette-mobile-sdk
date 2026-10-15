@@ -26,7 +26,7 @@ minor version, so add a default branch when you switch on them.
   Success and `.notFound` drop the guest; other failures keep it, and a repeat returns the same
   claim. `MapRouletteClient.getClaimStatus(_:)` reads `GET mobile-claim/{id}` as `ClaimStatus`
   with `ClaimItem`s. `ClaimState`: waiting, queued, running, done, failed.
-- Kotlin: the same phone claim. `MobileSignIn.claimGuest()` returns `GuestClaim` (`claimId`,
+- Kotlin: the same phone claim. `MobileSignIn.claimGuest(environment, transport)` (both optional) returns `GuestClaim` (`claimId`,
   `state`, `pendingCount`, `account`, `isNew`), and `MapRouletteClient.getClaimStatus(claimId)`
   returns `ClaimStatus`. Misuse throws `IllegalStateException`.
 - Kotlin: `TaskFilter.includePending` (default false) and `TaskSummary.pending`. With it,
@@ -43,7 +43,7 @@ minor version, so add a default branch when you switch on them.
   `.moved(latitude:longitude:)`) is for the campaign status read to come (E2). A campaign outcome with id
   `not-here` or `moved` makes the payload invalid. `choiceOutcomes(_:)` is unchanged.
 - Kotlin: the same built-in reports. `ChoiceSubmission.Outcome(ChoiceOutcome.NOT_HERE)`,
-  `ChoiceSubmission.Moved(MovedLocation(lat, lon, MovedLocation.Source.TAP | HERE))`,
+  `ChoiceSubmission.Moved(MovedLocation(latitude, longitude, MovedLocation.Source.TAP | HERE))`,
   `ChoiceProblem.MovedTooFar`, `TaskReport` (`NotHere`, `Moved`) and the `NOT_HERE_ID`/`MOVED_ID`
   constants, with the same bodies, validation and decoder rule as Swift.
 
