@@ -140,9 +140,18 @@ private func guestStatus(_ o: [String: JSONValue]) throws -> GuestStatus {
   guard let state = GuestState(rawValue: try o.required("state").string()),
     let email = GuestEmailState(rawValue: try o.optional("email")?.string() ?? "none")
   else { throw MapRouletteError(.protocolFailure) }
+  // Keys are challenge ids as strings (JSON keys must be strings).
+  var byChallenge: [ChallengeID: ChallengeAnswerCounts] = [:]
+  for (key, value) in try o.optional("byChallenge")?.object() ?? [:] {
+    guard let id = Int64(key), id > 0 else { throw MapRouletteError(.protocolFailure) }
+    let counts = try value.object()
+    byChallenge[try ChallengeID(id)] = try ChallengeAnswerCounts(
+      pending: nonNegative(counts, "pending"), onMap: nonNegative(counts, "onMap"))
+  }
   return try GuestStatus(
     guestID: o.required("guestId").string(), state: state, email: email, pendingCount: Int(pending),
-    publishedCount: Int(published), expiresAt: date(o.required("expiresAt")), claimedAs: claimed)
+    publishedCount: Int(published), expiresAt: date(o.required("expiresAt")), claimedAs: claimed,
+    byChallenge: byChallenge)
 }
 
 private func claimState(_ value: JSONValue) throws -> ClaimState {

@@ -50,6 +50,27 @@ private func date(_ text: String) -> Date { ISO8601DateFormatter().date(from: te
     #expect(await script.requests.allSatisfy { $0.headers["Authorization"] == "Bearer synthetic-guest-token" })
 }
 
+@Test func guestStatusByChallengeDecodes() async throws {
+    let status = try await client(Script([ok(guest["status_by_challenge"]!)])).getGuestStatus()
+    #expect(status.answers(in: try ChallengeID(7)) == ChallengeAnswerCounts(pending: 12, onMap: 3))
+    #expect(status.answers(in: try ChallengeID(9)) == ChallengeAnswerCounts(pending: 2, onMap: 0))
+    #expect(status.answers(in: try ChallengeID(8)) == .zero)
+    // Older backends send no byChallenge.
+    let plain = try await client(Script([ok(guest["status"]!)])).getGuestStatus()
+    #expect(plain.byChallenge.isEmpty)
+    var bad = guest["status_by_challenge"] as! [String: Any]
+    for byChallenge: Any in [["x": ["pending": 1, "onMap": 0]], ["0": ["pending": 1, "onMap": 0]],
+                             ["7": ["pending": -1, "onMap": 0]], ["7": ["pending": 1]]] {
+        bad["byChallenge"] = byChallenge
+        let payload = bad
+        await #expect(throws: MapRouletteError.self) { try await client(Script([ok(payload)])).getGuestStatus() }
+    }
+}
+
+@Test func pendingStateOnMapDecodes() {
+    #expect(PendingState(rawValue: "on_map") == .onMap)
+}
+
 @Test func pendingSubmitPostsCanonicalBodyWithoutLocking() async throws {
     let task = try await slcTask()
     let script = Script([ok(guest["pending_submit"]!)])

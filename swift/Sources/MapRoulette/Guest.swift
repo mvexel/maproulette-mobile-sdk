@@ -15,6 +15,18 @@ public struct ClaimedAccount: Hashable, Sendable {
   }
 }
 
+/// One campaign's share of a guest's answers: still pending, and on the map (OSM carries the
+/// answer's tag, whoever added it).
+public struct ChallengeAnswerCounts: Hashable, Sendable {
+  public let pending: Int
+  public let onMap: Int
+  public static let zero = ChallengeAnswerCounts(pending: 0, onMap: 0)
+  public init(pending: Int, onMap: Int) {
+    self.pending = pending
+    self.onMap = onMap
+  }
+}
+
 /// A guest's status. The email address itself is never returned.
 public struct GuestStatus: Hashable, Sendable {
   public let guestID: String
@@ -26,9 +38,11 @@ public struct GuestStatus: Hashable, Sendable {
   /// When unclaimed answers are deleted; moves forward with each new answer.
   public let expiresAt: Date
   public let claimedAs: ClaimedAccount?
+  /// Per campaign; campaigns without answers are absent (use `answers(in:)`).
+  public let byChallenge: [ChallengeID: ChallengeAnswerCounts]
   public init(
     guestID: String, state: GuestState, email: GuestEmailState, pendingCount: Int, publishedCount: Int,
-    expiresAt: Date, claimedAs: ClaimedAccount? = nil
+    expiresAt: Date, claimedAs: ClaimedAccount? = nil, byChallenge: [ChallengeID: ChallengeAnswerCounts] = [:]
   ) {
     self.guestID = guestID
     self.state = state
@@ -37,12 +51,17 @@ public struct GuestStatus: Hashable, Sendable {
     self.publishedCount = publishedCount
     self.expiresAt = expiresAt
     self.claimedAs = claimedAs
+    self.byChallenge = byChallenge
   }
+  /// The guest's answers in one campaign; zero when it has none.
+  public func answers(in challenge: ChallengeID) -> ChallengeAnswerCounts { byChallenge[challenge] ?? .zero }
 }
 
 /// Where a guest's stored answer is. Only `pending` can still be withdrawn.
 public enum PendingState: String, Hashable, Sendable {
   case pending, published, skippedStale = "skipped_stale", superseded, expired, failed
+  /// A local mapper added it to OSM (the server saw the tag there).
+  case onMap = "on_map"
 }
 
 /// A guest's stored answer for one task. Never an OSM edit until the guest is claimed.

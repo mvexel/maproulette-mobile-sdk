@@ -51,6 +51,27 @@ class GuestTest {
         assertTrue(script.requests.all { it.headers["Authorization"] == "Bearer synthetic-guest-token" })
     }
 
+    @Test fun guestStatusByChallengeDecodes() = runBlocking<Unit> {
+        val status = client(Script(listOf(ok(guest.getValue("status_by_challenge"))))).getGuestStatus()
+        assertEquals(ChallengeAnswerCounts(12, 3), status.answersIn(ChallengeId(7)))
+        assertEquals(ChallengeAnswerCounts(2, 0), status.answersIn(ChallengeId(9)))
+        assertEquals(ChallengeAnswerCounts.ZERO, status.answersIn(ChallengeId(8)))
+        // Older backends send no byChallenge.
+        assertTrue(client(Script(listOf(ok(guest.getValue("status"))))).getGuestStatus().byChallenge.isEmpty())
+        val base = guest.getValue("status_by_challenge").jsonObject
+        for (byChallenge in listOf(
+            """{"x": {"pending": 1, "onMap": 0}}""", """{"0": {"pending": 1, "onMap": 0}}""",
+            """{"7": {"pending": -1, "onMap": 0}}""", """{"7": {"pending": 1}}""",
+        )) {
+            val bad = JsonObject(base + ("byChallenge" to Json.parseToJsonElement(byChallenge)))
+            assertFails { client(Script(listOf(ok(bad)))).getGuestStatus() }
+        }
+    }
+
+    @Test fun pendingStateOnMapIsKnown() {
+        assertEquals(PendingState.ON_MAP, PendingState.entries.single { it.wire == "on_map" })
+    }
+
     @Test fun pendingSubmitPostsCanonicalBodyWithoutLocking() = runBlocking<Unit> {
         val task = slcTask()
         val script = Script(listOf(ok(guest.getValue("pending_submit"))))

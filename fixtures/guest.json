@@ -9,6 +9,17 @@
     "expiresAt": "2026-11-09T18:00:00Z",
     "claimedAs": null
   },
+  "_status_by_challenge": "H1c: per-campaign counts on GET mobile-guest/me, keyed by challenge id as a string; campaigns without answers are absent. published includes answers a local mapper put on the map.",
+  "status_by_challenge": {
+    "guestId": "6f1c2a9e-0000-4000-8000-000000000001",
+    "state": "active",
+    "email": "none",
+    "pending": 14,
+    "published": 3,
+    "expiresAt": "2026-11-09T18:00:00Z",
+    "claimedAs": null,
+    "byChallenge": {"7": {"pending": 12, "onMap": 3}, "9": {"pending": 2, "onMap": 0}}
+  },
   "status_claimed": {
     "guestId": "6f1c2a9e-0000-4000-8000-000000000001",
     "state": "claimed",

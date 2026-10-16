@@ -10,6 +10,12 @@ minor version, so add a default branch when you switch on them.
 
 ## [Unreleased]
 
+### Added
+
+- `GuestStatus.byChallenge` and `answers(in:)` (Kotlin `answersIn`): per-campaign `ChallengeAnswerCounts`
+  (`pending`, `onMap`) from `byChallenge` on `GET mobile-guest/me`. Absent on older backends, which decode as empty.
+- `PendingState.onMap` (Kotlin `ON_MAP`, wire `on_map`): a local mapper added the answer to OSM.
+
 ## [0.3.0] - 2026-10-15
 
 ### Added

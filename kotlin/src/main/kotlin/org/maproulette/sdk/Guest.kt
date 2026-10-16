@@ -11,6 +11,16 @@ enum class GuestEmailState(internal val wire: String) { NONE("none"), PENDING("p
 /** The OSM account a guest's answers were claimed by. */
 data class ClaimedAccount(val displayName: String, val osmId: Long)
 
+/**
+ * One campaign's share of a guest's answers: still pending, and on the map (OSM carries the
+ * answer's tag, whoever added it).
+ */
+data class ChallengeAnswerCounts(val pending: Int, val onMap: Int) {
+    companion object {
+        val ZERO = ChallengeAnswerCounts(0, 0)
+    }
+}
+
 /** A guest's status. The email address itself is never returned. */
 data class GuestStatus(
     val guestId: String,
@@ -22,7 +32,12 @@ data class GuestStatus(
     /** When unclaimed answers are deleted; moves forward with each new answer. */
     val expiresAt: Instant,
     val claimedAs: ClaimedAccount? = null,
-)
+    /** Per campaign; campaigns without answers are absent (use [answersIn]). */
+    val byChallenge: Map<ChallengeId, ChallengeAnswerCounts> = emptyMap(),
+) {
+    /** The guest's answers in one campaign; zero when it has none. */
+    fun answersIn(challenge: ChallengeId): ChallengeAnswerCounts = byChallenge[challenge] ?: ChallengeAnswerCounts.ZERO
+}
 
 /** Where a guest's stored answer is. Only [PENDING] can still be withdrawn. */
 enum class PendingState(internal val wire: String) {
@@ -32,6 +47,9 @@ enum class PendingState(internal val wire: String) {
     SUPERSEDED("superseded"),
     EXPIRED("expired"),
     FAILED("failed"),
+
+    /** A local mapper added it to OSM (the server saw the tag there). */
+    ON_MAP("on_map"),
 }
 
 /** A guest's stored answer for one task. Never an OSM edit until the guest is claimed. */
