@@ -10,11 +10,14 @@ minor version, so add a default branch when you switch on them.
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-10-16
+
 ### Added
 
 - `GuestStatus.byChallenge` and `answers(in:)` (Kotlin `answersIn`): per-campaign `ChallengeAnswerCounts`
   (`pending`, `onMap`) from `byChallenge` on `GET mobile-guest/me`. Absent on older backends, which decode as empty.
-- `PendingState.onMap` (Kotlin `ON_MAP`, wire `on_map`): a local mapper added the answer to OSM.
+- `PendingState.onMap` (Kotlin `ON_MAP`, wire `on_map`): a local mapper added the answer to OSM. A switch
+  over `PendingState` without a default branch needs a case for it.
 
 ## [0.3.0] - 2026-10-15
 
@@ -175,7 +178,8 @@ First release of the Kotlin and Swift SDKs.
   loopback hosts.
 - No DocC catalog for the Swift SDK yet.
 
-[Unreleased]: https://github.com/mvexel/maproulette-mobile-sdk/compare/0.3.0...HEAD
+[Unreleased]: https://github.com/mvexel/maproulette-mobile-sdk/compare/0.4.0...HEAD
+[0.4.0]: https://github.com/mvexel/maproulette-mobile-sdk/compare/0.3.0...0.4.0
 [0.3.0]: https://github.com/mvexel/maproulette-mobile-sdk/compare/0.2.0...0.3.0
 [0.2.0]: https://github.com/mvexel/maproulette-mobile-sdk/compare/0.1.0...0.2.0
 [0.1.0]: https://github.com/mvexel/maproulette-mobile-sdk/releases/tag/0.1.0
