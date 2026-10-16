@@ -866,9 +866,15 @@ private fun guestStatus(value: JsonElement): GuestStatus {
     val claimed = o.objectOrNull("claimedAs")?.let { ClaimedAccount(it.str("displayName"), it.long("osmId")) }
     val state = GuestState.entries.single { it.wire == o.str("state") }
     val email = (o.text("email") ?: "none").let { wire -> GuestEmailState.entries.single { it.wire == wire } }
+    // Keys are challenge ids as strings (JSON keys must be strings).
+    val byChallenge = o.objectOrNull("byChallenge")?.entries?.associate { (key, value) ->
+        val counts = value.obj()
+        ChallengeId(requireNotNull(key.toLongOrNull())) to ChallengeAnswerCounts(count(counts, "pending"), count(counts, "onMap"))
+    } ?: emptyMap()
     return GuestStatus(
         guestId = o.str("guestId"), state = state, email = email, pendingCount = pending.toInt(),
         publishedCount = published.toInt(), expiresAt = instant(o.str("expiresAt")), claimedAs = claimed,
+        byChallenge = byChallenge,
     )
 }
 
