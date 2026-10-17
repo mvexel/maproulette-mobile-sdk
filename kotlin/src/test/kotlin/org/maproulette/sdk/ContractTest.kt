@@ -320,4 +320,42 @@ class ContractTest {
         assertFailsWith<IllegalArgumentException> { invalid.getTask(TaskId(101)) }
     }
 
+    /** Serves [total] box rows, 100 per page, and records which pages were read. */
+    private class BoxPages(val total: Int) : Transport {
+        val pages = java.util.Collections.synchronizedList(mutableListOf<Int>())
+        override suspend fun execute(request: HttpRequest): HttpResponse {
+            val page = request.url.toHttpUrl().queryParameter("page")!!.toInt()
+            pages += page
+            val rows = (page * 100 until minOf(total, page * 100 + 100)).joinToString(",") {
+                """{"id":${1000 + it},"parentId":42,"title":"Bench","status":0,"point":{"lat":52.3,"lng":4.9}}"""
+            }
+            return HttpResponse(200, body = """{"total":$total,"tasks":[$rows]}""")
+        }
+    }
+
+    @Test fun allTasksInBoundsReadsEveryPageUpToTheCap() = runBlocking<Unit> {
+        val filter = TaskFilter(bounds = Bounds(4.0, 52.0, 5.0, 53.0))
+        val wire = BoxPages(250)
+        val ids = mutableListOf<Long>()
+        MapRouletteClient(transport = wire).findAllTasksInBounds(filter, concurrency = 2).collect { page ->
+            assertEquals(250L, page.total); ids += page.items.map { it.id.value }
+        }
+        assertEquals((0 until 250).map { 1000L + it }.toSet(), ids.toSet()); assertEquals(250, ids.size)
+        assertEquals(listOf(0, 1, 2), wire.pages.sorted())
+
+        val capped = BoxPages(1_000)
+        var count = 0
+        MapRouletteClient(transport = capped).findAllTasksInBounds(filter, maxPages = 3).collect { count += it.items.size }
+        assertEquals(300, count); assertEquals(listOf(0, 1, 2), capped.pages.sorted())
+
+        val exact = BoxPages(100)
+        count = 0
+        MapRouletteClient(transport = exact).findAllTasksInBounds(filter).collect { count += it.items.size }
+        assertEquals(100, count); assertEquals(listOf(0), exact.pages.toList(), "total says one page, so no empty second read")
+
+        val client = MapRouletteClient(transport = exact)
+        for ((pages, parallel) in listOf(0 to 4, 1001 to 4, 50 to 0, 50 to 9)) {
+            assertFailsWith<IllegalArgumentException> { client.findAllTasksInBounds(filter, pages, parallel) }
+        }
+    }
 }

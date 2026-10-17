@@ -10,6 +10,12 @@ minor version, so add a default branch when you switch on them.
 
 ## [Unreleased]
 
+### Added
+
+- Kotlin `findAllTasksInBounds(filter, maxPages, concurrency)`: every task in an area as a `Flow` of pages of
+  100, with the same reads and limits as the Swift call. `maxPages` and `concurrency` are checked when called
+  (IllegalArgumentException).
+
 ## [0.4.0] - 2026-10-16
 
 ### Added
