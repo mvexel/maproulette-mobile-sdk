@@ -18,6 +18,14 @@ minor version, so add a default branch when you switch on them.
   means the area has more.
 - Kotlin `findAllTasksInBounds(filter, maxPages, concurrency)`: the same reads and limits as a `Flow` of pages.
   `maxPages` and `concurrency` are checked when called (IllegalArgumentException).
+- `listAllTasks(id, maxPages, concurrency)` on both platforms: every task of a challenge, streamed like
+  `findAllTasksInBounds`. With no total to plan from, pages are read ahead until one comes back short (up to
+  `concurrency - 1` empty reads at the end); `maxPages` full pages means the challenge may have more.
+
+### Changed
+
+- `findAllTasksInBounds` without a `total` now reads ahead in parallel too, instead of one page after another,
+  and neither call yields empty pages.
 
 ## [0.4.0] - 2026-10-16
 

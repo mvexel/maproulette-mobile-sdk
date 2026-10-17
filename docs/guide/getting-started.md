@@ -176,6 +176,12 @@ You should see a few challenge names, then one task with a status such as
 All client methods are `suspend` (Kotlin) or `async throws` (Swift).
 Cancelling the calling coroutine or task cancels the request.
 
+To show a whole campaign, `listAllTasks(id, maxPages, concurrency)` streams
+every task of a challenge in pages of 100, read a few at a time (a Kotlin
+`Flow`, a Swift `AsyncThrowingStream`). Pages arrive unsorted: merge them by
+task id. This read has no total, so `maxPages` full pages (5,000 rows at the
+default 50) means the challenge may have more.
+
 ## 6. Authentication
 
 Anonymous reads need nothing. For the current user, skipping and completing

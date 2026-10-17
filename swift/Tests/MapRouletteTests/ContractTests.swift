@@ -394,3 +394,47 @@ private actor BoxPages: Transport {
         for try await _ in MapRouletteClient(transport: exact).findAllTasksInBounds(filter: filter, maxPages: 0) {}
     }
 }
+
+/// Serves `total` tasks of challenge 42, 100 per page, with no total, and records the pages read.
+private actor ChallengePages: Transport {
+    let total: Int
+    var pages: [Int] = []
+    init(total: Int) { self.total = total }
+    func execute(_ request: HTTPRequest) async throws -> HTTPResponse {
+        let page = Int(query(request, "page") ?? "0")!
+        pages.append(page)
+        let ids = (page * 100)..<max(page * 100, min(total, page * 100 + 100))
+        let rows = ids.map { ["id": 1000 + $0, "parent": 42, "name": "Bench", "status": 0, "geometries": ["type": "FeatureCollection", "features": [Any]()] as [String: Any]] as [String: Any] }
+        return HTTPResponse(status: 200, body: try JSONSerialization.data(withJSONObject: rows))
+    }
+}
+
+@Test func allChallengeTasksReadAheadUntilAShortPage() async throws {
+    let challenge = try ChallengeID(42), other = try ChallengeID(99)
+    let wire = ChallengePages(total: 250)
+    var ids: [Int64] = []
+    for try await page in MapRouletteClient(transport: wire).listAllTasks(challenge, concurrency: 2) {
+        #expect(!page.items.isEmpty); ids += page.items.map(\.id.value)
+    }
+    #expect(Set(ids) == Set((0..<250).map { Int64(1000 + $0) })); #expect(ids.count == 250)
+    // Pages 0...2 hold the rows; at most concurrency - 1 reads go past the short page.
+    let read = await wire.pages
+    #expect(Set([0, 1, 2]).isSubset(of: read) && read.max()! <= 3, "\(read)")
+
+    let capped = ChallengePages(total: 1_000)
+    var count = 0
+    for try await page in MapRouletteClient(transport: capped).listAllTasks(challenge, maxPages: 3) { count += page.items.count }
+    #expect(count == 300); #expect(await capped.pages.sorted() == [0, 1, 2])
+
+    let short = ChallengePages(total: 40)
+    count = 0
+    for try await page in MapRouletteClient(transport: short).listAllTasks(challenge) { count += page.items.count }
+    #expect(count == 40); #expect(await short.pages == [0], "a short first page is the end")
+
+    try await errorKind(.validation) {
+        for try await _ in MapRouletteClient(transport: short).listAllTasks(challenge, concurrency: 9) {}
+    }
+    try await errorKind(.protocolFailure) {
+        for try await _ in MapRouletteClient(transport: short).listAllTasks(other) {}
+    }
+}

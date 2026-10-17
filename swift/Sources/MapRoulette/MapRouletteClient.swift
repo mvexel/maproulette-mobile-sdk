@@ -2,8 +2,9 @@ import Foundation
 
 /// Reads, skip and choice submission, plus the low-level task-lifecycle writes (start, refresh,
 /// release and status 1/2/5/6) behind `@_spi(LowLevelTaskLifecycle)`. No implicit pagination
-/// (except `findAllTasksInBounds`), retries or persistence; writes are never resent, except the
-/// identical choice submission that `submitChoice` documents. Writes go only to environments whose `allowsWrites` is true.
+/// (except `findAllTasksInBounds` and `listAllTasks`), retries or persistence; writes are never
+/// resent, except the identical choice submission that `submitChoice` documents. Writes go only to
+/// environments whose `allowsWrites` is true.
 public final class MapRouletteClient: Sendable {
   /// The deployment this client talks to.
   public let environment: MapRouletteEnvironment
@@ -171,6 +172,31 @@ public final class MapRouletteClient: Sendable {
   public func findAllTasksInBounds(filter: TaskFilter, maxPages: Int = 50, concurrency: Int = 4)
     -> AsyncThrowingStream<Page<TaskSummary>, any Error>
   {
+    allPages(maxPages: maxPages, concurrency: concurrency) { after in
+      try await self.findTasksInBounds(filter: filter, pageSize: 100, after: after)
+    }
+  }
+  /// Every task of challenge `id`, up to `maxPages` pages of 100, read as `findAllTasksInBounds`
+  /// reads them: the first page, then the rest `concurrency` at a time, yielded as they arrive (not
+  /// in server order). This read has no total, so pages are read ahead until one comes back short,
+  /// which can cost up to `concurrency - 1` empty reads at the end. Yielding `maxPages` full pages
+  /// (`maxPages * 100` rows) means the challenge may have more. A task can shift between pages while
+  /// they load: merge by task id. Cancelling the consuming task stops the reads.
+  /// `maxPages` must be 1...1000 and `concurrency` 1...8.
+  public func listAllTasks(_ id: ChallengeID, maxPages: Int = 50, concurrency: Int = 4)
+    -> AsyncThrowingStream<Page<MapRouletteTask>, any Error>
+  {
+    allPages(maxPages: maxPages, concurrency: concurrency) { after in
+      try await self.listTasks(id, pageSize: 100, after: after)
+    }
+  }
+  /// Up to `maxPages` pages of 100 from `read`: the first, then the rest `concurrency` at a time,
+  /// yielded as they arrive. With a `total` the reads are planned from it; without one they go
+  /// ahead until a page comes back short. Empty pages are not yielded.
+  private func allPages<Element: Sendable>(
+    maxPages: Int, concurrency: Int,
+    read: @escaping @Sendable (PageCursor?) async throws -> Page<Element>
+  ) -> AsyncThrowingStream<Page<Element>, any Error> {
     AsyncThrowingStream { continuation in
       let work = Task {
         do {
@@ -178,35 +204,27 @@ public final class MapRouletteClient: Sendable {
             throw MapRouletteError(
               .validation, reason: "maxPages must be 1...1000 and concurrency 1...8")
           }
-          let first = try await findTasksInBounds(filter: filter, pageSize: 100)
+          let first = try await read(nil)
           continuation.yield(first)
           guard let cursor = first.next else { return continuation.finish() }
-          guard let total = first.total else {
-            // No total to plan from: read the rest one after another.
-            var next: PageCursor? = cursor
-            var read = 1
-            while let after = next, read < maxPages {
-              let page = try await findTasksInBounds(filter: filter, pageSize: 100, after: after)
-              continuation.yield(page)
-              next = page.next
-              read += 1
-            }
-            return continuation.finish()
-          }
-          let pages = Int(min((total + 99) / 100, Int64(maxPages)))
-          try await withThrowingTaskGroup(of: Page<TaskSummary>.self) { group in
+          let planned = first.total.map { Int(min(($0 + 99) / 100, Int64(maxPages))) }
+          let pages = planned ?? maxPages
+          try await withThrowingTaskGroup(of: Page<Element>.self) { group in
             var position = 1
             var running = 0
-            while position < pages || running > 0 {
-              while position < pages && running < concurrency {
+            var ended = false
+            while (position < pages && !ended) || running > 0 {
+              while position < pages && !ended && running < concurrency {
                 let after = PageCursor(owner: cursor.owner, key: cursor.key, position: position)
-                group.addTask {
-                  try await self.findTasksInBounds(filter: filter, pageSize: 100, after: after)
-                }
+                group.addTask { try await read(after) }
                 position += 1
                 running += 1
               }
-              if let page = try await group.next() { continuation.yield(page) }
+              if let page = try await group.next() {
+                if !page.items.isEmpty { continuation.yield(page) }
+                // Without a total, a short page is the end: start no more reads.
+                if planned == nil && page.next == nil { ended = true }
+              }
               running -= 1
             }
           }

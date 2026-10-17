@@ -358,4 +358,46 @@ class ContractTest {
             assertFailsWith<IllegalArgumentException> { client.findAllTasksInBounds(filter, pages, parallel) }
         }
     }
+
+    /** Serves [total] tasks of challenge 42, 100 per page, with no total, and records the pages read. */
+    private class ChallengePages(val total: Int) : Transport {
+        val pages = java.util.Collections.synchronizedList(mutableListOf<Int>())
+        override suspend fun execute(request: HttpRequest): HttpResponse {
+            val page = request.url.toHttpUrl().queryParameter("page")!!.toInt()
+            pages += page
+            val rows = (page * 100 until minOf(total, page * 100 + 100)).joinToString(",") {
+                """{"id":${1000 + it},"parent":42,"name":"Bench","status":0,"geometries":{"type":"FeatureCollection","features":[]}}"""
+            }
+            return HttpResponse(200, body = "[$rows]")
+        }
+    }
+
+    @Test fun allChallengeTasksReadAheadUntilAShortPage() = runBlocking<Unit> {
+        val wire = ChallengePages(250)
+        val ids = mutableListOf<Long>()
+        MapRouletteClient(transport = wire).listAllTasks(ChallengeId(42), concurrency = 2).collect { page ->
+            assertTrue(page.items.isNotEmpty()); ids += page.items.map { it.id.value }
+        }
+        assertEquals((0 until 250).map { 1000L + it }.toSet(), ids.toSet()); assertEquals(250, ids.size)
+        // Pages 0..2 hold the rows; at most concurrency - 1 reads go past the short page.
+        assertTrue(wire.pages.containsAll(listOf(0, 1, 2)) && wire.pages.max() <= 3, "${wire.pages}")
+
+        val capped = ChallengePages(1_000)
+        var count = 0
+        MapRouletteClient(transport = capped).listAllTasks(ChallengeId(42), maxPages = 3).collect { count += it.items.size }
+        assertEquals(300, count); assertEquals(listOf(0, 1, 2), capped.pages.sorted())
+
+        val short = ChallengePages(40)
+        count = 0
+        MapRouletteClient(transport = short).listAllTasks(ChallengeId(42)).collect { count += it.items.size }
+        assertEquals(40, count); assertEquals(listOf(0), short.pages.toList(), "a short first page is the end")
+
+        val client = MapRouletteClient(transport = short)
+        for ((pages, parallel) in listOf(0 to 4, 1001 to 4, 50 to 0, 50 to 9)) {
+            assertFailsWith<IllegalArgumentException> { client.listAllTasks(ChallengeId(42), pages, parallel) }
+        }
+        assertEquals(ErrorKind.PROTOCOL, assertFailsWith<MapRouletteException> {
+            MapRouletteClient(transport = short).listAllTasks(ChallengeId(99)).collect {}
+        }.kind)
+    }
 }
