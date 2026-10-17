@@ -539,7 +539,8 @@ class MapRouletteClient(
     }
 
     // Guest calls (deferred sign-up). The client's access token is a guest token (scope `guest`), e.g.
-    // from a [MobileSignIn] guest. Errors carry the server's code in [MapRouletteException.reason]:
+    // from a [MobileSignIn] guest. Errors carry the server's code in [MapRouletteException.reason], as
+    // every server failure does:
     // "guest_claimed" and "task_completed" (CONFLICT), "pending_limit" and "email_rate_limited"
     // (RATE_LIMIT), "mail_unavailable" (SERVER). Calls that change server state need an environment
     // that allows writes, like [submitChoice].
@@ -646,11 +647,7 @@ class MapRouletteClient(
     ): HttpResponse {
         val response = send(path, params, method, body)
         if (response.status in 200..299) return response
-        val base = failure(response, write?.let { writeProblem(it, response) })
-        val code = (errorBody(response)?.get("error") as? JsonPrimitive)?.takeIf { it.isString }?.content
-        throw MapRouletteException(
-            base.kind, base.status, base.retryAfter, base.problem, code?.takeIf { plainCode.matches(it) },
-        )
+        throw failure(response, write?.let { writeProblem(it, response) })
     }
 
     /** The caller's identity. Needs a credential: an API key reads `user/whoami`, a bearer token reads
@@ -792,7 +789,9 @@ class MapRouletteClient(
         val retryAfter = response.headers.entries
             .firstOrNull { it.key.equals("Retry-After", true) }
             ?.value
-        return MapRouletteException(kind, response.status, retryAfter, problem)
+        // The server's error code (e.g. mobile_writes_disabled), only when it is a plain code.
+        val code = (errorBody(response)?.get("error") as? JsonPrimitive)?.takeIf { it.isString }?.content
+        return MapRouletteException(kind, response.status, retryAfter, problem, code?.takeIf { plainCode.matches(it) })
     }
 
     private suspend fun send(path: String, params: Map<String, String> = emptyMap(),
