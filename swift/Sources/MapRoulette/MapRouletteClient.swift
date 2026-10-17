@@ -164,7 +164,9 @@ public final class MapRouletteClient: Sendable {
   /// Every task in `filter.bounds`, up to `maxPages` pages of 100. After the first page, the rest
   /// are read `concurrency` at a time and yielded as they arrive, not in id order, so a list or map
   /// can draw while the rest loads. Each page carries `total`; fewer yielded rows than `total`
-  /// means the area has more than `maxPages` pages. Cancelling the consuming task stops the reads.
+  /// means the area has more than `maxPages` pages. A task that changes status mid-load can shift
+  /// between pages and appear twice or not at all: merge by task id and refresh as usual.
+  /// Cancelling the consuming task stops the reads.
   /// `maxPages` must be 1...1000 and `concurrency` 1...8.
   public func findAllTasksInBounds(filter: TaskFilter, maxPages: Int = 50, concurrency: Int = 4)
     -> AsyncThrowingStream<Page<TaskSummary>, any Error>
