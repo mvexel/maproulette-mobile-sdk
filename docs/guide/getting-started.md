@@ -239,8 +239,8 @@ Two reads take a `TaskFilter` with `Bounds(west, south, east, north)`:
   full result may be truncated: ask the user to zoom in.
 - `findTasksInBounds(filter, pageSize, after)`: sorted pages with a `total`.
   Slower. Use it for lists.
-- Swift `findAllTasksInBounds(filter:maxPages:concurrency:)`: every page of
-  100, read a few at a time and streamed as they arrive (unsorted). Use it to
+- `findAllTasksInBounds(filter, maxPages, concurrency)` (a Swift
+  `AsyncThrowingStream`, a Kotlin `Flow`): every page of 100, read a few at a time and streamed as they arrive (unsorted). Use it to
   show a whole campaign; compare the rows you got with `total` to tell whether
   `maxPages` cut it short. Pages are offsets read in parallel, so a task that
   changes status mid-load can appear twice or be missed: merge pages by task
