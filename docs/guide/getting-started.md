@@ -239,6 +239,12 @@ Two reads take a `TaskFilter` with `Bounds(west, south, east, north)`:
   full result may be truncated: ask the user to zoom in.
 - `findTasksInBounds(filter, pageSize, after)`: sorted pages with a `total`.
   Slower. Use it for lists.
+- `findAllTasksInBounds(filter, maxPages, concurrency)` (a Swift
+  `AsyncThrowingStream`, a Kotlin `Flow`): every page of 100, read a few at a time and streamed as they arrive (unsorted). Use it to
+  show a whole campaign; compare the rows you got with `total` to tell whether
+  `maxPages` cut it short. Pages are offsets read in parallel, so a task that
+  changes status mid-load can appear twice or be missed: merge pages by task
+  id and rely on your regular refresh rather than treating one load as exact.
 
 Both select by task location, not by exact geometry. An empty challenge list
 means all visible challenges. The default statuses are Created, Skipped and
