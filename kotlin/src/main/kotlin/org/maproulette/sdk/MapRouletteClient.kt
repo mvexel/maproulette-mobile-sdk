@@ -7,13 +7,13 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
-import kotlinx.coroutines.sync.withPermit
 import kotlinx.serialization.json.*
+import java.util.concurrent.atomic.AtomicBoolean
 import okhttp3.HttpUrl.Companion.toHttpUrl
 
 /** MapRoulette client: reads, [skipTask] and choice submission, plus the low-level task-lifecycle
  * writes (start, refresh, release and status 1/2/5/6) behind [LowLevelTaskLifecycle]. No storage,
- * implicit pagination (except [findAllTasksInBounds]) or automatic retries; writes are never resent, except the identical choice
+ * implicit pagination (except [findAllTasksInBounds] and [listAllTasks]) or automatic retries; writes are never resent, except the identical choice
  * submission that [submitChoice] documents. Writes go only to environments whose
  * [MapRouletteEnvironment.allowsWrites] is true; others fail with IllegalStateException before sending.
  *
@@ -150,34 +150,18 @@ class MapRouletteClient(
      * draw while the rest loads. Each page carries `total`; fewer collected rows than `total` means the
      * area has more than [maxPages] pages. Cancelling the collector stops the reads.
      * [maxPages] must be 1..1000 and [concurrency] 1..8, checked when called. */
-    fun findAllTasksInBounds(filter: TaskFilter, maxPages: Int = 50, concurrency: Int = 4): Flow<Page<TaskSummary>> {
-        require(maxPages in 1..1000 && concurrency in 1..8) { "maxPages must be 1..1000 and concurrency 1..8" }
-        return channelFlow {
-            val first = findTasksInBounds(filter, ALL_PAGE_SIZE)
-            send(first)
-            val cursor = first.next ?: return@channelFlow
-            val total = first.total
-            if (total == null) {
-                // No total to plan from: read the rest one after another.
-                var next: PageCursor? = cursor
-                var read = 1
-                while (next != null && read < maxPages) {
-                    val page = findTasksInBounds(filter, ALL_PAGE_SIZE, next)
-                    send(page)
-                    next = page.next
-                    read++
-                }
-                return@channelFlow
-            }
-            val pages = minOf((total + ALL_PAGE_SIZE - 1) / ALL_PAGE_SIZE, maxPages.toLong()).toInt()
-            val gate = Semaphore(concurrency)
-            for (position in 1 until pages) launch {
-                gate.withPermit {
-                    send(findTasksInBounds(filter, ALL_PAGE_SIZE, PageCursor(cursor.owner, cursor.key, position)))
-                }
-            }
-        }
-    }
+    fun findAllTasksInBounds(filter: TaskFilter, maxPages: Int = 50, concurrency: Int = 4): Flow<Page<TaskSummary>> =
+        allPages(maxPages, concurrency) { after -> findTasksInBounds(filter, ALL_PAGE_SIZE, after) }
+
+    /** Every task of challenge [id], up to [maxPages] pages of 100, as [findAllTasksInBounds] reads
+     * them: the first page, then the rest [concurrency] at a time, emitted as they arrive (not in
+     * server order). This read has no total, so pages are read ahead until one comes back short, which
+     * can cost up to [concurrency] - 1 empty reads at the end. Collecting [maxPages] full pages
+     * (maxPages × 100 rows) means the challenge may have more. A task can shift between pages while
+     * they load: merge by task id. Cancelling the collector stops the reads.
+     * [maxPages] must be 1..1000 and [concurrency] 1..8, checked when called. */
+    fun listAllTasks(id: ChallengeId, maxPages: Int = 50, concurrency: Int = 4): Flow<Page<Task>> =
+        allPages(maxPages, concurrency) { after -> listTasks(id, ALL_PAGE_SIZE, after) }
 
     /** Bounded, unordered map markers. A full result may be truncated; there is no pagination or total.
      * This read-only backend operation uses PUT and includes tasks locked by other users.
@@ -704,6 +688,37 @@ class MapRouletteClient(
         key?.let { require(it.isNotBlank() && '\r' !in it && '\n' !in it) { "API key is blank or contains a line break" } }
         token?.let { require(it.matches(Regex("[A-Za-z0-9._~+/-]+=*"))) { "access token is not a valid bearer token" } }
         return Credentials(key, token)
+    }
+
+    /** Up to [maxPages] pages of 100 from [read]: the first, then the rest [concurrency] at a time,
+     * emitted as they arrive. With a `total` the reads are planned from it; without one they go ahead
+     * until a page comes back short. Empty pages are not emitted. */
+    private fun <T> allPages(maxPages: Int, concurrency: Int, read: suspend (PageCursor?) -> Page<T>): Flow<Page<T>> {
+        require(maxPages in 1..1000 && concurrency in 1..8) { "maxPages must be 1..1000 and concurrency 1..8" }
+        return channelFlow {
+            val first = read(null)
+            send(first)
+            val cursor = first.next ?: return@channelFlow
+            val planned = first.total?.let { minOf((it + ALL_PAGE_SIZE - 1) / ALL_PAGE_SIZE, maxPages.toLong()).toInt() }
+            val ended = AtomicBoolean(false)
+            val gate = Semaphore(concurrency)
+            for (position in 1 until (planned ?: maxPages)) {
+                gate.acquire()
+                if (ended.get()) {
+                    gate.release()
+                    break
+                }
+                launch {
+                    try {
+                        val page = read(PageCursor(cursor.owner, cursor.key, position))
+                        if (page.items.isNotEmpty()) send(page)
+                        if (planned == null && page.next == null) ended.set(true)
+                    } finally {
+                        gate.release()
+                    }
+                }
+            }
+        }
     }
 
     private suspend fun <T> page(
