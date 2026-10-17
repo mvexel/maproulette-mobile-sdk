@@ -355,3 +355,42 @@ private actor CredentialProbe {
         ["Bearer first-user-token", "Bearer second-user-token", nil, "Bearer second-user-token"])
     #expect(requests.allSatisfy { $0.headers["apiKey"] == nil })
 }
+
+/// Serves `total` box rows, 100 per page, and records which pages were read.
+private actor BoxPages: Transport {
+    let total: Int
+    var pages: [Int] = []
+    init(total: Int) { self.total = total }
+    func execute(_ request: HTTPRequest) async throws -> HTTPResponse {
+        let page = Int(query(request, "page") ?? "0")!
+        pages.append(page)
+        let ids = (page * 100)..<min(total, page * 100 + 100)
+        let rows = ids.map { ["id": 1000 + $0, "parentId": 42, "title": "Bench", "status": 0, "point": ["lat": 52.3, "lng": 4.9]] as [String: Any] }
+        return HTTPResponse(status: 200, body: try JSONSerialization.data(withJSONObject: ["total": total, "tasks": rows]))
+    }
+}
+
+@Test func allTasksInBoundsReadsEveryPageUpToTheCap() async throws {
+    let filter = try TaskFilter(bounds: Bounds(west: 4, south: 52, east: 5, north: 53))
+    let wire = BoxPages(total: 250)
+    var ids: [Int64] = []
+    for try await page in MapRouletteClient(transport: wire).findAllTasksInBounds(filter: filter, concurrency: 2) {
+        #expect(page.total == 250); ids += page.items.map(\.id.value)
+    }
+    #expect(Set(ids) == Set((0..<250).map { Int64(1000 + $0) })); #expect(ids.count == 250)
+    #expect(await wire.pages.sorted() == [0, 1, 2])
+
+    let capped = BoxPages(total: 1_000)
+    var count = 0
+    for try await page in MapRouletteClient(transport: capped).findAllTasksInBounds(filter: filter, maxPages: 3) { count += page.items.count }
+    #expect(count == 300); #expect(await capped.pages.sorted() == [0, 1, 2])
+
+    let exact = BoxPages(total: 100)
+    count = 0
+    for try await page in MapRouletteClient(transport: exact).findAllTasksInBounds(filter: filter) { count += page.items.count }
+    #expect(count == 100); #expect(await exact.pages == [0], "total says one page, so no empty second read")
+
+    try await errorKind(.validation) {
+        for try await _ in MapRouletteClient(transport: exact).findAllTasksInBounds(filter: filter, maxPages: 0) {}
+    }
+}
