@@ -10,6 +10,13 @@ minor version, so add a default branch when you switch on them.
 
 ## [Unreleased]
 
+### Added
+
+- Swift `findAllTasksInBounds(filter:maxPages:concurrency:)`: every task in an area as an `AsyncThrowingStream`
+  of pages of 100. After the first page, the rest (up to `maxPages`, default 50) are read `concurrency` at a time
+  (default 4) and yielded as they arrive, so a list or map can draw while the rest loads. Fewer rows than `total`
+  means the area has more. Kotlin to follow.
+
 ## [0.4.0] - 2026-10-16
 
 ### Added

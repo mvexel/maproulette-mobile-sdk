@@ -1,9 +1,9 @@
 import Foundation
 
 /// Reads, skip and choice submission, plus the low-level task-lifecycle writes (start, refresh,
-/// release and status 1/2/5/6) behind `@_spi(LowLevelTaskLifecycle)`. No implicit pagination,
-/// retries or persistence; writes are never resent, except the identical choice submission that
-/// `submitChoice` documents. Writes go only to environments whose `allowsWrites` is true.
+/// release and status 1/2/5/6) behind `@_spi(LowLevelTaskLifecycle)`. No implicit pagination
+/// (except `findAllTasksInBounds`), retries or persistence; writes are never resent, except the
+/// identical choice submission that `submitChoice` documents. Writes go only to environments whose `allowsWrites` is true.
 public final class MapRouletteClient: Sendable {
   /// The deployment this client talks to.
   public let environment: MapRouletteEnvironment
@@ -160,6 +160,63 @@ public final class MapRouletteClient: Sendable {
       throw MapRouletteError(.protocolFailure)
     }
     return result
+  }
+  /// Every task in `filter.bounds`, up to `maxPages` pages of 100. After the first page, the rest
+  /// are read `concurrency` at a time and yielded as they arrive, not in id order, so a list or map
+  /// can draw while the rest loads. Each page carries `total`; fewer yielded rows than `total`
+  /// means the area has more than `maxPages` pages. A task that changes status mid-load can shift
+  /// between pages and appear twice or not at all: merge by task id and refresh as usual.
+  /// Cancelling the consuming task stops the reads.
+  /// `maxPages` must be 1...1000 and `concurrency` 1...8.
+  public func findAllTasksInBounds(filter: TaskFilter, maxPages: Int = 50, concurrency: Int = 4)
+    -> AsyncThrowingStream<Page<TaskSummary>, any Error>
+  {
+    AsyncThrowingStream { continuation in
+      let work = Task {
+        do {
+          guard (1...1000).contains(maxPages), (1...8).contains(concurrency) else {
+            throw MapRouletteError(
+              .validation, reason: "maxPages must be 1...1000 and concurrency 1...8")
+          }
+          let first = try await findTasksInBounds(filter: filter, pageSize: 100)
+          continuation.yield(first)
+          guard let cursor = first.next else { return continuation.finish() }
+          guard let total = first.total else {
+            // No total to plan from: read the rest one after another.
+            var next: PageCursor? = cursor
+            var read = 1
+            while let after = next, read < maxPages {
+              let page = try await findTasksInBounds(filter: filter, pageSize: 100, after: after)
+              continuation.yield(page)
+              next = page.next
+              read += 1
+            }
+            return continuation.finish()
+          }
+          let pages = Int(min((total + 99) / 100, Int64(maxPages)))
+          try await withThrowingTaskGroup(of: Page<TaskSummary>.self) { group in
+            var position = 1
+            var running = 0
+            while position < pages || running > 0 {
+              while position < pages && running < concurrency {
+                let after = PageCursor(owner: cursor.owner, key: cursor.key, position: position)
+                group.addTask {
+                  try await self.findTasksInBounds(filter: filter, pageSize: 100, after: after)
+                }
+                position += 1
+                running += 1
+              }
+              if let page = try await group.next() { continuation.yield(page) }
+              running -= 1
+            }
+          }
+          continuation.finish()
+        } catch {
+          continuation.finish(throwing: error)
+        }
+      }
+      continuation.onTermination = { _ in work.cancel() }
+    }
   }
   /// Bounded, unordered map markers. A full result may be truncated; no pagination or total.
   /// This read-only backend operation uses PUT and includes tasks locked by other users.
