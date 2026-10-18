@@ -107,10 +107,7 @@ extension MapRouletteClient {
   ) async throws -> HTTPResponse {
     let response = try await send(path, params: params, method: method, body: body)
     if (200...299).contains(response.status) { return response }
-    let base = failure(response, problem: operation.flatMap { writeProblem($0, response) })
-    throw MapRouletteError(
-      base.kind, status: base.status, retryAfter: base.retryAfter, problem: base.problem,
-      reason: errorField(response, "error").flatMap(guestErrorCode))
+    throw failure(response, problem: operation.flatMap { writeProblem($0, response) })
   }
 
   private func parse<T>(_ response: HTTPResponse, _ read: ([String: JSONValue]) throws -> T) throws -> T {
@@ -123,7 +120,7 @@ extension MapRouletteClient {
 }
 
 // Only plain error codes are passed on, never other server text.
-private func guestErrorCode(_ code: String) -> String? {
+func plainErrorCode(_ code: String) -> String? {
   code.range(of: "^[a-z_]{1,40}$", options: .regularExpression) != nil ? code : nil
 }
 

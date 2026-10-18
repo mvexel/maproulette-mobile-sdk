@@ -212,6 +212,22 @@
   {
    "call": "start",
    "status": 403,
+   "body": "gate_403_writes_disabled",
+   "kind": "permission",
+   "problem": "writesPaused",
+   "code": "mobile_writes_disabled"
+  },
+  {
+   "call": "skip",
+   "status": 403,
+   "body": "gate_403_writes_disabled",
+   "kind": "permission",
+   "problem": "writesPaused",
+   "code": "mobile_writes_disabled"
+  },
+  {
+   "call": "start",
+   "status": 403,
    "body": "start_403_other",
    "kind": "permission",
    "problem": "lockedByOtherUser"
@@ -306,6 +322,8 @@
    "body": "gate_401_invalid",
    "kind": "authentication",
    "problem": null
+,
+   "code": "invalid_token"
   },
   {
    "call": "resolve",
