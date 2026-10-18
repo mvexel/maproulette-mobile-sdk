@@ -1,0 +1,15 @@
+{
+  "_comment": "POST /oauth/mobile/revoke.",
+  "recordedFrom": "https://mr-api.osm.lol",
+  "call": "revoke",
+  "args": {},
+  "decode": false,
+  "exchanges": [
+    {
+      "method": "POST",
+      "path": "/oauth/mobile/revoke",
+      "status": 200,
+      "body": null
+    }
+  ]
+}

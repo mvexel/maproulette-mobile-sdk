@@ -1,0 +1,19 @@
+{
+  "_comment": "GET /oauth/mobile/me with a guest token, which has no tasks:read.",
+  "recordedFrom": "https://mr-api.osm.lol",
+  "call": "getCurrentUser",
+  "args": {
+    "credential": "bearer"
+  },
+  "decode": true,
+  "exchanges": [
+    {
+      "method": "GET",
+      "path": "/oauth/mobile/me",
+      "status": 403,
+      "body": {
+        "error": "insufficient_scope"
+      }
+    }
+  ]
+}

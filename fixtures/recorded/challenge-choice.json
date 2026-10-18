@@ -3,33 +3,33 @@
   "recordedFrom": "https://mr-api.osm.lol",
   "call": "getChallenge",
   "args": {
-    "id": 5
+    "id": 3
   },
   "decode": true,
   "exchanges": [
     {
       "method": "GET",
-      "path": "/api/v2/challenge/5",
+      "path": "/api/v2/challenge/3",
       "status": 200,
       "body": {
-        "id": 5,
-        "name": "Woodbine entrance doors",
-        "created": "2026-10-12T00:02:37.166Z",
-        "modified": "2026-10-12T00:08:56.770Z",
+        "id": 3,
+        "name": "Bench details pilot (dev OSM, disposable)",
+        "created": "2026-10-06T17:44:34.443Z",
+        "modified": "2026-10-11T23:32:14.759Z",
         "deleted": false,
         "isGlobal": false,
         "requireConfirmation": false,
         "requireRejectReason": false,
-        "owner": 900004,
+        "owner": 900001,
         "parent": 6,
-        "instruction": "Survey the door at the mapped entrance node. Sets door=* and automatic_door=* only when missing. No geometry changes.",
+        "instruction": "Add backrest, material and capacity to the bench in your editor.",
         "difficulty": 2,
         "enabled": true,
         "featured": false,
         "cooperativeType": 3,
-        "checkinComment": "Street Tally: entrance doors near Woodbine Food Hall #StreetTallyWoodbine https://wiki.openstreetmap.org/wiki/Organised_Editing/Activities/Street_Tally_Woodbine_Entrances",
+        "checkinComment": "Add bench details (backrest, material, capacity) #maproulette",
         "checkinSource": "survey",
-        "requiresLocal": true,
+        "requiresLocal": false,
         "defaultPriority": 0,
         "defaultZoom": 13,
         "minZoom": 1,
@@ -41,10 +41,10 @@
         "paused": false,
         "reviewSetting": 0,
         "completionMetrics": {
-          "total": 16,
-          "available": 16,
-          "fixed": 0,
-          "falsePositive": 0,
+          "total": 8,
+          "available": 1,
+          "fixed": 6,
+          "falsePositive": 1,
           "skipped": 0,
           "deleted": 0,
           "alreadyFixed": 0,
@@ -52,12 +52,12 @@
           "answered": 0,
           "validated": 0,
           "disabled": 0,
-          "tasksRemaining": 16
+          "tasksRemaining": 1
         },
-        "description": "Help map the doors around Woodbine Food Hall. At each entrance, check how the door opens and whether it opens by itself, so people with wheelchairs, strollers or walkers know what to expect.",
+        "description": "Disposable pilot on dev-OSM test benches.",
         "infoLink": "",
         "blurb": "",
-        "popularity": 1791763357,
+        "popularity": 1791627201,
         "overpassQL": "",
         "remoteGeoJson": "",
         "overpassTargetType": "",
@@ -70,13 +70,13 @@
         "taskWidgetLayout": {},
         "status": 3,
         "statusMessage": "",
-        "lastTaskRefresh": "2026-10-12T00:02:44.937Z",
-        "dataOriginDate": "2026-10-12T00:02:37.164Z",
+        "lastTaskRefresh": "2026-10-06T17:44:35.262Z",
+        "dataOriginDate": "2026-10-06T17:44:34.439Z",
         "location": {
           "type": "Point",
           "coordinates": [
-            -111.901496481,
-            40.753135131
+            -111.88416875,
+            40.76116875
           ]
         },
         "bounding": {
@@ -84,29 +84,29 @@
           "coordinates": [
             [
               [
-                -111.9079998,
-                40.7448888
+                -111.8851,
+                40.7605
               ],
               [
-                -111.9079998,
-                40.7631632
+                -111.8851,
+                40.7618
               ],
               [
-                -111.8954832,
-                40.7631632
+                -111.8832,
+                40.7618
               ],
               [
-                -111.8954832,
-                40.7448888
+                -111.8832,
+                40.7605
               ],
               [
-                -111.9079998,
-                40.7448888
+                -111.8851,
+                40.7605
               ]
             ]
           ]
         },
-        "completionPercentage": 0
+        "completionPercentage": 88
       }
     }
   ]

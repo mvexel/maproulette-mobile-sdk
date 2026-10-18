@@ -1,3 +1,5 @@
+@file:OptIn(LowLevelTaskLifecycle::class)
+
 package org.maproulette.sdk
 
 import java.io.File
@@ -48,7 +50,9 @@ class RecordedTest {
 
     /** Runs the recorded call; returns true when the SDK was expected to stop before the last exchange. */
     private suspend fun call(name: String, args: JsonObject, wire: Replay): Boolean {
-        val client = MapRouletteClient(MapRouletteEnvironment.STAGING, wire, accessToken = { "recorded-token" })
+        val client = if (args["credential"]?.jsonPrimitive?.content == "apiKey") {
+            MapRouletteClient(MapRouletteEnvironment.STAGING, wire, apiKey = { "recorded-key" })
+        } else MapRouletteClient(MapRouletteEnvironment.STAGING, wire, accessToken = { "recorded-token" })
         when (name) {
             "searchChallenges" -> client.searchChallenges(pageSize = args.int("pageSize"))
             "getChallenge" -> assertEquals(ChallengeId(args.long("id")), client.getChallenge(ChallengeId(args.long("id"))).id)
@@ -91,6 +95,13 @@ class RecordedTest {
             "listPendingChoices" -> client.listPendingChoices(args.int("pageSize"))
             "withdrawPendingChoice" -> client.withdrawPendingChoice(TaskId(args.long("task")))
             "deleteGuest" -> client.deleteGuest()
+            "setGuestEmail" -> client.setGuestEmail(args.getValue("email").jsonPrimitive.content)
+            "startTask" -> {
+                client.startTask(TaskId(args.long("task")))
+                if (args["release"]?.jsonPrimitive?.boolean == true) client.releaseTask(TaskId(args.long("task")))
+            }
+            "skipTask" -> client.skipTask(TaskId(args.long("task")))
+            "resolveTask" -> client.resolveTask(TaskId(args.long("task")), TaskResolution.entries.first { it.code == args.int("status") })
             "getCurrentUser" -> client.getCurrentUser()
             "checkChoice" -> client.checkChoice(TaskId(args.long("task")))
             else -> fail("no replay for recorded call $name")

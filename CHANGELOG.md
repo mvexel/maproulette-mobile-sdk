@@ -23,7 +23,8 @@ minor version, so add a default branch when you switch on them.
   `concurrency - 1` empty reads at the end); `maxPages` full pages means the challenge may have more.
 - Recorded fixtures: `scripts/record-fixtures.py` saves real dev responses into `fixtures/recorded/`, both suites
   replay every file through the public client, and a nightly workflow re-records against dev and fails on shape
-  drift.
+  drift. Also recorded: token revoke, `whoami` without an API key, `oauth/mobile/me` with a guest token, guest email
+  with no mail provider, and (local runs with a signed-in token only) the task lifecycle writes.
 
 ### Changed
 

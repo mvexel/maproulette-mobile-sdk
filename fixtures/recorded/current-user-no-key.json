@@ -1,0 +1,20 @@
+{
+  "_comment": "GET user/whoami (the API-key identity read) without a valid key.",
+  "recordedFrom": "https://mr-api.osm.lol",
+  "call": "getCurrentUser",
+  "args": {
+    "credential": "apiKey"
+  },
+  "decode": true,
+  "exchanges": [
+    {
+      "method": "GET",
+      "path": "/api/v2/user/whoami",
+      "status": 401,
+      "body": {
+        "status": "NotAuthorized",
+        "message": "Authorization failed (server replied with a 401). This can happen if the consumer key was not correct or the signatures did not match."
+      }
+    }
+  ]
+}
