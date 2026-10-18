@@ -1,0 +1,17 @@
+{
+  "_comment": "DELETE task/:id/choice/pending.",
+  "recordedFrom": "https://mr-api.osm.lol",
+  "call": "withdrawPendingChoice",
+  "args": {
+    "task": 222
+  },
+  "decode": true,
+  "exchanges": [
+    {
+      "method": "DELETE",
+      "path": "/api/v2/task/222/choice/pending",
+      "status": 204,
+      "body": null
+    }
+  ]
+}

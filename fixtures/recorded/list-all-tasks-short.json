@@ -1,0 +1,2270 @@
+{
+  "_comment": "listAllTasks on a challenge with fewer than 100 tasks: one short page.",
+  "recordedFrom": "https://mr-api.osm.lol",
+  "call": "listAllTasks",
+  "args": {
+    "id": 5,
+    "concurrency": 1
+  },
+  "decode": true,
+  "exchanges": [
+    {
+      "method": "GET",
+      "path": "/api/v2/challenge/5/tasks",
+      "query": {
+        "limit": "100",
+        "page": "0"
+      },
+      "status": 200,
+      "body": [
+        {
+          "id": 192,
+          "name": "node/14178183367",
+          "created": "2026-10-12T00:02:44.346Z",
+          "modified": "2026-10-12T00:02:44.346Z",
+          "parent": 5,
+          "instruction": "",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -111.906812,
+              40.7538166
+            ]
+          },
+          "geometries": {
+            "type": "FeatureCollection",
+            "features": [
+              {
+                "type": "Feature",
+                "geometry": {
+                  "type": "Point",
+                  "coordinates": [
+                    -111.906812,
+                    40.7538166
+                  ]
+                },
+                "properties": {
+                  "@id": "node/14178183367",
+                  "entrance": "main"
+                }
+              }
+            ]
+          },
+          "cooperativeWork": {
+            "meta": {
+              "type": 3,
+              "version": 2,
+              "choiceVersion": 1
+            },
+            "match": {
+              "entrance": "main"
+            },
+            "element": "node/14178183367",
+            "outcomes": [
+              {
+                "id": "no-door",
+                "label": "There's no door",
+                "status": 6,
+                "description": "It's an open doorway or a gate."
+              }
+            ],
+            "questions": [
+              {
+                "id": "door-type",
+                "expect": {
+                  "door": null
+                },
+                "prompt": "How does this door open?",
+                "options": [
+                  {
+                    "id": "hinged",
+                    "label": "Swings open",
+                    "setTags": {
+                      "door": "hinged"
+                    }
+                  },
+                  {
+                    "id": "sliding",
+                    "label": "Slides sideways",
+                    "setTags": {
+                      "door": "sliding"
+                    }
+                  },
+                  {
+                    "id": "revolving",
+                    "label": "Revolves",
+                    "setTags": {
+                      "door": "revolving"
+                    }
+                  },
+                  {
+                    "id": "folding",
+                    "label": "Folds",
+                    "setTags": {
+                      "door": "folding"
+                    }
+                  }
+                ],
+                "description": "Look only at the door at this entrance."
+              },
+              {
+                "id": "automatic-opening",
+                "expect": {
+                  "automatic_door": null
+                },
+                "prompt": "Does it open by itself?",
+                "options": [
+                  {
+                    "id": "no",
+                    "label": "No, you push or pull it",
+                    "setTags": {
+                      "automatic_door": "no"
+                    }
+                  },
+                  {
+                    "id": "button",
+                    "label": "Yes, with a button",
+                    "setTags": {
+                      "automatic_door": "button"
+                    }
+                  },
+                  {
+                    "id": "motion",
+                    "label": "Yes, when you walk up",
+                    "setTags": {
+                      "automatic_door": "motion"
+                    }
+                  },
+                  {
+                    "id": "yes",
+                    "label": "Yes, not sure how",
+                    "setTags": {
+                      "automatic_door": "yes"
+                    }
+                  }
+                ],
+                "description": "A door that's propped open doesn't count."
+              }
+            ],
+            "liveMissingQuestions": true
+          },
+          "status": 0,
+          "mappedOn": null,
+          "completedTimeSpent": null,
+          "completedBy": null,
+          "review": {},
+          "priority": 0,
+          "changesetId": -1,
+          "completionResponses": null,
+          "bundleId": null,
+          "isBundlePrimary": null,
+          "mapillaryImages": null,
+          "errorTags": "",
+          "skipCount": 0,
+          "archived": false,
+          "tags": []
+        },
+        {
+          "id": 193,
+          "name": "node/14178183369",
+          "created": "2026-10-12T00:02:44.431Z",
+          "modified": "2026-10-12T00:02:44.431Z",
+          "parent": 5,
+          "instruction": "",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -111.9068124,
+              40.7535743
+            ]
+          },
+          "geometries": {
+            "type": "FeatureCollection",
+            "features": [
+              {
+                "type": "Feature",
+                "geometry": {
+                  "type": "Point",
+                  "coordinates": [
+                    -111.9068124,
+                    40.7535743
+                  ]
+                },
+                "properties": {
+                  "@id": "node/14178183369",
+                  "entrance": "yes"
+                }
+              }
+            ]
+          },
+          "cooperativeWork": {
+            "meta": {
+              "type": 3,
+              "version": 2,
+              "choiceVersion": 1
+            },
+            "match": {
+              "entrance": "yes"
+            },
+            "element": "node/14178183369",
+            "outcomes": [
+              {
+                "id": "no-door",
+                "label": "There's no door",
+                "status": 6,
+                "description": "It's an open doorway or a gate."
+              }
+            ],
+            "questions": [
+              {
+                "id": "door-type",
+                "expect": {
+                  "door": null
+                },
+                "prompt": "How does this door open?",
+                "options": [
+                  {
+                    "id": "hinged",
+                    "label": "Swings open",
+                    "setTags": {
+                      "door": "hinged"
+                    }
+                  },
+                  {
+                    "id": "sliding",
+                    "label": "Slides sideways",
+                    "setTags": {
+                      "door": "sliding"
+                    }
+                  },
+                  {
+                    "id": "revolving",
+                    "label": "Revolves",
+                    "setTags": {
+                      "door": "revolving"
+                    }
+                  },
+                  {
+                    "id": "folding",
+                    "label": "Folds",
+                    "setTags": {
+                      "door": "folding"
+                    }
+                  }
+                ],
+                "description": "Look only at the door at this entrance."
+              },
+              {
+                "id": "automatic-opening",
+                "expect": {
+                  "automatic_door": null
+                },
+                "prompt": "Does it open by itself?",
+                "options": [
+                  {
+                    "id": "no",
+                    "label": "No, you push or pull it",
+                    "setTags": {
+                      "automatic_door": "no"
+                    }
+                  },
+                  {
+                    "id": "button",
+                    "label": "Yes, with a button",
+                    "setTags": {
+                      "automatic_door": "button"
+                    }
+                  },
+                  {
+                    "id": "motion",
+                    "label": "Yes, when you walk up",
+                    "setTags": {
+                      "automatic_door": "motion"
+                    }
+                  },
+                  {
+                    "id": "yes",
+                    "label": "Yes, not sure how",
+                    "setTags": {
+                      "automatic_door": "yes"
+                    }
+                  }
+                ],
+                "description": "A door that's propped open doesn't count."
+              }
+            ],
+            "liveMissingQuestions": true
+          },
+          "status": 0,
+          "mappedOn": null,
+          "completedTimeSpent": null,
+          "completedBy": null,
+          "review": {},
+          "priority": 0,
+          "changesetId": -1,
+          "completionResponses": null,
+          "bundleId": null,
+          "isBundlePrimary": null,
+          "mapillaryImages": null,
+          "errorTags": "",
+          "skipCount": 0,
+          "archived": false,
+          "tags": []
+        },
+        {
+          "id": 194,
+          "name": "node/14178183390",
+          "created": "2026-10-12T00:02:44.456Z",
+          "modified": "2026-10-12T00:02:44.456Z",
+          "parent": 5,
+          "instruction": "",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -111.9056331,
+              40.7527671
+            ]
+          },
+          "geometries": {
+            "type": "FeatureCollection",
+            "features": [
+              {
+                "type": "Feature",
+                "geometry": {
+                  "type": "Point",
+                  "coordinates": [
+                    -111.9056331,
+                    40.7527671
+                  ]
+                },
+                "properties": {
+                  "@id": "node/14178183390",
+                  "entrance": "main"
+                }
+              }
+            ]
+          },
+          "cooperativeWork": {
+            "meta": {
+              "type": 3,
+              "version": 2,
+              "choiceVersion": 1
+            },
+            "match": {
+              "entrance": "main"
+            },
+            "element": "node/14178183390",
+            "outcomes": [
+              {
+                "id": "no-door",
+                "label": "There's no door",
+                "status": 6,
+                "description": "It's an open doorway or a gate."
+              }
+            ],
+            "questions": [
+              {
+                "id": "door-type",
+                "expect": {
+                  "door": null
+                },
+                "prompt": "How does this door open?",
+                "options": [
+                  {
+                    "id": "hinged",
+                    "label": "Swings open",
+                    "setTags": {
+                      "door": "hinged"
+                    }
+                  },
+                  {
+                    "id": "sliding",
+                    "label": "Slides sideways",
+                    "setTags": {
+                      "door": "sliding"
+                    }
+                  },
+                  {
+                    "id": "revolving",
+                    "label": "Revolves",
+                    "setTags": {
+                      "door": "revolving"
+                    }
+                  },
+                  {
+                    "id": "folding",
+                    "label": "Folds",
+                    "setTags": {
+                      "door": "folding"
+                    }
+                  }
+                ],
+                "description": "Look only at the door at this entrance."
+              },
+              {
+                "id": "automatic-opening",
+                "expect": {
+                  "automatic_door": null
+                },
+                "prompt": "Does it open by itself?",
+                "options": [
+                  {
+                    "id": "no",
+                    "label": "No, you push or pull it",
+                    "setTags": {
+                      "automatic_door": "no"
+                    }
+                  },
+                  {
+                    "id": "button",
+                    "label": "Yes, with a button",
+                    "setTags": {
+                      "automatic_door": "button"
+                    }
+                  },
+                  {
+                    "id": "motion",
+                    "label": "Yes, when you walk up",
+                    "setTags": {
+                      "automatic_door": "motion"
+                    }
+                  },
+                  {
+                    "id": "yes",
+                    "label": "Yes, not sure how",
+                    "setTags": {
+                      "automatic_door": "yes"
+                    }
+                  }
+                ],
+                "description": "A door that's propped open doesn't count."
+              }
+            ],
+            "liveMissingQuestions": true
+          },
+          "status": 0,
+          "mappedOn": null,
+          "completedTimeSpent": null,
+          "completedBy": null,
+          "review": {},
+          "priority": 0,
+          "changesetId": -1,
+          "completionResponses": null,
+          "bundleId": null,
+          "isBundlePrimary": null,
+          "mapillaryImages": null,
+          "errorTags": "",
+          "skipCount": 0,
+          "archived": false,
+          "tags": []
+        },
+        {
+          "id": 195,
+          "name": "node/10290204107",
+          "created": "2026-10-12T00:02:44.492Z",
+          "modified": "2026-10-12T00:02:44.492Z",
+          "parent": 5,
+          "instruction": "",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -111.9078998,
+              40.7561096
+            ]
+          },
+          "geometries": {
+            "type": "FeatureCollection",
+            "features": [
+              {
+                "type": "Feature",
+                "geometry": {
+                  "type": "Point",
+                  "coordinates": [
+                    -111.9078998,
+                    40.7561096
+                  ]
+                },
+                "properties": {
+                  "@id": "node/10290204107",
+                  "entrance": "yes"
+                }
+              }
+            ]
+          },
+          "cooperativeWork": {
+            "meta": {
+              "type": 3,
+              "version": 2,
+              "choiceVersion": 1
+            },
+            "match": {
+              "entrance": "yes"
+            },
+            "element": "node/10290204107",
+            "outcomes": [
+              {
+                "id": "no-door",
+                "label": "There's no door",
+                "status": 6,
+                "description": "It's an open doorway or a gate."
+              }
+            ],
+            "questions": [
+              {
+                "id": "door-type",
+                "expect": {
+                  "door": null
+                },
+                "prompt": "How does this door open?",
+                "options": [
+                  {
+                    "id": "hinged",
+                    "label": "Swings open",
+                    "setTags": {
+                      "door": "hinged"
+                    }
+                  },
+                  {
+                    "id": "sliding",
+                    "label": "Slides sideways",
+                    "setTags": {
+                      "door": "sliding"
+                    }
+                  },
+                  {
+                    "id": "revolving",
+                    "label": "Revolves",
+                    "setTags": {
+                      "door": "revolving"
+                    }
+                  },
+                  {
+                    "id": "folding",
+                    "label": "Folds",
+                    "setTags": {
+                      "door": "folding"
+                    }
+                  }
+                ],
+                "description": "Look only at the door at this entrance."
+              },
+              {
+                "id": "automatic-opening",
+                "expect": {
+                  "automatic_door": null
+                },
+                "prompt": "Does it open by itself?",
+                "options": [
+                  {
+                    "id": "no",
+                    "label": "No, you push or pull it",
+                    "setTags": {
+                      "automatic_door": "no"
+                    }
+                  },
+                  {
+                    "id": "button",
+                    "label": "Yes, with a button",
+                    "setTags": {
+                      "automatic_door": "button"
+                    }
+                  },
+                  {
+                    "id": "motion",
+                    "label": "Yes, when you walk up",
+                    "setTags": {
+                      "automatic_door": "motion"
+                    }
+                  },
+                  {
+                    "id": "yes",
+                    "label": "Yes, not sure how",
+                    "setTags": {
+                      "automatic_door": "yes"
+                    }
+                  }
+                ],
+                "description": "A door that's propped open doesn't count."
+              }
+            ],
+            "liveMissingQuestions": true
+          },
+          "status": 0,
+          "mappedOn": null,
+          "completedTimeSpent": null,
+          "completedBy": null,
+          "review": {},
+          "priority": 0,
+          "changesetId": -1,
+          "completionResponses": null,
+          "bundleId": null,
+          "isBundlePrimary": null,
+          "mapillaryImages": null,
+          "errorTags": "",
+          "skipCount": 0,
+          "archived": false,
+          "tags": []
+        },
+        {
+          "id": 196,
+          "name": "node/12790552134",
+          "created": "2026-10-12T00:02:44.543Z",
+          "modified": "2026-10-12T00:02:44.543Z",
+          "parent": 5,
+          "instruction": "",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -111.9015878,
+              40.7565212
+            ]
+          },
+          "geometries": {
+            "type": "FeatureCollection",
+            "features": [
+              {
+                "type": "Feature",
+                "geometry": {
+                  "type": "Point",
+                  "coordinates": [
+                    -111.9015878,
+                    40.7565212
+                  ]
+                },
+                "properties": {
+                  "@id": "node/12790552134",
+                  "entrance": "yes"
+                }
+              }
+            ]
+          },
+          "cooperativeWork": {
+            "meta": {
+              "type": 3,
+              "version": 2,
+              "choiceVersion": 1
+            },
+            "match": {
+              "entrance": "yes"
+            },
+            "element": "node/12790552134",
+            "outcomes": [
+              {
+                "id": "no-door",
+                "label": "There's no door",
+                "status": 6,
+                "description": "It's an open doorway or a gate."
+              }
+            ],
+            "questions": [
+              {
+                "id": "door-type",
+                "expect": {
+                  "door": null
+                },
+                "prompt": "How does this door open?",
+                "options": [
+                  {
+                    "id": "hinged",
+                    "label": "Swings open",
+                    "setTags": {
+                      "door": "hinged"
+                    }
+                  },
+                  {
+                    "id": "sliding",
+                    "label": "Slides sideways",
+                    "setTags": {
+                      "door": "sliding"
+                    }
+                  },
+                  {
+                    "id": "revolving",
+                    "label": "Revolves",
+                    "setTags": {
+                      "door": "revolving"
+                    }
+                  },
+                  {
+                    "id": "folding",
+                    "label": "Folds",
+                    "setTags": {
+                      "door": "folding"
+                    }
+                  }
+                ],
+                "description": "Look only at the door at this entrance."
+              },
+              {
+                "id": "automatic-opening",
+                "expect": {
+                  "automatic_door": null
+                },
+                "prompt": "Does it open by itself?",
+                "options": [
+                  {
+                    "id": "no",
+                    "label": "No, you push or pull it",
+                    "setTags": {
+                      "automatic_door": "no"
+                    }
+                  },
+                  {
+                    "id": "button",
+                    "label": "Yes, with a button",
+                    "setTags": {
+                      "automatic_door": "button"
+                    }
+                  },
+                  {
+                    "id": "motion",
+                    "label": "Yes, when you walk up",
+                    "setTags": {
+                      "automatic_door": "motion"
+                    }
+                  },
+                  {
+                    "id": "yes",
+                    "label": "Yes, not sure how",
+                    "setTags": {
+                      "automatic_door": "yes"
+                    }
+                  }
+                ],
+                "description": "A door that's propped open doesn't count."
+              }
+            ],
+            "liveMissingQuestions": true
+          },
+          "status": 0,
+          "mappedOn": null,
+          "completedTimeSpent": null,
+          "completedBy": null,
+          "review": {},
+          "priority": 0,
+          "changesetId": -1,
+          "completionResponses": null,
+          "bundleId": null,
+          "isBundlePrimary": null,
+          "mapillaryImages": null,
+          "errorTags": "",
+          "skipCount": 0,
+          "archived": false,
+          "tags": []
+        },
+        {
+          "id": 197,
+          "name": "node/13689903758",
+          "created": "2026-10-12T00:02:44.565Z",
+          "modified": "2026-10-12T00:02:44.565Z",
+          "parent": 5,
+          "instruction": "",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -111.9005183,
+              40.7521289
+            ]
+          },
+          "geometries": {
+            "type": "FeatureCollection",
+            "features": [
+              {
+                "type": "Feature",
+                "geometry": {
+                  "type": "Point",
+                  "coordinates": [
+                    -111.9005183,
+                    40.7521289
+                  ]
+                },
+                "properties": {
+                  "@id": "node/13689903758",
+                  "entrance": "main"
+                }
+              }
+            ]
+          },
+          "cooperativeWork": {
+            "meta": {
+              "type": 3,
+              "version": 2,
+              "choiceVersion": 1
+            },
+            "match": {
+              "entrance": "main"
+            },
+            "element": "node/13689903758",
+            "outcomes": [
+              {
+                "id": "no-door",
+                "label": "There's no door",
+                "status": 6,
+                "description": "It's an open doorway or a gate."
+              }
+            ],
+            "questions": [
+              {
+                "id": "door-type",
+                "expect": {
+                  "door": null
+                },
+                "prompt": "How does this door open?",
+                "options": [
+                  {
+                    "id": "hinged",
+                    "label": "Swings open",
+                    "setTags": {
+                      "door": "hinged"
+                    }
+                  },
+                  {
+                    "id": "sliding",
+                    "label": "Slides sideways",
+                    "setTags": {
+                      "door": "sliding"
+                    }
+                  },
+                  {
+                    "id": "revolving",
+                    "label": "Revolves",
+                    "setTags": {
+                      "door": "revolving"
+                    }
+                  },
+                  {
+                    "id": "folding",
+                    "label": "Folds",
+                    "setTags": {
+                      "door": "folding"
+                    }
+                  }
+                ],
+                "description": "Look only at the door at this entrance."
+              },
+              {
+                "id": "automatic-opening",
+                "expect": {
+                  "automatic_door": null
+                },
+                "prompt": "Does it open by itself?",
+                "options": [
+                  {
+                    "id": "no",
+                    "label": "No, you push or pull it",
+                    "setTags": {
+                      "automatic_door": "no"
+                    }
+                  },
+                  {
+                    "id": "button",
+                    "label": "Yes, with a button",
+                    "setTags": {
+                      "automatic_door": "button"
+                    }
+                  },
+                  {
+                    "id": "motion",
+                    "label": "Yes, when you walk up",
+                    "setTags": {
+                      "automatic_door": "motion"
+                    }
+                  },
+                  {
+                    "id": "yes",
+                    "label": "Yes, not sure how",
+                    "setTags": {
+                      "automatic_door": "yes"
+                    }
+                  }
+                ],
+                "description": "A door that's propped open doesn't count."
+              }
+            ],
+            "liveMissingQuestions": true
+          },
+          "status": 0,
+          "mappedOn": null,
+          "completedTimeSpent": null,
+          "completedBy": null,
+          "review": {},
+          "priority": 0,
+          "changesetId": -1,
+          "completionResponses": null,
+          "bundleId": null,
+          "isBundlePrimary": null,
+          "mapillaryImages": null,
+          "errorTags": "",
+          "skipCount": 0,
+          "archived": false,
+          "tags": []
+        },
+        {
+          "id": 198,
+          "name": "node/13302228244",
+          "created": "2026-10-12T00:02:44.606Z",
+          "modified": "2026-10-12T00:02:44.606Z",
+          "parent": 5,
+          "instruction": "",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -111.9015054,
+              40.7567798
+            ]
+          },
+          "geometries": {
+            "type": "FeatureCollection",
+            "features": [
+              {
+                "type": "Feature",
+                "geometry": {
+                  "type": "Point",
+                  "coordinates": [
+                    -111.9015054,
+                    40.7567798
+                  ]
+                },
+                "properties": {
+                  "@id": "node/13302228244",
+                  "entrance": "yes"
+                }
+              }
+            ]
+          },
+          "cooperativeWork": {
+            "meta": {
+              "type": 3,
+              "version": 2,
+              "choiceVersion": 1
+            },
+            "match": {
+              "entrance": "yes"
+            },
+            "element": "node/13302228244",
+            "outcomes": [
+              {
+                "id": "no-door",
+                "label": "There's no door",
+                "status": 6,
+                "description": "It's an open doorway or a gate."
+              }
+            ],
+            "questions": [
+              {
+                "id": "door-type",
+                "expect": {
+                  "door": null
+                },
+                "prompt": "How does this door open?",
+                "options": [
+                  {
+                    "id": "hinged",
+                    "label": "Swings open",
+                    "setTags": {
+                      "door": "hinged"
+                    }
+                  },
+                  {
+                    "id": "sliding",
+                    "label": "Slides sideways",
+                    "setTags": {
+                      "door": "sliding"
+                    }
+                  },
+                  {
+                    "id": "revolving",
+                    "label": "Revolves",
+                    "setTags": {
+                      "door": "revolving"
+                    }
+                  },
+                  {
+                    "id": "folding",
+                    "label": "Folds",
+                    "setTags": {
+                      "door": "folding"
+                    }
+                  }
+                ],
+                "description": "Look only at the door at this entrance."
+              },
+              {
+                "id": "automatic-opening",
+                "expect": {
+                  "automatic_door": null
+                },
+                "prompt": "Does it open by itself?",
+                "options": [
+                  {
+                    "id": "no",
+                    "label": "No, you push or pull it",
+                    "setTags": {
+                      "automatic_door": "no"
+                    }
+                  },
+                  {
+                    "id": "button",
+                    "label": "Yes, with a button",
+                    "setTags": {
+                      "automatic_door": "button"
+                    }
+                  },
+                  {
+                    "id": "motion",
+                    "label": "Yes, when you walk up",
+                    "setTags": {
+                      "automatic_door": "motion"
+                    }
+                  },
+                  {
+                    "id": "yes",
+                    "label": "Yes, not sure how",
+                    "setTags": {
+                      "automatic_door": "yes"
+                    }
+                  }
+                ],
+                "description": "A door that's propped open doesn't count."
+              }
+            ],
+            "liveMissingQuestions": true
+          },
+          "status": 0,
+          "mappedOn": null,
+          "completedTimeSpent": null,
+          "completedBy": null,
+          "review": {},
+          "priority": 0,
+          "changesetId": -1,
+          "completionResponses": null,
+          "bundleId": null,
+          "isBundlePrimary": null,
+          "mapillaryImages": null,
+          "errorTags": "",
+          "skipCount": 0,
+          "archived": false,
+          "tags": []
+        },
+        {
+          "id": 199,
+          "name": "node/14013712692",
+          "created": "2026-10-12T00:02:44.633Z",
+          "modified": "2026-10-12T00:02:44.633Z",
+          "parent": 5,
+          "instruction": "",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -111.8991422,
+              40.7558555
+            ]
+          },
+          "geometries": {
+            "type": "FeatureCollection",
+            "features": [
+              {
+                "type": "Feature",
+                "geometry": {
+                  "type": "Point",
+                  "coordinates": [
+                    -111.8991422,
+                    40.7558555
+                  ]
+                },
+                "properties": {
+                  "@id": "node/14013712692",
+                  "door": "automatic",
+                  "entrance": "main"
+                }
+              }
+            ]
+          },
+          "cooperativeWork": {
+            "meta": {
+              "type": 3,
+              "version": 2,
+              "choiceVersion": 1
+            },
+            "match": {
+              "entrance": "main"
+            },
+            "element": "node/14013712692",
+            "outcomes": [
+              {
+                "id": "no-door",
+                "label": "There's no door",
+                "status": 6,
+                "description": "It's an open doorway or a gate."
+              }
+            ],
+            "questions": [
+              {
+                "id": "automatic-opening",
+                "expect": {
+                  "automatic_door": null
+                },
+                "prompt": "Does it open by itself?",
+                "options": [
+                  {
+                    "id": "no",
+                    "label": "No, you push or pull it",
+                    "setTags": {
+                      "automatic_door": "no"
+                    }
+                  },
+                  {
+                    "id": "button",
+                    "label": "Yes, with a button",
+                    "setTags": {
+                      "automatic_door": "button"
+                    }
+                  },
+                  {
+                    "id": "motion",
+                    "label": "Yes, when you walk up",
+                    "setTags": {
+                      "automatic_door": "motion"
+                    }
+                  },
+                  {
+                    "id": "yes",
+                    "label": "Yes, not sure how",
+                    "setTags": {
+                      "automatic_door": "yes"
+                    }
+                  }
+                ],
+                "description": "A door that's propped open doesn't count."
+              }
+            ],
+            "liveMissingQuestions": true
+          },
+          "status": 0,
+          "mappedOn": null,
+          "completedTimeSpent": null,
+          "completedBy": null,
+          "review": {},
+          "priority": 0,
+          "changesetId": -1,
+          "completionResponses": null,
+          "bundleId": null,
+          "isBundlePrimary": null,
+          "mapillaryImages": null,
+          "errorTags": "",
+          "skipCount": 0,
+          "archived": false,
+          "tags": []
+        },
+        {
+          "id": 200,
+          "name": "node/10290204100",
+          "created": "2026-10-12T00:02:44.676Z",
+          "modified": "2026-10-12T00:02:44.676Z",
+          "parent": 5,
+          "instruction": "",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -111.9004649,
+              40.7580994
+            ]
+          },
+          "geometries": {
+            "type": "FeatureCollection",
+            "features": [
+              {
+                "type": "Feature",
+                "geometry": {
+                  "type": "Point",
+                  "coordinates": [
+                    -111.9004649,
+                    40.7580994
+                  ]
+                },
+                "properties": {
+                  "@id": "node/10290204100",
+                  "entrance": "main"
+                }
+              }
+            ]
+          },
+          "cooperativeWork": {
+            "meta": {
+              "type": 3,
+              "version": 2,
+              "choiceVersion": 1
+            },
+            "match": {
+              "entrance": "main"
+            },
+            "element": "node/10290204100",
+            "outcomes": [
+              {
+                "id": "no-door",
+                "label": "There's no door",
+                "status": 6,
+                "description": "It's an open doorway or a gate."
+              }
+            ],
+            "questions": [
+              {
+                "id": "door-type",
+                "expect": {
+                  "door": null
+                },
+                "prompt": "How does this door open?",
+                "options": [
+                  {
+                    "id": "hinged",
+                    "label": "Swings open",
+                    "setTags": {
+                      "door": "hinged"
+                    }
+                  },
+                  {
+                    "id": "sliding",
+                    "label": "Slides sideways",
+                    "setTags": {
+                      "door": "sliding"
+                    }
+                  },
+                  {
+                    "id": "revolving",
+                    "label": "Revolves",
+                    "setTags": {
+                      "door": "revolving"
+                    }
+                  },
+                  {
+                    "id": "folding",
+                    "label": "Folds",
+                    "setTags": {
+                      "door": "folding"
+                    }
+                  }
+                ],
+                "description": "Look only at the door at this entrance."
+              },
+              {
+                "id": "automatic-opening",
+                "expect": {
+                  "automatic_door": null
+                },
+                "prompt": "Does it open by itself?",
+                "options": [
+                  {
+                    "id": "no",
+                    "label": "No, you push or pull it",
+                    "setTags": {
+                      "automatic_door": "no"
+                    }
+                  },
+                  {
+                    "id": "button",
+                    "label": "Yes, with a button",
+                    "setTags": {
+                      "automatic_door": "button"
+                    }
+                  },
+                  {
+                    "id": "motion",
+                    "label": "Yes, when you walk up",
+                    "setTags": {
+                      "automatic_door": "motion"
+                    }
+                  },
+                  {
+                    "id": "yes",
+                    "label": "Yes, not sure how",
+                    "setTags": {
+                      "automatic_door": "yes"
+                    }
+                  }
+                ],
+                "description": "A door that's propped open doesn't count."
+              }
+            ],
+            "liveMissingQuestions": true
+          },
+          "status": 0,
+          "mappedOn": null,
+          "completedTimeSpent": null,
+          "completedBy": null,
+          "review": {},
+          "priority": 0,
+          "changesetId": -1,
+          "completionResponses": null,
+          "bundleId": null,
+          "isBundlePrimary": null,
+          "mapillaryImages": null,
+          "errorTags": "",
+          "skipCount": 0,
+          "archived": false,
+          "tags": []
+        },
+        {
+          "id": 201,
+          "name": "node/13202963757",
+          "created": "2026-10-12T00:02:44.709Z",
+          "modified": "2026-10-12T00:02:44.709Z",
+          "parent": 5,
+          "instruction": "",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -111.9000327,
+              40.7487836
+            ]
+          },
+          "geometries": {
+            "type": "FeatureCollection",
+            "features": [
+              {
+                "type": "Feature",
+                "geometry": {
+                  "type": "Point",
+                  "coordinates": [
+                    -111.9000327,
+                    40.7487836
+                  ]
+                },
+                "properties": {
+                  "@id": "node/13202963757",
+                  "entrance": "yes"
+                }
+              }
+            ]
+          },
+          "cooperativeWork": {
+            "meta": {
+              "type": 3,
+              "version": 2,
+              "choiceVersion": 1
+            },
+            "match": {
+              "entrance": "yes"
+            },
+            "element": "node/13202963757",
+            "outcomes": [
+              {
+                "id": "no-door",
+                "label": "There's no door",
+                "status": 6,
+                "description": "It's an open doorway or a gate."
+              }
+            ],
+            "questions": [
+              {
+                "id": "door-type",
+                "expect": {
+                  "door": null
+                },
+                "prompt": "How does this door open?",
+                "options": [
+                  {
+                    "id": "hinged",
+                    "label": "Swings open",
+                    "setTags": {
+                      "door": "hinged"
+                    }
+                  },
+                  {
+                    "id": "sliding",
+                    "label": "Slides sideways",
+                    "setTags": {
+                      "door": "sliding"
+                    }
+                  },
+                  {
+                    "id": "revolving",
+                    "label": "Revolves",
+                    "setTags": {
+                      "door": "revolving"
+                    }
+                  },
+                  {
+                    "id": "folding",
+                    "label": "Folds",
+                    "setTags": {
+                      "door": "folding"
+                    }
+                  }
+                ],
+                "description": "Look only at the door at this entrance."
+              },
+              {
+                "id": "automatic-opening",
+                "expect": {
+                  "automatic_door": null
+                },
+                "prompt": "Does it open by itself?",
+                "options": [
+                  {
+                    "id": "no",
+                    "label": "No, you push or pull it",
+                    "setTags": {
+                      "automatic_door": "no"
+                    }
+                  },
+                  {
+                    "id": "button",
+                    "label": "Yes, with a button",
+                    "setTags": {
+                      "automatic_door": "button"
+                    }
+                  },
+                  {
+                    "id": "motion",
+                    "label": "Yes, when you walk up",
+                    "setTags": {
+                      "automatic_door": "motion"
+                    }
+                  },
+                  {
+                    "id": "yes",
+                    "label": "Yes, not sure how",
+                    "setTags": {
+                      "automatic_door": "yes"
+                    }
+                  }
+                ],
+                "description": "A door that's propped open doesn't count."
+              }
+            ],
+            "liveMissingQuestions": true
+          },
+          "status": 0,
+          "mappedOn": null,
+          "completedTimeSpent": null,
+          "completedBy": null,
+          "review": {},
+          "priority": 0,
+          "changesetId": -1,
+          "completionResponses": null,
+          "bundleId": null,
+          "isBundlePrimary": null,
+          "mapillaryImages": null,
+          "errorTags": "",
+          "skipCount": 0,
+          "archived": false,
+          "tags": []
+        },
+        {
+          "id": 202,
+          "name": "node/13202963756",
+          "created": "2026-10-12T00:02:44.732Z",
+          "modified": "2026-10-12T00:02:44.732Z",
+          "parent": 5,
+          "instruction": "",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -111.8999773,
+              40.7485544
+            ]
+          },
+          "geometries": {
+            "type": "FeatureCollection",
+            "features": [
+              {
+                "type": "Feature",
+                "geometry": {
+                  "type": "Point",
+                  "coordinates": [
+                    -111.8999773,
+                    40.7485544
+                  ]
+                },
+                "properties": {
+                  "@id": "node/13202963756",
+                  "entrance": "yes"
+                }
+              }
+            ]
+          },
+          "cooperativeWork": {
+            "meta": {
+              "type": 3,
+              "version": 2,
+              "choiceVersion": 1
+            },
+            "match": {
+              "entrance": "yes"
+            },
+            "element": "node/13202963756",
+            "outcomes": [
+              {
+                "id": "no-door",
+                "label": "There's no door",
+                "status": 6,
+                "description": "It's an open doorway or a gate."
+              }
+            ],
+            "questions": [
+              {
+                "id": "door-type",
+                "expect": {
+                  "door": null
+                },
+                "prompt": "How does this door open?",
+                "options": [
+                  {
+                    "id": "hinged",
+                    "label": "Swings open",
+                    "setTags": {
+                      "door": "hinged"
+                    }
+                  },
+                  {
+                    "id": "sliding",
+                    "label": "Slides sideways",
+                    "setTags": {
+                      "door": "sliding"
+                    }
+                  },
+                  {
+                    "id": "revolving",
+                    "label": "Revolves",
+                    "setTags": {
+                      "door": "revolving"
+                    }
+                  },
+                  {
+                    "id": "folding",
+                    "label": "Folds",
+                    "setTags": {
+                      "door": "folding"
+                    }
+                  }
+                ],
+                "description": "Look only at the door at this entrance."
+              },
+              {
+                "id": "automatic-opening",
+                "expect": {
+                  "automatic_door": null
+                },
+                "prompt": "Does it open by itself?",
+                "options": [
+                  {
+                    "id": "no",
+                    "label": "No, you push or pull it",
+                    "setTags": {
+                      "automatic_door": "no"
+                    }
+                  },
+                  {
+                    "id": "button",
+                    "label": "Yes, with a button",
+                    "setTags": {
+                      "automatic_door": "button"
+                    }
+                  },
+                  {
+                    "id": "motion",
+                    "label": "Yes, when you walk up",
+                    "setTags": {
+                      "automatic_door": "motion"
+                    }
+                  },
+                  {
+                    "id": "yes",
+                    "label": "Yes, not sure how",
+                    "setTags": {
+                      "automatic_door": "yes"
+                    }
+                  }
+                ],
+                "description": "A door that's propped open doesn't count."
+              }
+            ],
+            "liveMissingQuestions": true
+          },
+          "status": 0,
+          "mappedOn": null,
+          "completedTimeSpent": null,
+          "completedBy": null,
+          "review": {},
+          "priority": 0,
+          "changesetId": -1,
+          "completionResponses": null,
+          "bundleId": null,
+          "isBundlePrimary": null,
+          "mapillaryImages": null,
+          "errorTags": "",
+          "skipCount": 0,
+          "archived": false,
+          "tags": []
+        },
+        {
+          "id": 203,
+          "name": "node/12644721386",
+          "created": "2026-10-12T00:02:44.757Z",
+          "modified": "2026-10-12T00:02:44.757Z",
+          "parent": 5,
+          "instruction": "",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -111.8980614,
+              40.7495887
+            ]
+          },
+          "geometries": {
+            "type": "FeatureCollection",
+            "features": [
+              {
+                "type": "Feature",
+                "geometry": {
+                  "type": "Point",
+                  "coordinates": [
+                    -111.8980614,
+                    40.7495887
+                  ]
+                },
+                "properties": {
+                  "@id": "node/12644721386",
+                  "door": "hinged",
+                  "access": "yes",
+                  "entrance": "shop",
+                  "wheelchair": "limited"
+                }
+              }
+            ]
+          },
+          "cooperativeWork": {
+            "meta": {
+              "type": 3,
+              "version": 2,
+              "choiceVersion": 1
+            },
+            "match": {
+              "entrance": "shop"
+            },
+            "element": "node/12644721386",
+            "outcomes": [
+              {
+                "id": "no-door",
+                "label": "There's no door",
+                "status": 6,
+                "description": "It's an open doorway or a gate."
+              }
+            ],
+            "questions": [
+              {
+                "id": "automatic-opening",
+                "expect": {
+                  "automatic_door": null
+                },
+                "prompt": "Does it open by itself?",
+                "options": [
+                  {
+                    "id": "no",
+                    "label": "No, you push or pull it",
+                    "setTags": {
+                      "automatic_door": "no"
+                    }
+                  },
+                  {
+                    "id": "button",
+                    "label": "Yes, with a button",
+                    "setTags": {
+                      "automatic_door": "button"
+                    }
+                  },
+                  {
+                    "id": "motion",
+                    "label": "Yes, when you walk up",
+                    "setTags": {
+                      "automatic_door": "motion"
+                    }
+                  },
+                  {
+                    "id": "yes",
+                    "label": "Yes, not sure how",
+                    "setTags": {
+                      "automatic_door": "yes"
+                    }
+                  }
+                ],
+                "description": "A door that's propped open doesn't count."
+              }
+            ],
+            "liveMissingQuestions": true
+          },
+          "status": 0,
+          "mappedOn": null,
+          "completedTimeSpent": null,
+          "completedBy": null,
+          "review": {},
+          "priority": 0,
+          "changesetId": -1,
+          "completionResponses": null,
+          "bundleId": null,
+          "isBundlePrimary": null,
+          "mapillaryImages": null,
+          "errorTags": "",
+          "skipCount": 0,
+          "archived": false,
+          "tags": []
+        },
+        {
+          "id": 204,
+          "name": "node/12646613396",
+          "created": "2026-10-12T00:02:44.799Z",
+          "modified": "2026-10-12T00:02:44.799Z",
+          "parent": 5,
+          "instruction": "",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -111.8959973,
+              40.7499525
+            ]
+          },
+          "geometries": {
+            "type": "FeatureCollection",
+            "features": [
+              {
+                "type": "Feature",
+                "geometry": {
+                  "type": "Point",
+                  "coordinates": [
+                    -111.8959973,
+                    40.7499525
+                  ]
+                },
+                "properties": {
+                  "@id": "node/12646613396",
+                  "entrance": "yes"
+                }
+              }
+            ]
+          },
+          "cooperativeWork": {
+            "meta": {
+              "type": 3,
+              "version": 2,
+              "choiceVersion": 1
+            },
+            "match": {
+              "entrance": "yes"
+            },
+            "element": "node/12646613396",
+            "outcomes": [
+              {
+                "id": "no-door",
+                "label": "There's no door",
+                "status": 6,
+                "description": "It's an open doorway or a gate."
+              }
+            ],
+            "questions": [
+              {
+                "id": "door-type",
+                "expect": {
+                  "door": null
+                },
+                "prompt": "How does this door open?",
+                "options": [
+                  {
+                    "id": "hinged",
+                    "label": "Swings open",
+                    "setTags": {
+                      "door": "hinged"
+                    }
+                  },
+                  {
+                    "id": "sliding",
+                    "label": "Slides sideways",
+                    "setTags": {
+                      "door": "sliding"
+                    }
+                  },
+                  {
+                    "id": "revolving",
+                    "label": "Revolves",
+                    "setTags": {
+                      "door": "revolving"
+                    }
+                  },
+                  {
+                    "id": "folding",
+                    "label": "Folds",
+                    "setTags": {
+                      "door": "folding"
+                    }
+                  }
+                ],
+                "description": "Look only at the door at this entrance."
+              },
+              {
+                "id": "automatic-opening",
+                "expect": {
+                  "automatic_door": null
+                },
+                "prompt": "Does it open by itself?",
+                "options": [
+                  {
+                    "id": "no",
+                    "label": "No, you push or pull it",
+                    "setTags": {
+                      "automatic_door": "no"
+                    }
+                  },
+                  {
+                    "id": "button",
+                    "label": "Yes, with a button",
+                    "setTags": {
+                      "automatic_door": "button"
+                    }
+                  },
+                  {
+                    "id": "motion",
+                    "label": "Yes, when you walk up",
+                    "setTags": {
+                      "automatic_door": "motion"
+                    }
+                  },
+                  {
+                    "id": "yes",
+                    "label": "Yes, not sure how",
+                    "setTags": {
+                      "automatic_door": "yes"
+                    }
+                  }
+                ],
+                "description": "A door that's propped open doesn't count."
+              }
+            ],
+            "liveMissingQuestions": true
+          },
+          "status": 0,
+          "mappedOn": null,
+          "completedTimeSpent": null,
+          "completedBy": null,
+          "review": {},
+          "priority": 0,
+          "changesetId": -1,
+          "completionResponses": null,
+          "bundleId": null,
+          "isBundlePrimary": null,
+          "mapillaryImages": null,
+          "errorTags": "",
+          "skipCount": 0,
+          "archived": false,
+          "tags": []
+        },
+        {
+          "id": 205,
+          "name": "node/12646613395",
+          "created": "2026-10-12T00:02:44.864Z",
+          "modified": "2026-10-12T00:02:44.864Z",
+          "parent": 5,
+          "instruction": "",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -111.8955832,
+              40.7495785
+            ]
+          },
+          "geometries": {
+            "type": "FeatureCollection",
+            "features": [
+              {
+                "type": "Feature",
+                "geometry": {
+                  "type": "Point",
+                  "coordinates": [
+                    -111.8955832,
+                    40.7495785
+                  ]
+                },
+                "properties": {
+                  "@id": "node/12646613395",
+                  "door": "hinged",
+                  "access": "yes",
+                  "entrance": "shop",
+                  "wheelchair": "limited",
+                  "addr:street": "West 900 South",
+                  "addr:housenumber": "161"
+                }
+              }
+            ]
+          },
+          "cooperativeWork": {
+            "meta": {
+              "type": 3,
+              "version": 2,
+              "choiceVersion": 1
+            },
+            "match": {
+              "entrance": "shop"
+            },
+            "element": "node/12646613395",
+            "outcomes": [
+              {
+                "id": "no-door",
+                "label": "There's no door",
+                "status": 6,
+                "description": "It's an open doorway or a gate."
+              }
+            ],
+            "questions": [
+              {
+                "id": "automatic-opening",
+                "expect": {
+                  "automatic_door": null
+                },
+                "prompt": "Does it open by itself?",
+                "options": [
+                  {
+                    "id": "no",
+                    "label": "No, you push or pull it",
+                    "setTags": {
+                      "automatic_door": "no"
+                    }
+                  },
+                  {
+                    "id": "button",
+                    "label": "Yes, with a button",
+                    "setTags": {
+                      "automatic_door": "button"
+                    }
+                  },
+                  {
+                    "id": "motion",
+                    "label": "Yes, when you walk up",
+                    "setTags": {
+                      "automatic_door": "motion"
+                    }
+                  },
+                  {
+                    "id": "yes",
+                    "label": "Yes, not sure how",
+                    "setTags": {
+                      "automatic_door": "yes"
+                    }
+                  }
+                ],
+                "description": "A door that's propped open doesn't count."
+              }
+            ],
+            "liveMissingQuestions": true
+          },
+          "status": 0,
+          "mappedOn": null,
+          "completedTimeSpent": null,
+          "completedBy": null,
+          "review": {},
+          "priority": 0,
+          "changesetId": -1,
+          "completionResponses": null,
+          "bundleId": null,
+          "isBundlePrimary": null,
+          "mapillaryImages": null,
+          "errorTags": "",
+          "skipCount": 0,
+          "archived": false,
+          "tags": []
+        },
+        {
+          "id": 206,
+          "name": "node/11284032024",
+          "created": "2026-10-12T00:02:44.920Z",
+          "modified": "2026-10-12T00:02:44.920Z",
+          "parent": 5,
+          "instruction": "",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -111.9016133,
+              40.7449888
+            ]
+          },
+          "geometries": {
+            "type": "FeatureCollection",
+            "features": [
+              {
+                "type": "Feature",
+                "geometry": {
+                  "type": "Point",
+                  "coordinates": [
+                    -111.9016133,
+                    40.7449888
+                  ]
+                },
+                "properties": {
+                  "@id": "node/11284032024",
+                  "entrance": "main"
+                }
+              }
+            ]
+          },
+          "cooperativeWork": {
+            "meta": {
+              "type": 3,
+              "version": 2,
+              "choiceVersion": 1
+            },
+            "match": {
+              "entrance": "main"
+            },
+            "element": "node/11284032024",
+            "outcomes": [
+              {
+                "id": "no-door",
+                "label": "There's no door",
+                "status": 6,
+                "description": "It's an open doorway or a gate."
+              }
+            ],
+            "questions": [
+              {
+                "id": "door-type",
+                "expect": {
+                  "door": null
+                },
+                "prompt": "How does this door open?",
+                "options": [
+                  {
+                    "id": "hinged",
+                    "label": "Swings open",
+                    "setTags": {
+                      "door": "hinged"
+                    }
+                  },
+                  {
+                    "id": "sliding",
+                    "label": "Slides sideways",
+                    "setTags": {
+                      "door": "sliding"
+                    }
+                  },
+                  {
+                    "id": "revolving",
+                    "label": "Revolves",
+                    "setTags": {
+                      "door": "revolving"
+                    }
+                  },
+                  {
+                    "id": "folding",
+                    "label": "Folds",
+                    "setTags": {
+                      "door": "folding"
+                    }
+                  }
+                ],
+                "description": "Look only at the door at this entrance."
+              },
+              {
+                "id": "automatic-opening",
+                "expect": {
+                  "automatic_door": null
+                },
+                "prompt": "Does it open by itself?",
+                "options": [
+                  {
+                    "id": "no",
+                    "label": "No, you push or pull it",
+                    "setTags": {
+                      "automatic_door": "no"
+                    }
+                  },
+                  {
+                    "id": "button",
+                    "label": "Yes, with a button",
+                    "setTags": {
+                      "automatic_door": "button"
+                    }
+                  },
+                  {
+                    "id": "motion",
+                    "label": "Yes, when you walk up",
+                    "setTags": {
+                      "automatic_door": "motion"
+                    }
+                  },
+                  {
+                    "id": "yes",
+                    "label": "Yes, not sure how",
+                    "setTags": {
+                      "automatic_door": "yes"
+                    }
+                  }
+                ],
+                "description": "A door that's propped open doesn't count."
+              }
+            ],
+            "liveMissingQuestions": true
+          },
+          "status": 0,
+          "mappedOn": null,
+          "completedTimeSpent": null,
+          "completedBy": null,
+          "review": {},
+          "priority": 0,
+          "changesetId": -1,
+          "completionResponses": null,
+          "bundleId": null,
+          "isBundlePrimary": null,
+          "mapillaryImages": null,
+          "errorTags": "",
+          "skipCount": 0,
+          "archived": false,
+          "tags": []
+        },
+        {
+          "id": 207,
+          "name": "node/11990542516",
+          "created": "2026-10-12T00:02:44.952Z",
+          "modified": "2026-10-12T00:02:44.952Z",
+          "parent": 5,
+          "instruction": "",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -111.9023026,
+              40.7630632
+            ]
+          },
+          "geometries": {
+            "type": "FeatureCollection",
+            "features": [
+              {
+                "type": "Feature",
+                "geometry": {
+                  "type": "Point",
+                  "coordinates": [
+                    -111.9023026,
+                    40.7630632
+                  ]
+                },
+                "properties": {
+                  "@id": "node/11990542516",
+                  "entrance": "yes"
+                }
+              }
+            ]
+          },
+          "cooperativeWork": {
+            "meta": {
+              "type": 3,
+              "version": 2,
+              "choiceVersion": 1
+            },
+            "match": {
+              "entrance": "yes"
+            },
+            "element": "node/11990542516",
+            "outcomes": [
+              {
+                "id": "no-door",
+                "label": "There's no door",
+                "status": 6,
+                "description": "It's an open doorway or a gate."
+              }
+            ],
+            "questions": [
+              {
+                "id": "door-type",
+                "expect": {
+                  "door": null
+                },
+                "prompt": "How does this door open?",
+                "options": [
+                  {
+                    "id": "hinged",
+                    "label": "Swings open",
+                    "setTags": {
+                      "door": "hinged"
+                    }
+                  },
+                  {
+                    "id": "sliding",
+                    "label": "Slides sideways",
+                    "setTags": {
+                      "door": "sliding"
+                    }
+                  },
+                  {
+                    "id": "revolving",
+                    "label": "Revolves",
+                    "setTags": {
+                      "door": "revolving"
+                    }
+                  },
+                  {
+                    "id": "folding",
+                    "label": "Folds",
+                    "setTags": {
+                      "door": "folding"
+                    }
+                  }
+                ],
+                "description": "Look only at the door at this entrance."
+              },
+              {
+                "id": "automatic-opening",
+                "expect": {
+                  "automatic_door": null
+                },
+                "prompt": "Does it open by itself?",
+                "options": [
+                  {
+                    "id": "no",
+                    "label": "No, you push or pull it",
+                    "setTags": {
+                      "automatic_door": "no"
+                    }
+                  },
+                  {
+                    "id": "button",
+                    "label": "Yes, with a button",
+                    "setTags": {
+                      "automatic_door": "button"
+                    }
+                  },
+                  {
+                    "id": "motion",
+                    "label": "Yes, when you walk up",
+                    "setTags": {
+                      "automatic_door": "motion"
+                    }
+                  },
+                  {
+                    "id": "yes",
+                    "label": "Yes, not sure how",
+                    "setTags": {
+                      "automatic_door": "yes"
+                    }
+                  }
+                ],
+                "description": "A door that's propped open doesn't count."
+              }
+            ],
+            "liveMissingQuestions": true
+          },
+          "status": 0,
+          "mappedOn": null,
+          "completedTimeSpent": null,
+          "completedBy": null,
+          "review": {},
+          "priority": 0,
+          "changesetId": -1,
+          "completionResponses": null,
+          "bundleId": null,
+          "isBundlePrimary": null,
+          "mapillaryImages": null,
+          "errorTags": "",
+          "skipCount": 0,
+          "archived": false,
+          "tags": []
+        }
+      ]
+    }
+  ]
+}

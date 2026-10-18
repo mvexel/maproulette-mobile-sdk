@@ -1,0 +1,17 @@
+{
+  "_comment": "GET task/:id for a task that does not exist.",
+  "recordedFrom": "https://mr-api.osm.lol",
+  "call": "getTask",
+  "args": {
+    "id": 999999999
+  },
+  "decode": true,
+  "exchanges": [
+    {
+      "method": "GET",
+      "path": "/api/v2/task/999999999",
+      "status": 404,
+      "body": null
+    }
+  ]
+}

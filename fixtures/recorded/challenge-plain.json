@@ -1,0 +1,113 @@
+{
+  "_comment": "GET challenge/:id, the plain challenge.",
+  "recordedFrom": "https://mr-api.osm.lol",
+  "call": "getChallenge",
+  "args": {
+    "id": 1
+  },
+  "decode": true,
+  "exchanges": [
+    {
+      "method": "GET",
+      "path": "/api/v2/challenge/1",
+      "status": 200,
+      "body": {
+        "id": 1,
+        "name": "SLC benches: survey backrests (staging)",
+        "created": "2026-10-05T21:23:42.887Z",
+        "modified": "2026-10-17T02:34:04.844Z",
+        "deleted": false,
+        "isGlobal": false,
+        "requireConfirmation": false,
+        "requireRejectReason": false,
+        "owner": 900001,
+        "parent": 2,
+        "instruction": "Visit the mapped bench and check whether it has a backrest. Add backrest=yes or backrest=no to the OSM bench according to what is on the ground. If the bench is missing, report that instead of guessing. The mobile demo app only reads tasks.",
+        "difficulty": 2,
+        "enabled": true,
+        "featured": false,
+        "cooperativeType": 0,
+        "checkinComment": "",
+        "checkinSource": "",
+        "requiresLocal": false,
+        "defaultPriority": 0,
+        "defaultZoom": 13,
+        "minZoom": 1,
+        "maxZoom": 19,
+        "updateTasks": false,
+        "limitTags": false,
+        "limitReviewTags": false,
+        "isArchived": false,
+        "paused": false,
+        "reviewSetting": 0,
+        "completionMetrics": {
+          "total": 168,
+          "available": 161,
+          "fixed": 6,
+          "falsePositive": 1,
+          "skipped": 0,
+          "deleted": 0,
+          "alreadyFixed": 0,
+          "tooHard": 0,
+          "answered": 0,
+          "validated": 0,
+          "disabled": 0,
+          "tasksRemaining": 161
+        },
+        "description": "Benches in the Salt Lake City municipal boundary missing the backrest tag in a SliceOSM extract dated 2026-10-05. Staging MapRoulette SDK field test challenge.",
+        "infoLink": "",
+        "blurb": "",
+        "popularity": 1792180482,
+        "overpassQL": "",
+        "remoteGeoJson": "",
+        "overpassTargetType": "",
+        "defaultBasemap": -1,
+        "defaultBasemapId": "",
+        "customBasemap": "",
+        "exportableProperties": "",
+        "osmIdProperty": "",
+        "taskBundleIdProperty": "",
+        "taskWidgetLayout": {},
+        "status": 3,
+        "statusMessage": "",
+        "lastTaskRefresh": "2026-10-05T21:23:52.816Z",
+        "dataOriginDate": "2026-10-05T21:23:42.883Z",
+        "location": {
+          "type": "Point",
+          "coordinates": [
+            -111.870204553,
+            40.760223763
+          ]
+        },
+        "bounding": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                -111.985079,
+                40.711906
+              ],
+              [
+                -111.985079,
+                40.7934826
+              ],
+              [
+                -111.8065295,
+                40.7934826
+              ],
+              [
+                -111.8065295,
+                40.711906
+              ],
+              [
+                -111.985079,
+                40.711906
+              ]
+            ]
+          ]
+        },
+        "completionPercentage": 4
+      }
+    }
+  ]
+}

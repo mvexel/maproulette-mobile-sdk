@@ -1,0 +1,31 @@
+name: Recorded fixtures drift
+
+# Re-records fixtures/recorded/ against the dev backend (mr-api.osm.lol) every night, fails when a
+# response's shape changed (keys or value types), then runs both suites on today's responses.
+# Recording registers a throwaway guest on dev and holds and withdraws one answer; dev is disposable.
+
+on:
+  schedule:
+    - cron: "17 5 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: recorded-drift
+  cancel-in-progress: false
+
+jobs:
+  drift:
+    name: Re-record from dev and compare
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: jdx/mise-action@v2
+      - name: Shape drift against the committed recordings
+        run: python3 scripts/record-fixtures.py --check --keep
+      - name: Kotlin and Swift suites on today's responses
+        if: ${{ !cancelled() }}
+        run: scripts/check.sh

@@ -1,0 +1,17 @@
+{
+  "_comment": "GET challenge/:id/tags.",
+  "recordedFrom": "https://mr-api.osm.lol",
+  "call": "getChallengeTags",
+  "args": {
+    "id": 1
+  },
+  "decode": true,
+  "exchanges": [
+    {
+      "method": "GET",
+      "path": "/api/v2/challenge/1/tags",
+      "status": 200,
+      "body": []
+    }
+  ]
+}

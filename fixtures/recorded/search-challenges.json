@@ -1,0 +1,1107 @@
+{
+  "_comment": "GET challenges/extendedFind, first page of 10.",
+  "recordedFrom": "https://mr-api.osm.lol",
+  "call": "searchChallenges",
+  "args": {
+    "pageSize": 10
+  },
+  "decode": true,
+  "exchanges": [
+    {
+      "method": "GET",
+      "path": "/api/v2/challenges/extendedFind",
+      "query": {
+        "cLocal": "1",
+        "ca": "false",
+        "ce": "true",
+        "pe": "true",
+        "sort": "id",
+        "order": "ASC",
+        "limit": "10",
+        "page": "0"
+      },
+      "status": 200,
+      "body": [
+        {
+          "id": 1,
+          "name": "SLC benches: survey backrests (staging)",
+          "created": "2026-10-05T21:23:42.887Z",
+          "modified": "2026-10-17T02:34:04.844Z",
+          "description": "Benches in the Salt Lake City municipal boundary missing the backrest tag in a SliceOSM extract dated 2026-10-05. Staging MapRoulette SDK field test challenge.",
+          "deleted": false,
+          "isGlobal": false,
+          "requireConfirmation": false,
+          "requireRejectReason": false,
+          "infoLink": "",
+          "owner": 900001,
+          "parent": {
+            "id": 2,
+            "owner": 900001,
+            "name": "Salt Lake City bench survey (staging)",
+            "created": "2026-10-05T21:23:32.945Z",
+            "modified": "2026-10-17T02:21:56.193Z",
+            "description": "Mobile SDK field test using benches in the Salt Lake City municipal boundary. Survey missing backrest tags.",
+            "enabled": true,
+            "deleted": false,
+            "isVirtual": false,
+            "featured": false,
+            "isArchived": false,
+            "requireConfirmation": false,
+            "completionMetrics": {
+              "total": 168,
+              "available": 161,
+              "fixed": 6,
+              "falsePositive": 1,
+              "skipped": 0,
+              "deleted": 0,
+              "alreadyFixed": 0,
+              "tooHard": 0,
+              "answered": 0,
+              "validated": 0,
+              "disabled": 0,
+              "tasksRemaining": 161
+            }
+          },
+          "instruction": "Visit the mapped bench and check whether it has a backrest. Add backrest=yes or backrest=no to the OSM bench according to what is on the ground. If the bench is missing, report that instead of guessing. The mobile demo app only reads tasks.",
+          "difficulty": 2,
+          "blurb": "",
+          "enabled": true,
+          "featured": false,
+          "cooperativeType": 0,
+          "popularity": 1792180482,
+          "checkinComment": "",
+          "checkinSource": "",
+          "virtualParents": [],
+          "requiresLocal": false,
+          "overpassQL": "",
+          "remoteGeoJson": "",
+          "overpassTargetType": "",
+          "defaultPriority": 0,
+          "highPriorityRule": {},
+          "mediumPriorityRule": {},
+          "lowPriorityRule": {},
+          "highPriorityBounds": [],
+          "mediumPriorityBounds": [],
+          "lowPriorityBounds": [],
+          "defaultZoom": 13,
+          "minZoom": 1,
+          "maxZoom": 19,
+          "updateTasks": false,
+          "limitTags": false,
+          "limitReviewTags": false,
+          "isArchived": false,
+          "paused": false,
+          "reviewSetting": 0,
+          "defaultBasemap": -1,
+          "defaultBasemapId": "",
+          "customBasemap": "",
+          "exportableProperties": "",
+          "osmIdProperty": "",
+          "taskBundleIdProperty": "",
+          "taskWidgetLayout": {},
+          "presets": [],
+          "status": 3,
+          "statusMessage": "",
+          "lastTaskRefresh": "2026-10-05T21:23:52.816Z",
+          "dataOriginDate": "2026-10-05T21:23:42.883Z",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -111.870204553,
+              40.760223763
+            ]
+          },
+          "bounding": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  -111.985079,
+                  40.711906
+                ],
+                [
+                  -111.985079,
+                  40.7934826
+                ],
+                [
+                  -111.8065295,
+                  40.7934826
+                ],
+                [
+                  -111.8065295,
+                  40.711906
+                ],
+                [
+                  -111.985079,
+                  40.711906
+                ]
+              ]
+            ]
+          },
+          "completionPercentage": 4,
+          "completionMetrics": {
+            "total": 168,
+            "available": 161,
+            "fixed": 6,
+            "falsePositive": 1,
+            "skipped": 0,
+            "deleted": 0,
+            "alreadyFixed": 0,
+            "tooHard": 0,
+            "answered": 0,
+            "validated": 0,
+            "disabled": 0,
+            "tasksRemaining": 161
+          },
+          "tags": []
+        },
+        {
+          "id": 2,
+          "name": "Mobile probe disposable challenge",
+          "created": "2026-10-06T02:52:10.895Z",
+          "modified": "2026-10-16T03:39:23.684Z",
+          "description": "Disposable staging challenge.",
+          "deleted": false,
+          "isGlobal": false,
+          "requireConfirmation": false,
+          "requireRejectReason": false,
+          "infoLink": "",
+          "owner": 900001,
+          "parent": {
+            "id": 4,
+            "owner": 900001,
+            "name": "mobile-probe-disposable",
+            "created": "2026-10-06T02:52:10.527Z",
+            "modified": "2026-10-16T01:27:48.389Z",
+            "description": "Disposable staging project for mobile task-completion probes.",
+            "enabled": true,
+            "displayName": "person-2",
+            "deleted": false,
+            "isVirtual": false,
+            "featured": false,
+            "isArchived": false,
+            "requireConfirmation": false,
+            "completionMetrics": {
+              "total": 15,
+              "available": 6,
+              "fixed": 4,
+              "falsePositive": 2,
+              "skipped": 0,
+              "deleted": 0,
+              "alreadyFixed": 1,
+              "tooHard": 2,
+              "answered": 0,
+              "validated": 0,
+              "disabled": 0,
+              "tasksRemaining": 8
+            }
+          },
+          "instruction": "Disposable: used only for automated mobile lifecycle probes.",
+          "difficulty": 2,
+          "blurb": "",
+          "enabled": true,
+          "featured": false,
+          "cooperativeType": 0,
+          "popularity": 1791899648,
+          "checkinComment": "",
+          "checkinSource": "",
+          "virtualParents": [],
+          "requiresLocal": false,
+          "overpassQL": "",
+          "remoteGeoJson": "",
+          "overpassTargetType": "",
+          "defaultPriority": 0,
+          "highPriorityRule": {},
+          "mediumPriorityRule": {},
+          "lowPriorityRule": {},
+          "highPriorityBounds": [],
+          "mediumPriorityBounds": [],
+          "lowPriorityBounds": [],
+          "defaultZoom": 13,
+          "minZoom": 1,
+          "maxZoom": 19,
+          "updateTasks": false,
+          "limitTags": false,
+          "limitReviewTags": false,
+          "isArchived": false,
+          "paused": false,
+          "reviewSetting": 0,
+          "defaultBasemap": -1,
+          "defaultBasemapId": "",
+          "customBasemap": "",
+          "exportableProperties": "",
+          "osmIdProperty": "",
+          "taskBundleIdProperty": "",
+          "taskWidgetLayout": {},
+          "presets": [],
+          "status": 3,
+          "statusMessage": "",
+          "lastTaskRefresh": "2026-10-06T03:17:31.312Z",
+          "dataOriginDate": "2026-10-06T02:52:10.888Z",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -111.8933,
+              40.7633
+            ]
+          },
+          "bounding": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  -111.8959,
+                  40.7609
+                ],
+                [
+                  -111.8959,
+                  40.7658
+                ],
+                [
+                  -111.8909,
+                  40.7658
+                ],
+                [
+                  -111.8909,
+                  40.7609
+                ],
+                [
+                  -111.8959,
+                  40.7609
+                ]
+              ]
+            ]
+          },
+          "completionPercentage": 47,
+          "completionMetrics": {
+            "total": 15,
+            "available": 6,
+            "fixed": 4,
+            "falsePositive": 2,
+            "skipped": 0,
+            "deleted": 0,
+            "alreadyFixed": 1,
+            "tooHard": 2,
+            "answered": 0,
+            "validated": 0,
+            "disabled": 0,
+            "tasksRemaining": 8
+          },
+          "tags": []
+        },
+        {
+          "id": 3,
+          "name": "Bench details pilot (dev OSM, disposable)",
+          "created": "2026-10-06T17:44:34.443Z",
+          "modified": "2026-10-11T23:32:14.759Z",
+          "description": "Disposable pilot on dev-OSM test benches.",
+          "deleted": false,
+          "isGlobal": false,
+          "requireConfirmation": false,
+          "requireRejectReason": false,
+          "infoLink": "",
+          "owner": 900001,
+          "parent": {
+            "id": 6,
+            "owner": 900001,
+            "name": "mobile-choice-pilot",
+            "created": "2026-10-06T17:44:34.086Z",
+            "modified": "2026-10-16T17:53:19.952Z",
+            "description": "Disposable staging project: choice tasks on dev-OSM test benches.",
+            "enabled": true,
+            "displayName": "person-3",
+            "deleted": false,
+            "isVirtual": false,
+            "featured": false,
+            "isArchived": false,
+            "requireConfirmation": false,
+            "completionMetrics": {
+              "total": 51,
+              "available": 44,
+              "fixed": 6,
+              "falsePositive": 1,
+              "skipped": 0,
+              "deleted": 0,
+              "alreadyFixed": 0,
+              "tooHard": 0,
+              "answered": 0,
+              "validated": 0,
+              "disabled": 0,
+              "tasksRemaining": 44
+            }
+          },
+          "instruction": "Add backrest, material and capacity to the bench in your editor.",
+          "difficulty": 2,
+          "blurb": "",
+          "enabled": true,
+          "featured": false,
+          "cooperativeType": 3,
+          "popularity": 1791627201,
+          "checkinComment": "Add bench details (backrest, material, capacity) #maproulette",
+          "checkinSource": "survey",
+          "virtualParents": [],
+          "requiresLocal": false,
+          "overpassQL": "",
+          "remoteGeoJson": "",
+          "overpassTargetType": "",
+          "defaultPriority": 0,
+          "highPriorityRule": {},
+          "mediumPriorityRule": {},
+          "lowPriorityRule": {},
+          "highPriorityBounds": [],
+          "mediumPriorityBounds": [],
+          "lowPriorityBounds": [],
+          "defaultZoom": 13,
+          "minZoom": 1,
+          "maxZoom": 19,
+          "updateTasks": false,
+          "limitTags": false,
+          "limitReviewTags": false,
+          "isArchived": false,
+          "paused": false,
+          "reviewSetting": 0,
+          "defaultBasemap": -1,
+          "defaultBasemapId": "",
+          "customBasemap": "",
+          "exportableProperties": "",
+          "osmIdProperty": "",
+          "taskBundleIdProperty": "",
+          "taskWidgetLayout": {},
+          "presets": [],
+          "status": 3,
+          "statusMessage": "",
+          "lastTaskRefresh": "2026-10-06T17:44:35.262Z",
+          "dataOriginDate": "2026-10-06T17:44:34.439Z",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -111.88416875,
+              40.76116875
+            ]
+          },
+          "bounding": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  -111.8851,
+                  40.7605
+                ],
+                [
+                  -111.8851,
+                  40.7618
+                ],
+                [
+                  -111.8832,
+                  40.7618
+                ],
+                [
+                  -111.8832,
+                  40.7605
+                ],
+                [
+                  -111.8851,
+                  40.7605
+                ]
+              ]
+            ]
+          },
+          "completionPercentage": 88,
+          "completionMetrics": {
+            "total": 8,
+            "available": 1,
+            "fixed": 6,
+            "falsePositive": 1,
+            "skipped": 0,
+            "deleted": 0,
+            "alreadyFixed": 0,
+            "tooHard": 0,
+            "answered": 0,
+            "validated": 0,
+            "disabled": 0,
+            "tasksRemaining": 1
+          },
+          "tags": [
+            "mobile-survey-v1"
+          ]
+        },
+        {
+          "id": 5,
+          "name": "Woodbine entrance doors",
+          "created": "2026-10-12T00:02:37.166Z",
+          "modified": "2026-10-12T00:08:56.770Z",
+          "description": "Help map the doors around Woodbine Food Hall. At each entrance, check how the door opens and whether it opens by itself, so people with wheelchairs, strollers or walkers know what to expect.",
+          "deleted": false,
+          "isGlobal": false,
+          "requireConfirmation": false,
+          "requireRejectReason": false,
+          "infoLink": "",
+          "owner": 900004,
+          "parent": {
+            "id": 6,
+            "owner": 900001,
+            "name": "mobile-choice-pilot",
+            "created": "2026-10-06T17:44:34.086Z",
+            "modified": "2026-10-16T17:53:19.952Z",
+            "description": "Disposable staging project: choice tasks on dev-OSM test benches.",
+            "enabled": true,
+            "displayName": "person-3",
+            "deleted": false,
+            "isVirtual": false,
+            "featured": false,
+            "isArchived": false,
+            "requireConfirmation": false,
+            "completionMetrics": {
+              "total": 51,
+              "available": 44,
+              "fixed": 6,
+              "falsePositive": 1,
+              "skipped": 0,
+              "deleted": 0,
+              "alreadyFixed": 0,
+              "tooHard": 0,
+              "answered": 0,
+              "validated": 0,
+              "disabled": 0,
+              "tasksRemaining": 44
+            }
+          },
+          "instruction": "Survey the door at the mapped entrance node. Sets door=* and automatic_door=* only when missing. No geometry changes.",
+          "difficulty": 2,
+          "blurb": "",
+          "enabled": true,
+          "featured": false,
+          "cooperativeType": 3,
+          "popularity": 1791763357,
+          "checkinComment": "Street Tally: entrance doors near Woodbine Food Hall #StreetTallyWoodbine https://wiki.openstreetmap.org/wiki/Organised_Editing/Activities/Street_Tally_Woodbine_Entrances",
+          "checkinSource": "survey",
+          "virtualParents": [],
+          "requiresLocal": true,
+          "overpassQL": "",
+          "remoteGeoJson": "",
+          "overpassTargetType": "",
+          "defaultPriority": 0,
+          "highPriorityRule": {},
+          "mediumPriorityRule": {},
+          "lowPriorityRule": {},
+          "highPriorityBounds": [],
+          "mediumPriorityBounds": [],
+          "lowPriorityBounds": [],
+          "defaultZoom": 13,
+          "minZoom": 1,
+          "maxZoom": 19,
+          "updateTasks": false,
+          "limitTags": false,
+          "limitReviewTags": false,
+          "isArchived": false,
+          "paused": false,
+          "reviewSetting": 0,
+          "defaultBasemap": -1,
+          "defaultBasemapId": "",
+          "customBasemap": "",
+          "exportableProperties": "",
+          "osmIdProperty": "",
+          "taskBundleIdProperty": "",
+          "taskWidgetLayout": {},
+          "presets": [],
+          "status": 3,
+          "statusMessage": "",
+          "lastTaskRefresh": "2026-10-12T00:02:44.937Z",
+          "dataOriginDate": "2026-10-12T00:02:37.164Z",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -111.901496481,
+              40.753135131
+            ]
+          },
+          "bounding": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  -111.9079998,
+                  40.7448888
+                ],
+                [
+                  -111.9079998,
+                  40.7631632
+                ],
+                [
+                  -111.8954832,
+                  40.7631632
+                ],
+                [
+                  -111.8954832,
+                  40.7448888
+                ],
+                [
+                  -111.9079998,
+                  40.7448888
+                ]
+              ]
+            ]
+          },
+          "completionPercentage": 0,
+          "completionMetrics": {
+            "total": 16,
+            "available": 16,
+            "fixed": 0,
+            "falsePositive": 0,
+            "skipped": 0,
+            "deleted": 0,
+            "alreadyFixed": 0,
+            "tooHard": 0,
+            "answered": 0,
+            "validated": 0,
+            "disabled": 0,
+            "tasksRemaining": 16
+          },
+          "tags": [
+            "mobile-survey-v1"
+          ]
+        },
+        {
+          "id": 6,
+          "name": "Bench handback test (dev OSM)",
+          "created": "2026-10-16T16:04:32.494Z",
+          "modified": "2026-10-16T16:10:59.386Z",
+          "description": "Test campaign on the dev-OSM test benches, for the handback flow (review page, tag-fix challenge, on the map). Guests can answer.",
+          "deleted": false,
+          "isGlobal": false,
+          "requireConfirmation": false,
+          "requireRejectReason": false,
+          "infoLink": "",
+          "owner": 900004,
+          "parent": {
+            "id": 6,
+            "owner": 900001,
+            "name": "mobile-choice-pilot",
+            "created": "2026-10-06T17:44:34.086Z",
+            "modified": "2026-10-16T17:53:19.952Z",
+            "description": "Disposable staging project: choice tasks on dev-OSM test benches.",
+            "enabled": true,
+            "displayName": "person-3",
+            "deleted": false,
+            "isVirtual": false,
+            "featured": false,
+            "isArchived": false,
+            "requireConfirmation": false,
+            "completionMetrics": {
+              "total": 51,
+              "available": 44,
+              "fixed": 6,
+              "falsePositive": 1,
+              "skipped": 0,
+              "deleted": 0,
+              "alreadyFixed": 0,
+              "tooHard": 0,
+              "answered": 0,
+              "validated": 0,
+              "disabled": 0,
+              "tasksRemaining": 44
+            }
+          },
+          "instruction": "Add armrest and colour to the bench. Sets each tag only when missing.",
+          "difficulty": 2,
+          "blurb": "",
+          "enabled": true,
+          "featured": false,
+          "cooperativeType": 3,
+          "popularity": 1792166672,
+          "checkinComment": "Add bench armrest and colour #StreetTallyDev",
+          "checkinSource": "survey",
+          "virtualParents": [],
+          "requiresLocal": true,
+          "overpassQL": "",
+          "remoteGeoJson": "",
+          "overpassTargetType": "",
+          "defaultPriority": 0,
+          "highPriorityRule": {},
+          "mediumPriorityRule": {},
+          "lowPriorityRule": {},
+          "highPriorityBounds": [],
+          "mediumPriorityBounds": [],
+          "lowPriorityBounds": [],
+          "defaultZoom": 13,
+          "minZoom": 1,
+          "maxZoom": 19,
+          "updateTasks": false,
+          "limitTags": false,
+          "limitReviewTags": false,
+          "isArchived": false,
+          "paused": false,
+          "reviewSetting": 0,
+          "defaultBasemap": -1,
+          "defaultBasemapId": "",
+          "customBasemap": "",
+          "exportableProperties": "",
+          "osmIdProperty": "",
+          "taskBundleIdProperty": "",
+          "taskWidgetLayout": {},
+          "presets": [],
+          "status": 3,
+          "statusMessage": "",
+          "lastTaskRefresh": "2026-10-16T16:04:35.220Z",
+          "dataOriginDate": "2026-10-16T16:04:32.488Z",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -111.88416875,
+              40.76116875
+            ]
+          },
+          "bounding": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  -111.8851,
+                  40.7605
+                ],
+                [
+                  -111.8851,
+                  40.7618
+                ],
+                [
+                  -111.8832,
+                  40.7618
+                ],
+                [
+                  -111.8832,
+                  40.7605
+                ],
+                [
+                  -111.8851,
+                  40.7605
+                ]
+              ]
+            ]
+          },
+          "completionPercentage": 0,
+          "completionMetrics": {
+            "total": 8,
+            "available": 8,
+            "fixed": 0,
+            "falsePositive": 0,
+            "skipped": 0,
+            "deleted": 0,
+            "alreadyFixed": 0,
+            "tooHard": 0,
+            "answered": 0,
+            "validated": 0,
+            "disabled": 0,
+            "tasksRemaining": 8
+          },
+          "tags": [
+            "mobile-survey-v1"
+          ]
+        },
+        {
+          "id": 8,
+          "name": "Bench handback test 2 (dev OSM)",
+          "created": "2026-10-16T17:16:30.432Z",
+          "modified": "2026-10-16T18:55:57.545Z",
+          "description": "Second test campaign on the dev-OSM test benches, for the handback flow (review page, confirm queue, on the map). Guests can answer.",
+          "deleted": false,
+          "isGlobal": false,
+          "requireConfirmation": false,
+          "requireRejectReason": false,
+          "infoLink": "",
+          "owner": 900004,
+          "parent": {
+            "id": 6,
+            "owner": 900001,
+            "name": "mobile-choice-pilot",
+            "created": "2026-10-06T17:44:34.086Z",
+            "modified": "2026-10-16T17:53:19.952Z",
+            "description": "Disposable staging project: choice tasks on dev-OSM test benches.",
+            "enabled": true,
+            "displayName": "person-3",
+            "deleted": false,
+            "isVirtual": false,
+            "featured": false,
+            "isArchived": false,
+            "requireConfirmation": false,
+            "completionMetrics": {
+              "total": 51,
+              "available": 44,
+              "fixed": 6,
+              "falsePositive": 1,
+              "skipped": 0,
+              "deleted": 0,
+              "alreadyFixed": 0,
+              "tooHard": 0,
+              "answered": 0,
+              "validated": 0,
+              "disabled": 0,
+              "tasksRemaining": 44
+            }
+          },
+          "instruction": "Add armrest and colour to the bench. Sets each tag only when missing.",
+          "difficulty": 2,
+          "blurb": "",
+          "enabled": true,
+          "featured": false,
+          "cooperativeType": 3,
+          "popularity": 1792170990,
+          "checkinComment": "Add bench armrest and colour #StreetTallyDev",
+          "checkinSource": "survey",
+          "virtualParents": [],
+          "requiresLocal": true,
+          "overpassQL": "",
+          "remoteGeoJson": "",
+          "overpassTargetType": "",
+          "defaultPriority": 0,
+          "highPriorityRule": {},
+          "mediumPriorityRule": {},
+          "lowPriorityRule": {},
+          "highPriorityBounds": [],
+          "mediumPriorityBounds": [],
+          "lowPriorityBounds": [],
+          "defaultZoom": 13,
+          "minZoom": 1,
+          "maxZoom": 19,
+          "updateTasks": false,
+          "limitTags": false,
+          "limitReviewTags": false,
+          "isArchived": false,
+          "paused": false,
+          "reviewSetting": 0,
+          "defaultBasemap": -1,
+          "defaultBasemapId": "",
+          "customBasemap": "",
+          "exportableProperties": "",
+          "osmIdProperty": "",
+          "taskBundleIdProperty": "",
+          "taskWidgetLayout": {},
+          "presets": [],
+          "status": 3,
+          "statusMessage": "",
+          "lastTaskRefresh": "2026-10-16T17:16:33.325Z",
+          "dataOriginDate": "2026-10-16T17:16:30.431Z",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -111.883966667,
+              40.7613
+            ]
+          },
+          "bounding": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  -111.8849,
+                  40.7607
+                ],
+                [
+                  -111.8849,
+                  40.7618
+                ],
+                [
+                  -111.8832,
+                  40.7618
+                ],
+                [
+                  -111.8832,
+                  40.7607
+                ],
+                [
+                  -111.8849,
+                  40.7607
+                ]
+              ]
+            ]
+          },
+          "completionPercentage": 0,
+          "completionMetrics": {
+            "total": 6,
+            "available": 6,
+            "fixed": 0,
+            "falsePositive": 0,
+            "skipped": 0,
+            "deleted": 0,
+            "alreadyFixed": 0,
+            "tooHard": 0,
+            "answered": 0,
+            "validated": 0,
+            "disabled": 0,
+            "tasksRemaining": 6
+          },
+          "tags": [
+            "mobile-survey-v1"
+          ]
+        },
+        {
+          "id": 10,
+          "name": "SLC benches (A39 test, delete me)",
+          "created": "2026-10-17T16:13:52.979Z",
+          "modified": "2026-10-18T03:01:11.548Z",
+          "description": "Test challenge for JOSM plugin QA on dev. Not real data.",
+          "deleted": false,
+          "isGlobal": false,
+          "requireConfirmation": false,
+          "requireRejectReason": false,
+          "infoLink": "",
+          "owner": 900005,
+          "parent": {
+            "id": 3,
+            "owner": 900005,
+            "name": "Home_900005",
+            "created": "2026-10-06T02:50:13.223Z",
+            "modified": "2026-10-18T02:04:16.847Z",
+            "description": "Home project for user person-6",
+            "enabled": true,
+            "displayName": "person-7",
+            "deleted": false,
+            "isVirtual": false,
+            "featured": false,
+            "isArchived": false,
+            "requireConfirmation": false,
+            "completionMetrics": {
+              "total": 8,
+              "available": 3,
+              "fixed": 4,
+              "falsePositive": 0,
+              "skipped": 0,
+              "deleted": 0,
+              "alreadyFixed": 1,
+              "tooHard": 0,
+              "answered": 0,
+              "validated": 0,
+              "disabled": 0,
+              "tasksRemaining": 3
+            }
+          },
+          "instruction": "Check the bench at this spot and add backrest=yes or backrest=no. If no bench is mapped here, add one (amenity=bench).",
+          "difficulty": 2,
+          "blurb": "",
+          "enabled": true,
+          "featured": false,
+          "cooperativeType": 0,
+          "popularity": 1792286549,
+          "checkinComment": "Add bench backrest #maproulette",
+          "checkinSource": "survey",
+          "virtualParents": [],
+          "requiresLocal": false,
+          "overpassQL": "",
+          "remoteGeoJson": "",
+          "overpassTargetType": "",
+          "defaultPriority": 0,
+          "highPriorityRule": {},
+          "mediumPriorityRule": {},
+          "lowPriorityRule": {},
+          "highPriorityBounds": [],
+          "mediumPriorityBounds": [],
+          "lowPriorityBounds": [],
+          "defaultZoom": 13,
+          "minZoom": 1,
+          "maxZoom": 19,
+          "updateTasks": false,
+          "limitTags": false,
+          "limitReviewTags": false,
+          "isArchived": false,
+          "paused": false,
+          "reviewSetting": 0,
+          "defaultBasemap": -1,
+          "defaultBasemapId": "",
+          "customBasemap": "",
+          "exportableProperties": "",
+          "osmIdProperty": "",
+          "taskBundleIdProperty": "",
+          "taskWidgetLayout": {},
+          "presets": [],
+          "status": 3,
+          "statusMessage": "",
+          "lastTaskRefresh": "2026-10-17T16:13:53.540Z",
+          "dataOriginDate": "2026-10-17T16:13:52.971Z",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -111.883841667,
+              40.761375
+            ]
+          },
+          "bounding": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  -111.8849,
+                  40.7607
+                ],
+                [
+                  -111.8849,
+                  40.7621
+                ],
+                [
+                  -111.8827,
+                  40.7621
+                ],
+                [
+                  -111.8827,
+                  40.7607
+                ],
+                [
+                  -111.8849,
+                  40.7607
+                ]
+              ]
+            ]
+          },
+          "completionPercentage": 83,
+          "completionMetrics": {
+            "total": 6,
+            "available": 1,
+            "fixed": 4,
+            "falsePositive": 0,
+            "skipped": 0,
+            "deleted": 0,
+            "alreadyFixed": 1,
+            "tooHard": 0,
+            "answered": 0,
+            "validated": 0,
+            "disabled": 0,
+            "tasksRemaining": 1
+          },
+          "tags": []
+        },
+        {
+          "id": 11,
+          "name": "SLC benches, no changeset comment (R1 test, delete me)",
+          "created": "2026-10-18T02:04:16.545Z",
+          "modified": "2026-10-18T03:01:11.575Z",
+          "description": "Test challenge for JOSM plugin QA on dev. Not real data.",
+          "deleted": false,
+          "isGlobal": false,
+          "requireConfirmation": false,
+          "requireRejectReason": false,
+          "infoLink": "",
+          "owner": 900005,
+          "parent": {
+            "id": 3,
+            "owner": 900005,
+            "name": "Home_900005",
+            "created": "2026-10-06T02:50:13.223Z",
+            "modified": "2026-10-18T02:04:16.847Z",
+            "description": "Home project for user person-6",
+            "enabled": true,
+            "displayName": "person-7",
+            "deleted": false,
+            "isVirtual": false,
+            "featured": false,
+            "isArchived": false,
+            "requireConfirmation": false,
+            "completionMetrics": {
+              "total": 8,
+              "available": 3,
+              "fixed": 4,
+              "falsePositive": 0,
+              "skipped": 0,
+              "deleted": 0,
+              "alreadyFixed": 1,
+              "tooHard": 0,
+              "answered": 0,
+              "validated": 0,
+              "disabled": 0,
+              "tasksRemaining": 3
+            }
+          },
+          "instruction": "Check the bench at this spot and add backrest=yes or backrest=no. If no bench is mapped here, add one (amenity=bench).",
+          "difficulty": 2,
+          "blurb": "",
+          "enabled": true,
+          "featured": false,
+          "cooperativeType": 0,
+          "popularity": 1792289056,
+          "checkinComment": "",
+          "checkinSource": "survey",
+          "virtualParents": [],
+          "requiresLocal": false,
+          "overpassQL": "",
+          "remoteGeoJson": "",
+          "overpassTargetType": "",
+          "defaultPriority": 0,
+          "highPriorityRule": {},
+          "mediumPriorityRule": {},
+          "lowPriorityRule": {},
+          "highPriorityBounds": [],
+          "mediumPriorityBounds": [],
+          "lowPriorityBounds": [],
+          "defaultZoom": 13,
+          "minZoom": 1,
+          "maxZoom": 19,
+          "updateTasks": false,
+          "limitTags": false,
+          "limitReviewTags": false,
+          "isArchived": false,
+          "paused": false,
+          "reviewSetting": 0,
+          "defaultBasemap": -1,
+          "defaultBasemapId": "",
+          "customBasemap": "",
+          "exportableProperties": "",
+          "osmIdProperty": "",
+          "taskBundleIdProperty": "",
+          "taskWidgetLayout": {},
+          "presets": [],
+          "status": 3,
+          "statusMessage": "",
+          "lastTaskRefresh": "2026-10-18T02:04:16.816Z",
+          "dataOriginDate": "2026-10-18T02:04:16.543Z",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -111.88355,
+              40.76155
+            ]
+          },
+          "bounding": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  -111.8839,
+                  40.7613
+                ],
+                [
+                  -111.8839,
+                  40.7618
+                ],
+                [
+                  -111.8832,
+                  40.7618
+                ],
+                [
+                  -111.8832,
+                  40.7613
+                ],
+                [
+                  -111.8839,
+                  40.7613
+                ]
+              ]
+            ]
+          },
+          "completionPercentage": 0,
+          "completionMetrics": {
+            "total": 2,
+            "available": 2,
+            "fixed": 0,
+            "falsePositive": 0,
+            "skipped": 0,
+            "deleted": 0,
+            "alreadyFixed": 0,
+            "tooHard": 0,
+            "answered": 0,
+            "validated": 0,
+            "disabled": 0,
+            "tasksRemaining": 2
+          },
+          "tags": []
+        }
+      ]
+    }
+  ]
+}

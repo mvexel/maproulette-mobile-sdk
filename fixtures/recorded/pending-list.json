@@ -1,0 +1,32 @@
+{
+  "_comment": "GET mobile-guest/pending.",
+  "recordedFrom": "https://mr-api.osm.lol",
+  "call": "listPendingChoices",
+  "args": {
+    "pageSize": 50
+  },
+  "decode": true,
+  "exchanges": [
+    {
+      "method": "GET",
+      "path": "/api/v2/mobile-guest/pending",
+      "query": {
+        "limit": "50"
+      },
+      "status": 200,
+      "body": {
+        "items": [
+          {
+            "taskId": 222,
+            "challengeId": 8,
+            "state": "pending",
+            "answeredAt": "2026-10-18T06:29:31.837062Z",
+            "holdUntil": "2026-10-25T06:29:31.837062Z",
+            "result": null
+          }
+        ],
+        "next": null
+      }
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "_comment": "GET task/:id, a plain task.",
+  "recordedFrom": "https://mr-api.osm.lol",
+  "call": "getTask",
+  "args": {
+    "id": 1
+  },
+  "decode": true,
+  "exchanges": [
+    {
+      "method": "GET",
+      "path": "/api/v2/task/1",
+      "status": 200,
+      "body": {
+        "id": 1,
+        "name": "n1506657666",
+        "created": "2026-10-05T21:23:52.389Z",
+        "modified": "2026-10-05T21:23:52.389Z",
+        "parent": 1,
+        "instruction": "",
+        "location": {
+          "type": "Point",
+          "coordinates": [
+            -111.8455574,
+            40.7615508
+          ]
+        },
+        "geometries": {
+          "type": "FeatureCollection",
+          "features": [
+            {
+              "id": "n1506657666",
+              "type": "Feature",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [
+                  -111.8455574,
+                  40.7615508
+                ]
+              },
+              "properties": {
+                "@id": "1506657666",
+                "@type": "node",
+                "osmid": "n1506657666",
+                "amenity": "bench"
+              }
+            }
+          ]
+        },
+        "cooperativeWork": null,
+        "status": 0,
+        "mappedOn": null,
+        "completedTimeSpent": null,
+        "completedBy": null,
+        "review": {},
+        "priority": 0,
+        "changesetId": -1,
+        "completionResponses": null,
+        "bundleId": null,
+        "isBundlePrimary": null,
+        "mapillaryImages": null,
+        "errorTags": "",
+        "skipCount": 0,
+        "archived": false,
+        "tags": [],
+        "lockedBy": null,
+        "lockBundledTasks": []
+      }
+    }
+  ]
+}

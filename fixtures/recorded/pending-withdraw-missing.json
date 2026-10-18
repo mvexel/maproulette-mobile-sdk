@@ -1,0 +1,19 @@
+{
+  "_comment": "DELETE task/:id/choice/pending for a task that does not exist.",
+  "recordedFrom": "https://mr-api.osm.lol",
+  "call": "withdrawPendingChoice",
+  "args": {
+    "task": 999999999
+  },
+  "decode": true,
+  "exchanges": [
+    {
+      "method": "DELETE",
+      "path": "/api/v2/task/999999999/choice/pending",
+      "status": 404,
+      "body": {
+        "error": "not_found"
+      }
+    }
+  ]
+}

@@ -22,6 +22,29 @@ IDs and API key text here are invented. These fixtures complement, rather than r
 the read-only live probes documented in [`docs/design/api-probes.json`](../docs/design/api-probes.json)
 and backend-source evidence.
 
+## Recorded fixtures
+
+`recorded/` holds real responses from the dev backend (`mr-api.osm.lol`, OSM dev server), written by
+[`scripts/record-fixtures.py`](../scripts/record-fixtures.py). Each file is one SDK call: its name and
+arguments, then the HTTP exchanges it makes, in order, with the recorded status and body. Both suites
+replay every file through the public client (`RecordedTest.kt`, `RecordedTests.swift`): the SDK must send
+the recorded method, path and query, decode every successful exchange, and map every recorded error to a
+kind other than protocol. People and secrets are scrubbed before writing: user ids, OSM names, guest ids,
+tokens and guest secrets become stable placeholders of the same type.
+
+Covered: challenge search, challenge and tags, `listTasks` paging, `listAllTasks` (two pages of 100, and
+a single short page), choice and plain tasks, a missing task, the app's choice-only area query with
+totals, map markers, and the guest flow (register and guest grant, status, a held answer and its
+ineligible case, the pending list, withdraw, delete). Signed-in routes (`oauth/mobile/me`,
+`choice/check`) are recorded when `MR_DEV_ACCESS_TOKEN` is set, and the campaign wizard's admin reads
+when `MR_DEV_ADMIN_TOKEN` is set; the SDK has no wizard client, so those files are shape-only
+(`"decode": false`).
+
+`scripts/record-fixtures.py` re-records everything; `--check` records into a temporary folder and fails
+when a response's shape changed (keys or value types; `null` matches any type). The scheduled
+**Recorded fixtures drift** workflow runs `--check --keep` against dev every night, then both suites on
+the new responses. When the backend changes on purpose, re-record, update the SDK, and commit both.
+
 ## Adding a fixture case
 
 1. Add a row to the right file (`contract.json`, `task-completion.json`, `choice.json` or `environments.json`).

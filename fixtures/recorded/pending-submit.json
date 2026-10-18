@@ -1,0 +1,177 @@
+{
+  "_comment": "POST task/:id/choice/pending, the first option of every question.",
+  "recordedFrom": "https://mr-api.osm.lol",
+  "call": "submitPendingChoice",
+  "args": {
+    "task": 222,
+    "answers": {
+      "armrest": "yes",
+      "colour": "brown"
+    }
+  },
+  "decode": true,
+  "exchanges": [
+    {
+      "method": "GET",
+      "path": "/api/v2/task/222",
+      "status": 200,
+      "body": {
+        "id": 222,
+        "name": "node/4365677673",
+        "created": "2026-10-16T17:16:33.299Z",
+        "modified": "2026-10-16T17:16:33.299Z",
+        "parent": 8,
+        "instruction": "",
+        "location": {
+          "type": "Point",
+          "coordinates": [
+            -111.8838,
+            40.7614
+          ]
+        },
+        "geometries": {
+          "type": "FeatureCollection",
+          "features": [
+            {
+              "type": "Feature",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [
+                  -111.8838,
+                  40.7614
+                ]
+              },
+              "properties": {
+                "@id": "node/4365677673",
+                "amenity": "bench"
+              }
+            }
+          ]
+        },
+        "cooperativeWork": {
+          "meta": {
+            "type": 3,
+            "version": 2,
+            "choiceVersion": 1
+          },
+          "match": {
+            "amenity": "bench"
+          },
+          "element": "node/4365677673",
+          "outcomes": [
+            {
+              "id": "not-a-bench",
+              "label": "Not a bench",
+              "status": 2
+            }
+          ],
+          "questions": [
+            {
+              "id": "armrest",
+              "expect": {
+                "armrest": null
+              },
+              "prompt": "Does the bench have armrests?",
+              "options": [
+                {
+                  "id": "yes",
+                  "label": "Yes",
+                  "setTags": {
+                    "armrest": "yes"
+                  }
+                },
+                {
+                  "id": "no",
+                  "label": "No",
+                  "setTags": {
+                    "armrest": "no"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "colour",
+              "expect": {
+                "colour": null
+              },
+              "prompt": "What colour is the bench?",
+              "options": [
+                {
+                  "id": "brown",
+                  "label": "Brown",
+                  "setTags": {
+                    "colour": "brown"
+                  }
+                },
+                {
+                  "id": "green",
+                  "label": "Green",
+                  "setTags": {
+                    "colour": "green"
+                  }
+                },
+                {
+                  "id": "black",
+                  "label": "Black",
+                  "setTags": {
+                    "colour": "black"
+                  }
+                },
+                {
+                  "id": "grey",
+                  "label": "Grey",
+                  "setTags": {
+                    "colour": "grey"
+                  }
+                },
+                {
+                  "id": "white",
+                  "label": "White",
+                  "setTags": {
+                    "colour": "white"
+                  }
+                }
+              ]
+            }
+          ],
+          "liveMissingQuestions": true
+        },
+        "status": 0,
+        "mappedOn": null,
+        "completedTimeSpent": null,
+        "completedBy": null,
+        "review": {},
+        "priority": 0,
+        "changesetId": -1,
+        "completionResponses": null,
+        "bundleId": null,
+        "isBundlePrimary": null,
+        "mapillaryImages": null,
+        "errorTags": "",
+        "skipCount": 0,
+        "archived": false,
+        "tags": [],
+        "lockedBy": null,
+        "lockBundledTasks": []
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v2/task/222/choice/pending",
+      "requestBody": {
+        "answers": {
+          "armrest": "yes",
+          "colour": "brown"
+        }
+      },
+      "status": 200,
+      "body": {
+        "taskId": 222,
+        "state": "pending",
+        "answeredAt": "2026-10-18T06:29:31.837062Z",
+        "holdUntil": "2026-10-25T06:29:31.837062Z",
+        "expiresAt": "2026-11-17T06:29:31.837062Z"
+      }
+    }
+  ]
+}
