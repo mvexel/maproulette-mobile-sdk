@@ -34,10 +34,13 @@ tokens and guest secrets become stable placeholders of the same type.
 
 Covered: challenge search, challenge and tags, `listTasks` paging, `listAllTasks` (two pages of 100, and
 a single short page), choice and plain tasks, a missing task, the app's choice-only area query with
-totals, map markers, and the guest flow (register and guest grant, status, a held answer and its
-ineligible case, the pending list, withdraw, delete). Signed-in routes (`oauth/mobile/me`,
-`choice/check`) are recorded when `MR_DEV_ACCESS_TOKEN` is set, and the campaign wizard's admin reads
-when `MR_DEV_ADMIN_TOKEN` is set; the SDK has no wizard client, so those files are shape-only
+totals, map markers, the guest flow (register and guest grant, status, a held answer and its ineligible
+case, the pending list, withdraw, delete, token revoke), and three error cases: `whoami` with no API key
+(401), `oauth/mobile/me` with a guest token (403) and guest email with no mail provider (503).
+Signed-in routes (`oauth/mobile/me`, `choice/check`) are recorded when `MR_DEV_ACCESS_TOKEN` is set,
+with the task lifecycle writes (start and release, skip, resolve) on dev challenge 3; `--check` leaves
+those writes out, so the nightly job never changes task state. The campaign wizard's admin reads are
+recorded when `MR_DEV_ADMIN_TOKEN` is set; the SDK has no wizard client, so those files are shape-only
 (`"decode": false`).
 
 `scripts/record-fixtures.py` re-records everything; `--check` records into a temporary folder and fails

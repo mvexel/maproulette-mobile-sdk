@@ -3,14 +3,14 @@
   "recordedFrom": "https://mr-api.osm.lol",
   "call": "listAllTasks",
   "args": {
-    "id": 5,
+    "id": 3,
     "concurrency": 1
   },
   "decode": true,
   "exchanges": [
     {
       "method": "GET",
-      "path": "/api/v2/challenge/5/tasks",
+      "path": "/api/v2/challenge/3/tasks",
       "query": {
         "limit": "100",
         "page": "0"
@@ -18,17 +18,17 @@
       "status": 200,
       "body": [
         {
-          "id": 192,
-          "name": "node/14178183367",
-          "created": "2026-10-12T00:02:44.346Z",
-          "modified": "2026-10-12T00:02:44.346Z",
-          "parent": 5,
+          "id": 184,
+          "name": "node/4365677669",
+          "created": "2026-10-06T17:44:34.948Z",
+          "modified": "2026-10-07T00:00:17.347Z",
+          "parent": 3,
           "instruction": "",
           "location": {
             "type": "Point",
             "coordinates": [
-              -111.906812,
-              40.7538166
+              -111.8848,
+              40.7608
             ]
           },
           "geometries": {
@@ -39,13 +39,15 @@
                 "geometry": {
                   "type": "Point",
                   "coordinates": [
-                    -111.906812,
-                    40.7538166
+                    -111.8848,
+                    40.7608
                   ]
                 },
                 "properties": {
-                  "@id": "node/14178183367",
-                  "entrance": "main"
+                  "@id": "node/4365677669",
+                  "note": "MapRoulette mobile SDK disposable test bench (dev OSM)",
+                  "amenity": "bench",
+                  "pilot_role": "plain"
                 }
               }
             ]
@@ -57,419 +59,170 @@
               "choiceVersion": 1
             },
             "match": {
-              "entrance": "main"
+              "amenity": "bench"
             },
-            "element": "node/14178183367",
+            "element": "node/4365677669",
             "outcomes": [
               {
-                "id": "no-door",
-                "label": "There's no door",
-                "status": 6,
-                "description": "It's an open doorway or a gate."
-              }
-            ],
-            "questions": [
-              {
-                "id": "door-type",
-                "expect": {
-                  "door": null
-                },
-                "prompt": "How does this door open?",
-                "options": [
-                  {
-                    "id": "hinged",
-                    "label": "Swings open",
-                    "setTags": {
-                      "door": "hinged"
-                    }
-                  },
-                  {
-                    "id": "sliding",
-                    "label": "Slides sideways",
-                    "setTags": {
-                      "door": "sliding"
-                    }
-                  },
-                  {
-                    "id": "revolving",
-                    "label": "Revolves",
-                    "setTags": {
-                      "door": "revolving"
-                    }
-                  },
-                  {
-                    "id": "folding",
-                    "label": "Folds",
-                    "setTags": {
-                      "door": "folding"
-                    }
-                  }
-                ],
-                "description": "Look only at the door at this entrance."
+                "id": "not-a-bench",
+                "label": "Not a bench",
+                "status": 2
               },
               {
-                "id": "automatic-opening",
-                "expect": {
-                  "automatic_door": null
-                },
-                "prompt": "Does it open by itself?",
-                "options": [
-                  {
-                    "id": "no",
-                    "label": "No, you push or pull it",
-                    "setTags": {
-                      "automatic_door": "no"
-                    }
-                  },
-                  {
-                    "id": "button",
-                    "label": "Yes, with a button",
-                    "setTags": {
-                      "automatic_door": "button"
-                    }
-                  },
-                  {
-                    "id": "motion",
-                    "label": "Yes, when you walk up",
-                    "setTags": {
-                      "automatic_door": "motion"
-                    }
-                  },
-                  {
-                    "id": "yes",
-                    "label": "Yes, not sure how",
-                    "setTags": {
-                      "automatic_door": "yes"
-                    }
-                  }
-                ],
-                "description": "A door that's propped open doesn't count."
-              }
-            ],
-            "liveMissingQuestions": true
-          },
-          "status": 0,
-          "mappedOn": null,
-          "completedTimeSpent": null,
-          "completedBy": null,
-          "review": {},
-          "priority": 0,
-          "changesetId": -1,
-          "completionResponses": null,
-          "bundleId": null,
-          "isBundlePrimary": null,
-          "mapillaryImages": null,
-          "errorTags": "",
-          "skipCount": 0,
-          "archived": false,
-          "tags": []
-        },
-        {
-          "id": 193,
-          "name": "node/14178183369",
-          "created": "2026-10-12T00:02:44.431Z",
-          "modified": "2026-10-12T00:02:44.431Z",
-          "parent": 5,
-          "instruction": "",
-          "location": {
-            "type": "Point",
-            "coordinates": [
-              -111.9068124,
-              40.7535743
-            ]
-          },
-          "geometries": {
-            "type": "FeatureCollection",
-            "features": [
-              {
-                "type": "Feature",
-                "geometry": {
-                  "type": "Point",
-                  "coordinates": [
-                    -111.9068124,
-                    40.7535743
-                  ]
-                },
-                "properties": {
-                  "@id": "node/14178183369",
-                  "entrance": "yes"
-                }
-              }
-            ]
-          },
-          "cooperativeWork": {
-            "meta": {
-              "type": 3,
-              "version": 2,
-              "choiceVersion": 1
-            },
-            "match": {
-              "entrance": "yes"
-            },
-            "element": "node/14178183369",
-            "outcomes": [
-              {
-                "id": "no-door",
-                "label": "There's no door",
-                "status": 6,
-                "description": "It's an open doorway or a gate."
+                "id": "gone",
+                "label": "Bench is gone",
+                "delete": true
               }
             ],
             "questions": [
               {
-                "id": "door-type",
+                "id": "backrest",
                 "expect": {
-                  "door": null
+                  "backrest": null
                 },
-                "prompt": "How does this door open?",
+                "prompt": "Does the bench have a backrest?",
                 "options": [
                   {
-                    "id": "hinged",
-                    "label": "Swings open",
+                    "id": "yes",
+                    "label": "Yes",
                     "setTags": {
-                      "door": "hinged"
+                      "backrest": "yes"
                     }
                   },
                   {
-                    "id": "sliding",
-                    "label": "Slides sideways",
+                    "id": "no",
+                    "label": "No",
                     "setTags": {
-                      "door": "sliding"
-                    }
-                  },
-                  {
-                    "id": "revolving",
-                    "label": "Revolves",
-                    "setTags": {
-                      "door": "revolving"
-                    }
-                  },
-                  {
-                    "id": "folding",
-                    "label": "Folds",
-                    "setTags": {
-                      "door": "folding"
+                      "backrest": "no"
                     }
                   }
-                ],
-                "description": "Look only at the door at this entrance."
+                ]
               },
               {
-                "id": "automatic-opening",
+                "id": "material",
                 "expect": {
-                  "automatic_door": null
+                  "material": null
                 },
-                "prompt": "Does it open by itself?",
+                "prompt": "What is the seat mainly made of?",
                 "options": [
                   {
-                    "id": "no",
-                    "label": "No, you push or pull it",
+                    "id": "wood",
+                    "label": "Wood",
                     "setTags": {
-                      "automatic_door": "no"
+                      "material": "wood"
                     }
                   },
                   {
-                    "id": "button",
-                    "label": "Yes, with a button",
+                    "id": "metal",
+                    "label": "Metal",
                     "setTags": {
-                      "automatic_door": "button"
+                      "material": "metal"
                     }
                   },
                   {
-                    "id": "motion",
-                    "label": "Yes, when you walk up",
+                    "id": "concrete",
+                    "label": "Concrete",
                     "setTags": {
-                      "automatic_door": "motion"
+                      "material": "concrete"
                     }
                   },
                   {
-                    "id": "yes",
-                    "label": "Yes, not sure how",
+                    "id": "stone",
+                    "label": "Stone",
                     "setTags": {
-                      "automatic_door": "yes"
+                      "material": "stone"
+                    }
+                  },
+                  {
+                    "id": "plastic",
+                    "label": "Plastic",
+                    "setTags": {
+                      "material": "plastic"
                     }
                   }
-                ],
-                "description": "A door that's propped open doesn't count."
-              }
-            ],
-            "liveMissingQuestions": true
-          },
-          "status": 0,
-          "mappedOn": null,
-          "completedTimeSpent": null,
-          "completedBy": null,
-          "review": {},
-          "priority": 0,
-          "changesetId": -1,
-          "completionResponses": null,
-          "bundleId": null,
-          "isBundlePrimary": null,
-          "mapillaryImages": null,
-          "errorTags": "",
-          "skipCount": 0,
-          "archived": false,
-          "tags": []
-        },
-        {
-          "id": 194,
-          "name": "node/14178183390",
-          "created": "2026-10-12T00:02:44.456Z",
-          "modified": "2026-10-12T00:02:44.456Z",
-          "parent": 5,
-          "instruction": "",
-          "location": {
-            "type": "Point",
-            "coordinates": [
-              -111.9056331,
-              40.7527671
-            ]
-          },
-          "geometries": {
-            "type": "FeatureCollection",
-            "features": [
-              {
-                "type": "Feature",
-                "geometry": {
-                  "type": "Point",
-                  "coordinates": [
-                    -111.9056331,
-                    40.7527671
-                  ]
-                },
-                "properties": {
-                  "@id": "node/14178183390",
-                  "entrance": "main"
-                }
-              }
-            ]
-          },
-          "cooperativeWork": {
-            "meta": {
-              "type": 3,
-              "version": 2,
-              "choiceVersion": 1
-            },
-            "match": {
-              "entrance": "main"
-            },
-            "element": "node/14178183390",
-            "outcomes": [
-              {
-                "id": "no-door",
-                "label": "There's no door",
-                "status": 6,
-                "description": "It's an open doorway or a gate."
-              }
-            ],
-            "questions": [
-              {
-                "id": "door-type",
-                "expect": {
-                  "door": null
-                },
-                "prompt": "How does this door open?",
-                "options": [
-                  {
-                    "id": "hinged",
-                    "label": "Swings open",
-                    "setTags": {
-                      "door": "hinged"
-                    }
-                  },
-                  {
-                    "id": "sliding",
-                    "label": "Slides sideways",
-                    "setTags": {
-                      "door": "sliding"
-                    }
-                  },
-                  {
-                    "id": "revolving",
-                    "label": "Revolves",
-                    "setTags": {
-                      "door": "revolving"
-                    }
-                  },
-                  {
-                    "id": "folding",
-                    "label": "Folds",
-                    "setTags": {
-                      "door": "folding"
-                    }
-                  }
-                ],
-                "description": "Look only at the door at this entrance."
+                ]
               },
               {
-                "id": "automatic-opening",
+                "id": "capacity",
                 "expect": {
-                  "automatic_door": null
+                  "capacity": null
                 },
-                "prompt": "Does it open by itself?",
+                "prompt": "How many adults can sit on it?",
                 "options": [
                   {
-                    "id": "no",
-                    "label": "No, you push or pull it",
+                    "id": "c1",
+                    "label": "1",
                     "setTags": {
-                      "automatic_door": "no"
+                      "capacity": "1"
                     }
                   },
                   {
-                    "id": "button",
-                    "label": "Yes, with a button",
+                    "id": "c2",
+                    "label": "2",
                     "setTags": {
-                      "automatic_door": "button"
+                      "capacity": "2"
                     }
                   },
                   {
-                    "id": "motion",
-                    "label": "Yes, when you walk up",
+                    "id": "c3",
+                    "label": "3",
                     "setTags": {
-                      "automatic_door": "motion"
+                      "capacity": "3"
                     }
                   },
                   {
-                    "id": "yes",
-                    "label": "Yes, not sure how",
+                    "id": "c4",
+                    "label": "4",
                     "setTags": {
-                      "automatic_door": "yes"
+                      "capacity": "4"
+                    }
+                  },
+                  {
+                    "id": "c5",
+                    "label": "5",
+                    "setTags": {
+                      "capacity": "5"
+                    }
+                  },
+                  {
+                    "id": "c6",
+                    "label": "6",
+                    "setTags": {
+                      "capacity": "6"
                     }
                   }
-                ],
-                "description": "A door that's propped open doesn't count."
+                ]
               }
-            ],
-            "liveMissingQuestions": true
+            ]
           },
-          "status": 0,
-          "mappedOn": null,
-          "completedTimeSpent": null,
-          "completedBy": null,
+          "status": 1,
+          "mappedOn": "2026-10-07T00:00:17.347Z",
+          "completedTimeSpent": 513,
+          "completedBy": 900008,
           "review": {},
           "priority": 0,
-          "changesetId": -1,
+          "changesetId": 692560,
           "completionResponses": null,
           "bundleId": null,
           "isBundlePrimary": null,
           "mapillaryImages": null,
           "errorTags": "",
-          "skipCount": 0,
+          "skipCount": 1,
           "archived": false,
           "tags": []
         },
         {
-          "id": 195,
-          "name": "node/10290204107",
-          "created": "2026-10-12T00:02:44.492Z",
-          "modified": "2026-10-12T00:02:44.492Z",
-          "parent": 5,
+          "id": 185,
+          "name": "node/4365677670",
+          "created": "2026-10-06T17:44:35.036Z",
+          "modified": "2026-10-07T00:06:58.498Z",
+          "parent": 3,
           "instruction": "",
           "location": {
             "type": "Point",
             "coordinates": [
-              -111.9078998,
-              40.7561096
+              -111.88455,
+              40.76095
             ]
           },
           "geometries": {
@@ -480,13 +233,15 @@
                 "geometry": {
                   "type": "Point",
                   "coordinates": [
-                    -111.9078998,
-                    40.7561096
+                    -111.88455,
+                    40.76095
                   ]
                 },
                 "properties": {
-                  "@id": "node/10290204107",
-                  "entrance": "yes"
+                  "@id": "node/4365677670",
+                  "note": "MapRoulette mobile SDK disposable test bench (dev OSM)",
+                  "amenity": "bench",
+                  "pilot_role": "plain"
                 }
               }
             ]
@@ -498,398 +253,149 @@
               "choiceVersion": 1
             },
             "match": {
-              "entrance": "yes"
+              "amenity": "bench"
             },
-            "element": "node/10290204107",
+            "element": "node/4365677670",
             "outcomes": [
               {
-                "id": "no-door",
-                "label": "There's no door",
-                "status": 6,
-                "description": "It's an open doorway or a gate."
-              }
-            ],
-            "questions": [
-              {
-                "id": "door-type",
-                "expect": {
-                  "door": null
-                },
-                "prompt": "How does this door open?",
-                "options": [
-                  {
-                    "id": "hinged",
-                    "label": "Swings open",
-                    "setTags": {
-                      "door": "hinged"
-                    }
-                  },
-                  {
-                    "id": "sliding",
-                    "label": "Slides sideways",
-                    "setTags": {
-                      "door": "sliding"
-                    }
-                  },
-                  {
-                    "id": "revolving",
-                    "label": "Revolves",
-                    "setTags": {
-                      "door": "revolving"
-                    }
-                  },
-                  {
-                    "id": "folding",
-                    "label": "Folds",
-                    "setTags": {
-                      "door": "folding"
-                    }
-                  }
-                ],
-                "description": "Look only at the door at this entrance."
+                "id": "not-a-bench",
+                "label": "Not a bench",
+                "status": 2
               },
               {
-                "id": "automatic-opening",
-                "expect": {
-                  "automatic_door": null
-                },
-                "prompt": "Does it open by itself?",
-                "options": [
-                  {
-                    "id": "no",
-                    "label": "No, you push or pull it",
-                    "setTags": {
-                      "automatic_door": "no"
-                    }
-                  },
-                  {
-                    "id": "button",
-                    "label": "Yes, with a button",
-                    "setTags": {
-                      "automatic_door": "button"
-                    }
-                  },
-                  {
-                    "id": "motion",
-                    "label": "Yes, when you walk up",
-                    "setTags": {
-                      "automatic_door": "motion"
-                    }
-                  },
-                  {
-                    "id": "yes",
-                    "label": "Yes, not sure how",
-                    "setTags": {
-                      "automatic_door": "yes"
-                    }
-                  }
-                ],
-                "description": "A door that's propped open doesn't count."
-              }
-            ],
-            "liveMissingQuestions": true
-          },
-          "status": 0,
-          "mappedOn": null,
-          "completedTimeSpent": null,
-          "completedBy": null,
-          "review": {},
-          "priority": 0,
-          "changesetId": -1,
-          "completionResponses": null,
-          "bundleId": null,
-          "isBundlePrimary": null,
-          "mapillaryImages": null,
-          "errorTags": "",
-          "skipCount": 0,
-          "archived": false,
-          "tags": []
-        },
-        {
-          "id": 196,
-          "name": "node/12790552134",
-          "created": "2026-10-12T00:02:44.543Z",
-          "modified": "2026-10-12T00:02:44.543Z",
-          "parent": 5,
-          "instruction": "",
-          "location": {
-            "type": "Point",
-            "coordinates": [
-              -111.9015878,
-              40.7565212
-            ]
-          },
-          "geometries": {
-            "type": "FeatureCollection",
-            "features": [
-              {
-                "type": "Feature",
-                "geometry": {
-                  "type": "Point",
-                  "coordinates": [
-                    -111.9015878,
-                    40.7565212
-                  ]
-                },
-                "properties": {
-                  "@id": "node/12790552134",
-                  "entrance": "yes"
-                }
-              }
-            ]
-          },
-          "cooperativeWork": {
-            "meta": {
-              "type": 3,
-              "version": 2,
-              "choiceVersion": 1
-            },
-            "match": {
-              "entrance": "yes"
-            },
-            "element": "node/12790552134",
-            "outcomes": [
-              {
-                "id": "no-door",
-                "label": "There's no door",
-                "status": 6,
-                "description": "It's an open doorway or a gate."
+                "id": "gone",
+                "label": "Bench is gone",
+                "delete": true
               }
             ],
             "questions": [
               {
-                "id": "door-type",
+                "id": "backrest",
                 "expect": {
-                  "door": null
+                  "backrest": null
                 },
-                "prompt": "How does this door open?",
+                "prompt": "Does the bench have a backrest?",
                 "options": [
                   {
-                    "id": "hinged",
-                    "label": "Swings open",
+                    "id": "yes",
+                    "label": "Yes",
                     "setTags": {
-                      "door": "hinged"
+                      "backrest": "yes"
                     }
                   },
                   {
-                    "id": "sliding",
-                    "label": "Slides sideways",
+                    "id": "no",
+                    "label": "No",
                     "setTags": {
-                      "door": "sliding"
-                    }
-                  },
-                  {
-                    "id": "revolving",
-                    "label": "Revolves",
-                    "setTags": {
-                      "door": "revolving"
-                    }
-                  },
-                  {
-                    "id": "folding",
-                    "label": "Folds",
-                    "setTags": {
-                      "door": "folding"
+                      "backrest": "no"
                     }
                   }
-                ],
-                "description": "Look only at the door at this entrance."
+                ]
               },
               {
-                "id": "automatic-opening",
+                "id": "material",
                 "expect": {
-                  "automatic_door": null
+                  "material": null
                 },
-                "prompt": "Does it open by itself?",
+                "prompt": "What is the seat mainly made of?",
                 "options": [
                   {
-                    "id": "no",
-                    "label": "No, you push or pull it",
+                    "id": "wood",
+                    "label": "Wood",
                     "setTags": {
-                      "automatic_door": "no"
+                      "material": "wood"
                     }
                   },
                   {
-                    "id": "button",
-                    "label": "Yes, with a button",
+                    "id": "metal",
+                    "label": "Metal",
                     "setTags": {
-                      "automatic_door": "button"
+                      "material": "metal"
                     }
                   },
                   {
-                    "id": "motion",
-                    "label": "Yes, when you walk up",
+                    "id": "concrete",
+                    "label": "Concrete",
                     "setTags": {
-                      "automatic_door": "motion"
+                      "material": "concrete"
                     }
                   },
                   {
-                    "id": "yes",
-                    "label": "Yes, not sure how",
+                    "id": "stone",
+                    "label": "Stone",
                     "setTags": {
-                      "automatic_door": "yes"
+                      "material": "stone"
+                    }
+                  },
+                  {
+                    "id": "plastic",
+                    "label": "Plastic",
+                    "setTags": {
+                      "material": "plastic"
                     }
                   }
-                ],
-                "description": "A door that's propped open doesn't count."
-              }
-            ],
-            "liveMissingQuestions": true
-          },
-          "status": 0,
-          "mappedOn": null,
-          "completedTimeSpent": null,
-          "completedBy": null,
-          "review": {},
-          "priority": 0,
-          "changesetId": -1,
-          "completionResponses": null,
-          "bundleId": null,
-          "isBundlePrimary": null,
-          "mapillaryImages": null,
-          "errorTags": "",
-          "skipCount": 0,
-          "archived": false,
-          "tags": []
-        },
-        {
-          "id": 197,
-          "name": "node/13689903758",
-          "created": "2026-10-12T00:02:44.565Z",
-          "modified": "2026-10-12T00:02:44.565Z",
-          "parent": 5,
-          "instruction": "",
-          "location": {
-            "type": "Point",
-            "coordinates": [
-              -111.9005183,
-              40.7521289
-            ]
-          },
-          "geometries": {
-            "type": "FeatureCollection",
-            "features": [
-              {
-                "type": "Feature",
-                "geometry": {
-                  "type": "Point",
-                  "coordinates": [
-                    -111.9005183,
-                    40.7521289
-                  ]
-                },
-                "properties": {
-                  "@id": "node/13689903758",
-                  "entrance": "main"
-                }
-              }
-            ]
-          },
-          "cooperativeWork": {
-            "meta": {
-              "type": 3,
-              "version": 2,
-              "choiceVersion": 1
-            },
-            "match": {
-              "entrance": "main"
-            },
-            "element": "node/13689903758",
-            "outcomes": [
-              {
-                "id": "no-door",
-                "label": "There's no door",
-                "status": 6,
-                "description": "It's an open doorway or a gate."
-              }
-            ],
-            "questions": [
-              {
-                "id": "door-type",
-                "expect": {
-                  "door": null
-                },
-                "prompt": "How does this door open?",
-                "options": [
-                  {
-                    "id": "hinged",
-                    "label": "Swings open",
-                    "setTags": {
-                      "door": "hinged"
-                    }
-                  },
-                  {
-                    "id": "sliding",
-                    "label": "Slides sideways",
-                    "setTags": {
-                      "door": "sliding"
-                    }
-                  },
-                  {
-                    "id": "revolving",
-                    "label": "Revolves",
-                    "setTags": {
-                      "door": "revolving"
-                    }
-                  },
-                  {
-                    "id": "folding",
-                    "label": "Folds",
-                    "setTags": {
-                      "door": "folding"
-                    }
-                  }
-                ],
-                "description": "Look only at the door at this entrance."
+                ]
               },
               {
-                "id": "automatic-opening",
+                "id": "capacity",
                 "expect": {
-                  "automatic_door": null
+                  "capacity": null
                 },
-                "prompt": "Does it open by itself?",
+                "prompt": "How many adults can sit on it?",
                 "options": [
                   {
-                    "id": "no",
-                    "label": "No, you push or pull it",
+                    "id": "c1",
+                    "label": "1",
                     "setTags": {
-                      "automatic_door": "no"
+                      "capacity": "1"
                     }
                   },
                   {
-                    "id": "button",
-                    "label": "Yes, with a button",
+                    "id": "c2",
+                    "label": "2",
                     "setTags": {
-                      "automatic_door": "button"
+                      "capacity": "2"
                     }
                   },
                   {
-                    "id": "motion",
-                    "label": "Yes, when you walk up",
+                    "id": "c3",
+                    "label": "3",
                     "setTags": {
-                      "automatic_door": "motion"
+                      "capacity": "3"
                     }
                   },
                   {
-                    "id": "yes",
-                    "label": "Yes, not sure how",
+                    "id": "c4",
+                    "label": "4",
                     "setTags": {
-                      "automatic_door": "yes"
+                      "capacity": "4"
+                    }
+                  },
+                  {
+                    "id": "c5",
+                    "label": "5",
+                    "setTags": {
+                      "capacity": "5"
+                    }
+                  },
+                  {
+                    "id": "c6",
+                    "label": "6",
+                    "setTags": {
+                      "capacity": "6"
                     }
                   }
-                ],
-                "description": "A door that's propped open doesn't count."
+                ]
               }
-            ],
-            "liveMissingQuestions": true
+            ]
           },
-          "status": 0,
-          "mappedOn": null,
-          "completedTimeSpent": null,
-          "completedBy": null,
+          "status": 1,
+          "mappedOn": "2026-10-07T00:06:58.498Z",
+          "completedTimeSpent": 577,
+          "completedBy": 900008,
           "review": {},
           "priority": 0,
-          "changesetId": -1,
+          "changesetId": 692562,
           "completionResponses": null,
           "bundleId": null,
           "isBundlePrimary": null,
@@ -900,17 +406,17 @@
           "tags": []
         },
         {
-          "id": 198,
-          "name": "node/13302228244",
-          "created": "2026-10-12T00:02:44.606Z",
-          "modified": "2026-10-12T00:02:44.606Z",
-          "parent": 5,
+          "id": 186,
+          "name": "node/4365677671",
+          "created": "2026-10-06T17:44:35.073Z",
+          "modified": "2026-10-06T20:42:28.397Z",
+          "parent": 3,
           "instruction": "",
           "location": {
             "type": "Point",
             "coordinates": [
-              -111.9015054,
-              40.7567798
+              -111.8843,
+              40.7611
             ]
           },
           "geometries": {
@@ -921,13 +427,15 @@
                 "geometry": {
                   "type": "Point",
                   "coordinates": [
-                    -111.9015054,
-                    40.7567798
+                    -111.8843,
+                    40.7611
                   ]
                 },
                 "properties": {
-                  "@id": "node/13302228244",
-                  "entrance": "yes"
+                  "@id": "node/4365677671",
+                  "note": "MapRoulette mobile SDK disposable test bench (dev OSM)",
+                  "amenity": "bench",
+                  "pilot_role": "plain"
                 }
               }
             ]
@@ -939,508 +447,149 @@
               "choiceVersion": 1
             },
             "match": {
-              "entrance": "yes"
+              "amenity": "bench"
             },
-            "element": "node/13302228244",
+            "element": "node/4365677671",
             "outcomes": [
               {
-                "id": "no-door",
-                "label": "There's no door",
-                "status": 6,
-                "description": "It's an open doorway or a gate."
-              }
-            ],
-            "questions": [
-              {
-                "id": "door-type",
-                "expect": {
-                  "door": null
-                },
-                "prompt": "How does this door open?",
-                "options": [
-                  {
-                    "id": "hinged",
-                    "label": "Swings open",
-                    "setTags": {
-                      "door": "hinged"
-                    }
-                  },
-                  {
-                    "id": "sliding",
-                    "label": "Slides sideways",
-                    "setTags": {
-                      "door": "sliding"
-                    }
-                  },
-                  {
-                    "id": "revolving",
-                    "label": "Revolves",
-                    "setTags": {
-                      "door": "revolving"
-                    }
-                  },
-                  {
-                    "id": "folding",
-                    "label": "Folds",
-                    "setTags": {
-                      "door": "folding"
-                    }
-                  }
-                ],
-                "description": "Look only at the door at this entrance."
+                "id": "not-a-bench",
+                "label": "Not a bench",
+                "status": 2
               },
               {
-                "id": "automatic-opening",
-                "expect": {
-                  "automatic_door": null
-                },
-                "prompt": "Does it open by itself?",
-                "options": [
-                  {
-                    "id": "no",
-                    "label": "No, you push or pull it",
-                    "setTags": {
-                      "automatic_door": "no"
-                    }
-                  },
-                  {
-                    "id": "button",
-                    "label": "Yes, with a button",
-                    "setTags": {
-                      "automatic_door": "button"
-                    }
-                  },
-                  {
-                    "id": "motion",
-                    "label": "Yes, when you walk up",
-                    "setTags": {
-                      "automatic_door": "motion"
-                    }
-                  },
-                  {
-                    "id": "yes",
-                    "label": "Yes, not sure how",
-                    "setTags": {
-                      "automatic_door": "yes"
-                    }
-                  }
-                ],
-                "description": "A door that's propped open doesn't count."
-              }
-            ],
-            "liveMissingQuestions": true
-          },
-          "status": 0,
-          "mappedOn": null,
-          "completedTimeSpent": null,
-          "completedBy": null,
-          "review": {},
-          "priority": 0,
-          "changesetId": -1,
-          "completionResponses": null,
-          "bundleId": null,
-          "isBundlePrimary": null,
-          "mapillaryImages": null,
-          "errorTags": "",
-          "skipCount": 0,
-          "archived": false,
-          "tags": []
-        },
-        {
-          "id": 199,
-          "name": "node/14013712692",
-          "created": "2026-10-12T00:02:44.633Z",
-          "modified": "2026-10-12T00:02:44.633Z",
-          "parent": 5,
-          "instruction": "",
-          "location": {
-            "type": "Point",
-            "coordinates": [
-              -111.8991422,
-              40.7558555
-            ]
-          },
-          "geometries": {
-            "type": "FeatureCollection",
-            "features": [
-              {
-                "type": "Feature",
-                "geometry": {
-                  "type": "Point",
-                  "coordinates": [
-                    -111.8991422,
-                    40.7558555
-                  ]
-                },
-                "properties": {
-                  "@id": "node/14013712692",
-                  "door": "automatic",
-                  "entrance": "main"
-                }
-              }
-            ]
-          },
-          "cooperativeWork": {
-            "meta": {
-              "type": 3,
-              "version": 2,
-              "choiceVersion": 1
-            },
-            "match": {
-              "entrance": "main"
-            },
-            "element": "node/14013712692",
-            "outcomes": [
-              {
-                "id": "no-door",
-                "label": "There's no door",
-                "status": 6,
-                "description": "It's an open doorway or a gate."
+                "id": "gone",
+                "label": "Bench is gone",
+                "delete": true
               }
             ],
             "questions": [
               {
-                "id": "automatic-opening",
+                "id": "backrest",
                 "expect": {
-                  "automatic_door": null
+                  "backrest": null
                 },
-                "prompt": "Does it open by itself?",
+                "prompt": "Does the bench have a backrest?",
                 "options": [
-                  {
-                    "id": "no",
-                    "label": "No, you push or pull it",
-                    "setTags": {
-                      "automatic_door": "no"
-                    }
-                  },
-                  {
-                    "id": "button",
-                    "label": "Yes, with a button",
-                    "setTags": {
-                      "automatic_door": "button"
-                    }
-                  },
-                  {
-                    "id": "motion",
-                    "label": "Yes, when you walk up",
-                    "setTags": {
-                      "automatic_door": "motion"
-                    }
-                  },
                   {
                     "id": "yes",
-                    "label": "Yes, not sure how",
+                    "label": "Yes",
                     "setTags": {
-                      "automatic_door": "yes"
+                      "backrest": "yes"
+                    }
+                  },
+                  {
+                    "id": "no",
+                    "label": "No",
+                    "setTags": {
+                      "backrest": "no"
                     }
                   }
-                ],
-                "description": "A door that's propped open doesn't count."
-              }
-            ],
-            "liveMissingQuestions": true
-          },
-          "status": 0,
-          "mappedOn": null,
-          "completedTimeSpent": null,
-          "completedBy": null,
-          "review": {},
-          "priority": 0,
-          "changesetId": -1,
-          "completionResponses": null,
-          "bundleId": null,
-          "isBundlePrimary": null,
-          "mapillaryImages": null,
-          "errorTags": "",
-          "skipCount": 0,
-          "archived": false,
-          "tags": []
-        },
-        {
-          "id": 200,
-          "name": "node/10290204100",
-          "created": "2026-10-12T00:02:44.676Z",
-          "modified": "2026-10-12T00:02:44.676Z",
-          "parent": 5,
-          "instruction": "",
-          "location": {
-            "type": "Point",
-            "coordinates": [
-              -111.9004649,
-              40.7580994
-            ]
-          },
-          "geometries": {
-            "type": "FeatureCollection",
-            "features": [
-              {
-                "type": "Feature",
-                "geometry": {
-                  "type": "Point",
-                  "coordinates": [
-                    -111.9004649,
-                    40.7580994
-                  ]
-                },
-                "properties": {
-                  "@id": "node/10290204100",
-                  "entrance": "main"
-                }
-              }
-            ]
-          },
-          "cooperativeWork": {
-            "meta": {
-              "type": 3,
-              "version": 2,
-              "choiceVersion": 1
-            },
-            "match": {
-              "entrance": "main"
-            },
-            "element": "node/10290204100",
-            "outcomes": [
-              {
-                "id": "no-door",
-                "label": "There's no door",
-                "status": 6,
-                "description": "It's an open doorway or a gate."
-              }
-            ],
-            "questions": [
-              {
-                "id": "door-type",
-                "expect": {
-                  "door": null
-                },
-                "prompt": "How does this door open?",
-                "options": [
-                  {
-                    "id": "hinged",
-                    "label": "Swings open",
-                    "setTags": {
-                      "door": "hinged"
-                    }
-                  },
-                  {
-                    "id": "sliding",
-                    "label": "Slides sideways",
-                    "setTags": {
-                      "door": "sliding"
-                    }
-                  },
-                  {
-                    "id": "revolving",
-                    "label": "Revolves",
-                    "setTags": {
-                      "door": "revolving"
-                    }
-                  },
-                  {
-                    "id": "folding",
-                    "label": "Folds",
-                    "setTags": {
-                      "door": "folding"
-                    }
-                  }
-                ],
-                "description": "Look only at the door at this entrance."
+                ]
               },
               {
-                "id": "automatic-opening",
+                "id": "material",
                 "expect": {
-                  "automatic_door": null
+                  "material": null
                 },
-                "prompt": "Does it open by itself?",
+                "prompt": "What is the seat mainly made of?",
                 "options": [
                   {
-                    "id": "no",
-                    "label": "No, you push or pull it",
+                    "id": "wood",
+                    "label": "Wood",
                     "setTags": {
-                      "automatic_door": "no"
+                      "material": "wood"
                     }
                   },
                   {
-                    "id": "button",
-                    "label": "Yes, with a button",
+                    "id": "metal",
+                    "label": "Metal",
                     "setTags": {
-                      "automatic_door": "button"
+                      "material": "metal"
                     }
                   },
                   {
-                    "id": "motion",
-                    "label": "Yes, when you walk up",
+                    "id": "concrete",
+                    "label": "Concrete",
                     "setTags": {
-                      "automatic_door": "motion"
+                      "material": "concrete"
                     }
                   },
                   {
-                    "id": "yes",
-                    "label": "Yes, not sure how",
+                    "id": "stone",
+                    "label": "Stone",
                     "setTags": {
-                      "automatic_door": "yes"
+                      "material": "stone"
+                    }
+                  },
+                  {
+                    "id": "plastic",
+                    "label": "Plastic",
+                    "setTags": {
+                      "material": "plastic"
                     }
                   }
-                ],
-                "description": "A door that's propped open doesn't count."
-              }
-            ],
-            "liveMissingQuestions": true
-          },
-          "status": 0,
-          "mappedOn": null,
-          "completedTimeSpent": null,
-          "completedBy": null,
-          "review": {},
-          "priority": 0,
-          "changesetId": -1,
-          "completionResponses": null,
-          "bundleId": null,
-          "isBundlePrimary": null,
-          "mapillaryImages": null,
-          "errorTags": "",
-          "skipCount": 0,
-          "archived": false,
-          "tags": []
-        },
-        {
-          "id": 201,
-          "name": "node/13202963757",
-          "created": "2026-10-12T00:02:44.709Z",
-          "modified": "2026-10-12T00:02:44.709Z",
-          "parent": 5,
-          "instruction": "",
-          "location": {
-            "type": "Point",
-            "coordinates": [
-              -111.9000327,
-              40.7487836
-            ]
-          },
-          "geometries": {
-            "type": "FeatureCollection",
-            "features": [
-              {
-                "type": "Feature",
-                "geometry": {
-                  "type": "Point",
-                  "coordinates": [
-                    -111.9000327,
-                    40.7487836
-                  ]
-                },
-                "properties": {
-                  "@id": "node/13202963757",
-                  "entrance": "yes"
-                }
-              }
-            ]
-          },
-          "cooperativeWork": {
-            "meta": {
-              "type": 3,
-              "version": 2,
-              "choiceVersion": 1
-            },
-            "match": {
-              "entrance": "yes"
-            },
-            "element": "node/13202963757",
-            "outcomes": [
-              {
-                "id": "no-door",
-                "label": "There's no door",
-                "status": 6,
-                "description": "It's an open doorway or a gate."
-              }
-            ],
-            "questions": [
-              {
-                "id": "door-type",
-                "expect": {
-                  "door": null
-                },
-                "prompt": "How does this door open?",
-                "options": [
-                  {
-                    "id": "hinged",
-                    "label": "Swings open",
-                    "setTags": {
-                      "door": "hinged"
-                    }
-                  },
-                  {
-                    "id": "sliding",
-                    "label": "Slides sideways",
-                    "setTags": {
-                      "door": "sliding"
-                    }
-                  },
-                  {
-                    "id": "revolving",
-                    "label": "Revolves",
-                    "setTags": {
-                      "door": "revolving"
-                    }
-                  },
-                  {
-                    "id": "folding",
-                    "label": "Folds",
-                    "setTags": {
-                      "door": "folding"
-                    }
-                  }
-                ],
-                "description": "Look only at the door at this entrance."
+                ]
               },
               {
-                "id": "automatic-opening",
+                "id": "capacity",
                 "expect": {
-                  "automatic_door": null
+                  "capacity": null
                 },
-                "prompt": "Does it open by itself?",
+                "prompt": "How many adults can sit on it?",
                 "options": [
                   {
-                    "id": "no",
-                    "label": "No, you push or pull it",
+                    "id": "c1",
+                    "label": "1",
                     "setTags": {
-                      "automatic_door": "no"
+                      "capacity": "1"
                     }
                   },
                   {
-                    "id": "button",
-                    "label": "Yes, with a button",
+                    "id": "c2",
+                    "label": "2",
                     "setTags": {
-                      "automatic_door": "button"
+                      "capacity": "2"
                     }
                   },
                   {
-                    "id": "motion",
-                    "label": "Yes, when you walk up",
+                    "id": "c3",
+                    "label": "3",
                     "setTags": {
-                      "automatic_door": "motion"
+                      "capacity": "3"
                     }
                   },
                   {
-                    "id": "yes",
-                    "label": "Yes, not sure how",
+                    "id": "c4",
+                    "label": "4",
                     "setTags": {
-                      "automatic_door": "yes"
+                      "capacity": "4"
+                    }
+                  },
+                  {
+                    "id": "c5",
+                    "label": "5",
+                    "setTags": {
+                      "capacity": "5"
+                    }
+                  },
+                  {
+                    "id": "c6",
+                    "label": "6",
+                    "setTags": {
+                      "capacity": "6"
                     }
                   }
-                ],
-                "description": "A door that's propped open doesn't count."
+                ]
               }
-            ],
-            "liveMissingQuestions": true
+            ]
           },
-          "status": 0,
-          "mappedOn": null,
-          "completedTimeSpent": null,
-          "completedBy": null,
+          "status": 1,
+          "mappedOn": "2026-10-06T20:42:28.397Z",
+          "completedTimeSpent": 691,
+          "completedBy": 900009,
           "review": {},
           "priority": 0,
-          "changesetId": -1,
+          "changesetId": 692392,
           "completionResponses": null,
           "bundleId": null,
           "isBundlePrimary": null,
@@ -1451,17 +600,17 @@
           "tags": []
         },
         {
-          "id": 202,
-          "name": "node/13202963756",
-          "created": "2026-10-12T00:02:44.732Z",
-          "modified": "2026-10-12T00:02:44.732Z",
-          "parent": 5,
+          "id": 187,
+          "name": "node/4365677672",
+          "created": "2026-10-06T17:44:35.104Z",
+          "modified": "2026-10-07T00:00:41.893Z",
+          "parent": 3,
           "instruction": "",
           "location": {
             "type": "Point",
             "coordinates": [
-              -111.8999773,
-              40.7485544
+              -111.88405,
+              40.76125
             ]
           },
           "geometries": {
@@ -1472,13 +621,15 @@
                 "geometry": {
                   "type": "Point",
                   "coordinates": [
-                    -111.8999773,
-                    40.7485544
+                    -111.88405,
+                    40.76125
                   ]
                 },
                 "properties": {
-                  "@id": "node/13202963756",
-                  "entrance": "yes"
+                  "@id": "node/4365677672",
+                  "note": "MapRoulette mobile SDK disposable test bench (dev OSM)",
+                  "amenity": "bench",
+                  "pilot_role": "plain"
                 }
               }
             ]
@@ -1490,616 +641,701 @@
               "choiceVersion": 1
             },
             "match": {
-              "entrance": "yes"
+              "amenity": "bench"
             },
-            "element": "node/13202963756",
+            "element": "node/4365677672",
             "outcomes": [
               {
-                "id": "no-door",
-                "label": "There's no door",
-                "status": 6,
-                "description": "It's an open doorway or a gate."
-              }
-            ],
-            "questions": [
-              {
-                "id": "door-type",
-                "expect": {
-                  "door": null
-                },
-                "prompt": "How does this door open?",
-                "options": [
-                  {
-                    "id": "hinged",
-                    "label": "Swings open",
-                    "setTags": {
-                      "door": "hinged"
-                    }
-                  },
-                  {
-                    "id": "sliding",
-                    "label": "Slides sideways",
-                    "setTags": {
-                      "door": "sliding"
-                    }
-                  },
-                  {
-                    "id": "revolving",
-                    "label": "Revolves",
-                    "setTags": {
-                      "door": "revolving"
-                    }
-                  },
-                  {
-                    "id": "folding",
-                    "label": "Folds",
-                    "setTags": {
-                      "door": "folding"
-                    }
-                  }
-                ],
-                "description": "Look only at the door at this entrance."
+                "id": "not-a-bench",
+                "label": "Not a bench",
+                "status": 2
               },
               {
-                "id": "automatic-opening",
-                "expect": {
-                  "automatic_door": null
-                },
-                "prompt": "Does it open by itself?",
-                "options": [
-                  {
-                    "id": "no",
-                    "label": "No, you push or pull it",
-                    "setTags": {
-                      "automatic_door": "no"
-                    }
-                  },
-                  {
-                    "id": "button",
-                    "label": "Yes, with a button",
-                    "setTags": {
-                      "automatic_door": "button"
-                    }
-                  },
-                  {
-                    "id": "motion",
-                    "label": "Yes, when you walk up",
-                    "setTags": {
-                      "automatic_door": "motion"
-                    }
-                  },
-                  {
-                    "id": "yes",
-                    "label": "Yes, not sure how",
-                    "setTags": {
-                      "automatic_door": "yes"
-                    }
-                  }
-                ],
-                "description": "A door that's propped open doesn't count."
-              }
-            ],
-            "liveMissingQuestions": true
-          },
-          "status": 0,
-          "mappedOn": null,
-          "completedTimeSpent": null,
-          "completedBy": null,
-          "review": {},
-          "priority": 0,
-          "changesetId": -1,
-          "completionResponses": null,
-          "bundleId": null,
-          "isBundlePrimary": null,
-          "mapillaryImages": null,
-          "errorTags": "",
-          "skipCount": 0,
-          "archived": false,
-          "tags": []
-        },
-        {
-          "id": 203,
-          "name": "node/12644721386",
-          "created": "2026-10-12T00:02:44.757Z",
-          "modified": "2026-10-12T00:02:44.757Z",
-          "parent": 5,
-          "instruction": "",
-          "location": {
-            "type": "Point",
-            "coordinates": [
-              -111.8980614,
-              40.7495887
-            ]
-          },
-          "geometries": {
-            "type": "FeatureCollection",
-            "features": [
-              {
-                "type": "Feature",
-                "geometry": {
-                  "type": "Point",
-                  "coordinates": [
-                    -111.8980614,
-                    40.7495887
-                  ]
-                },
-                "properties": {
-                  "@id": "node/12644721386",
-                  "door": "hinged",
-                  "access": "yes",
-                  "entrance": "shop",
-                  "wheelchair": "limited"
-                }
-              }
-            ]
-          },
-          "cooperativeWork": {
-            "meta": {
-              "type": 3,
-              "version": 2,
-              "choiceVersion": 1
-            },
-            "match": {
-              "entrance": "shop"
-            },
-            "element": "node/12644721386",
-            "outcomes": [
-              {
-                "id": "no-door",
-                "label": "There's no door",
-                "status": 6,
-                "description": "It's an open doorway or a gate."
+                "id": "gone",
+                "label": "Bench is gone",
+                "delete": true
               }
             ],
             "questions": [
               {
-                "id": "automatic-opening",
+                "id": "backrest",
                 "expect": {
-                  "automatic_door": null
+                  "backrest": null
                 },
-                "prompt": "Does it open by itself?",
+                "prompt": "Does the bench have a backrest?",
                 "options": [
-                  {
-                    "id": "no",
-                    "label": "No, you push or pull it",
-                    "setTags": {
-                      "automatic_door": "no"
-                    }
-                  },
-                  {
-                    "id": "button",
-                    "label": "Yes, with a button",
-                    "setTags": {
-                      "automatic_door": "button"
-                    }
-                  },
-                  {
-                    "id": "motion",
-                    "label": "Yes, when you walk up",
-                    "setTags": {
-                      "automatic_door": "motion"
-                    }
-                  },
                   {
                     "id": "yes",
-                    "label": "Yes, not sure how",
+                    "label": "Yes",
                     "setTags": {
-                      "automatic_door": "yes"
+                      "backrest": "yes"
+                    }
+                  },
+                  {
+                    "id": "no",
+                    "label": "No",
+                    "setTags": {
+                      "backrest": "no"
                     }
                   }
-                ],
-                "description": "A door that's propped open doesn't count."
-              }
-            ],
-            "liveMissingQuestions": true
-          },
-          "status": 0,
-          "mappedOn": null,
-          "completedTimeSpent": null,
-          "completedBy": null,
-          "review": {},
-          "priority": 0,
-          "changesetId": -1,
-          "completionResponses": null,
-          "bundleId": null,
-          "isBundlePrimary": null,
-          "mapillaryImages": null,
-          "errorTags": "",
-          "skipCount": 0,
-          "archived": false,
-          "tags": []
-        },
-        {
-          "id": 204,
-          "name": "node/12646613396",
-          "created": "2026-10-12T00:02:44.799Z",
-          "modified": "2026-10-12T00:02:44.799Z",
-          "parent": 5,
-          "instruction": "",
-          "location": {
-            "type": "Point",
-            "coordinates": [
-              -111.8959973,
-              40.7499525
-            ]
-          },
-          "geometries": {
-            "type": "FeatureCollection",
-            "features": [
-              {
-                "type": "Feature",
-                "geometry": {
-                  "type": "Point",
-                  "coordinates": [
-                    -111.8959973,
-                    40.7499525
-                  ]
-                },
-                "properties": {
-                  "@id": "node/12646613396",
-                  "entrance": "yes"
-                }
-              }
-            ]
-          },
-          "cooperativeWork": {
-            "meta": {
-              "type": 3,
-              "version": 2,
-              "choiceVersion": 1
-            },
-            "match": {
-              "entrance": "yes"
-            },
-            "element": "node/12646613396",
-            "outcomes": [
-              {
-                "id": "no-door",
-                "label": "There's no door",
-                "status": 6,
-                "description": "It's an open doorway or a gate."
-              }
-            ],
-            "questions": [
-              {
-                "id": "door-type",
-                "expect": {
-                  "door": null
-                },
-                "prompt": "How does this door open?",
-                "options": [
-                  {
-                    "id": "hinged",
-                    "label": "Swings open",
-                    "setTags": {
-                      "door": "hinged"
-                    }
-                  },
-                  {
-                    "id": "sliding",
-                    "label": "Slides sideways",
-                    "setTags": {
-                      "door": "sliding"
-                    }
-                  },
-                  {
-                    "id": "revolving",
-                    "label": "Revolves",
-                    "setTags": {
-                      "door": "revolving"
-                    }
-                  },
-                  {
-                    "id": "folding",
-                    "label": "Folds",
-                    "setTags": {
-                      "door": "folding"
-                    }
-                  }
-                ],
-                "description": "Look only at the door at this entrance."
+                ]
               },
               {
-                "id": "automatic-opening",
+                "id": "material",
                 "expect": {
-                  "automatic_door": null
+                  "material": null
                 },
-                "prompt": "Does it open by itself?",
+                "prompt": "What is the seat mainly made of?",
                 "options": [
                   {
-                    "id": "no",
-                    "label": "No, you push or pull it",
+                    "id": "wood",
+                    "label": "Wood",
                     "setTags": {
-                      "automatic_door": "no"
+                      "material": "wood"
                     }
                   },
                   {
-                    "id": "button",
-                    "label": "Yes, with a button",
+                    "id": "metal",
+                    "label": "Metal",
                     "setTags": {
-                      "automatic_door": "button"
+                      "material": "metal"
                     }
                   },
                   {
-                    "id": "motion",
-                    "label": "Yes, when you walk up",
+                    "id": "concrete",
+                    "label": "Concrete",
                     "setTags": {
-                      "automatic_door": "motion"
+                      "material": "concrete"
                     }
                   },
                   {
-                    "id": "yes",
-                    "label": "Yes, not sure how",
+                    "id": "stone",
+                    "label": "Stone",
                     "setTags": {
-                      "automatic_door": "yes"
+                      "material": "stone"
+                    }
+                  },
+                  {
+                    "id": "plastic",
+                    "label": "Plastic",
+                    "setTags": {
+                      "material": "plastic"
                     }
                   }
-                ],
-                "description": "A door that's propped open doesn't count."
-              }
-            ],
-            "liveMissingQuestions": true
-          },
-          "status": 0,
-          "mappedOn": null,
-          "completedTimeSpent": null,
-          "completedBy": null,
-          "review": {},
-          "priority": 0,
-          "changesetId": -1,
-          "completionResponses": null,
-          "bundleId": null,
-          "isBundlePrimary": null,
-          "mapillaryImages": null,
-          "errorTags": "",
-          "skipCount": 0,
-          "archived": false,
-          "tags": []
-        },
-        {
-          "id": 205,
-          "name": "node/12646613395",
-          "created": "2026-10-12T00:02:44.864Z",
-          "modified": "2026-10-12T00:02:44.864Z",
-          "parent": 5,
-          "instruction": "",
-          "location": {
-            "type": "Point",
-            "coordinates": [
-              -111.8955832,
-              40.7495785
-            ]
-          },
-          "geometries": {
-            "type": "FeatureCollection",
-            "features": [
-              {
-                "type": "Feature",
-                "geometry": {
-                  "type": "Point",
-                  "coordinates": [
-                    -111.8955832,
-                    40.7495785
-                  ]
-                },
-                "properties": {
-                  "@id": "node/12646613395",
-                  "door": "hinged",
-                  "access": "yes",
-                  "entrance": "shop",
-                  "wheelchair": "limited",
-                  "addr:street": "West 900 South",
-                  "addr:housenumber": "161"
-                }
-              }
-            ]
-          },
-          "cooperativeWork": {
-            "meta": {
-              "type": 3,
-              "version": 2,
-              "choiceVersion": 1
-            },
-            "match": {
-              "entrance": "shop"
-            },
-            "element": "node/12646613395",
-            "outcomes": [
-              {
-                "id": "no-door",
-                "label": "There's no door",
-                "status": 6,
-                "description": "It's an open doorway or a gate."
-              }
-            ],
-            "questions": [
-              {
-                "id": "automatic-opening",
-                "expect": {
-                  "automatic_door": null
-                },
-                "prompt": "Does it open by itself?",
-                "options": [
-                  {
-                    "id": "no",
-                    "label": "No, you push or pull it",
-                    "setTags": {
-                      "automatic_door": "no"
-                    }
-                  },
-                  {
-                    "id": "button",
-                    "label": "Yes, with a button",
-                    "setTags": {
-                      "automatic_door": "button"
-                    }
-                  },
-                  {
-                    "id": "motion",
-                    "label": "Yes, when you walk up",
-                    "setTags": {
-                      "automatic_door": "motion"
-                    }
-                  },
-                  {
-                    "id": "yes",
-                    "label": "Yes, not sure how",
-                    "setTags": {
-                      "automatic_door": "yes"
-                    }
-                  }
-                ],
-                "description": "A door that's propped open doesn't count."
-              }
-            ],
-            "liveMissingQuestions": true
-          },
-          "status": 0,
-          "mappedOn": null,
-          "completedTimeSpent": null,
-          "completedBy": null,
-          "review": {},
-          "priority": 0,
-          "changesetId": -1,
-          "completionResponses": null,
-          "bundleId": null,
-          "isBundlePrimary": null,
-          "mapillaryImages": null,
-          "errorTags": "",
-          "skipCount": 0,
-          "archived": false,
-          "tags": []
-        },
-        {
-          "id": 206,
-          "name": "node/11284032024",
-          "created": "2026-10-12T00:02:44.920Z",
-          "modified": "2026-10-12T00:02:44.920Z",
-          "parent": 5,
-          "instruction": "",
-          "location": {
-            "type": "Point",
-            "coordinates": [
-              -111.9016133,
-              40.7449888
-            ]
-          },
-          "geometries": {
-            "type": "FeatureCollection",
-            "features": [
-              {
-                "type": "Feature",
-                "geometry": {
-                  "type": "Point",
-                  "coordinates": [
-                    -111.9016133,
-                    40.7449888
-                  ]
-                },
-                "properties": {
-                  "@id": "node/11284032024",
-                  "entrance": "main"
-                }
-              }
-            ]
-          },
-          "cooperativeWork": {
-            "meta": {
-              "type": 3,
-              "version": 2,
-              "choiceVersion": 1
-            },
-            "match": {
-              "entrance": "main"
-            },
-            "element": "node/11284032024",
-            "outcomes": [
-              {
-                "id": "no-door",
-                "label": "There's no door",
-                "status": 6,
-                "description": "It's an open doorway or a gate."
-              }
-            ],
-            "questions": [
-              {
-                "id": "door-type",
-                "expect": {
-                  "door": null
-                },
-                "prompt": "How does this door open?",
-                "options": [
-                  {
-                    "id": "hinged",
-                    "label": "Swings open",
-                    "setTags": {
-                      "door": "hinged"
-                    }
-                  },
-                  {
-                    "id": "sliding",
-                    "label": "Slides sideways",
-                    "setTags": {
-                      "door": "sliding"
-                    }
-                  },
-                  {
-                    "id": "revolving",
-                    "label": "Revolves",
-                    "setTags": {
-                      "door": "revolving"
-                    }
-                  },
-                  {
-                    "id": "folding",
-                    "label": "Folds",
-                    "setTags": {
-                      "door": "folding"
-                    }
-                  }
-                ],
-                "description": "Look only at the door at this entrance."
+                ]
               },
               {
-                "id": "automatic-opening",
+                "id": "capacity",
                 "expect": {
-                  "automatic_door": null
+                  "capacity": null
                 },
-                "prompt": "Does it open by itself?",
+                "prompt": "How many adults can sit on it?",
                 "options": [
                   {
-                    "id": "no",
-                    "label": "No, you push or pull it",
+                    "id": "c1",
+                    "label": "1",
                     "setTags": {
-                      "automatic_door": "no"
+                      "capacity": "1"
                     }
                   },
                   {
-                    "id": "button",
-                    "label": "Yes, with a button",
+                    "id": "c2",
+                    "label": "2",
                     "setTags": {
-                      "automatic_door": "button"
+                      "capacity": "2"
                     }
                   },
                   {
-                    "id": "motion",
-                    "label": "Yes, when you walk up",
+                    "id": "c3",
+                    "label": "3",
                     "setTags": {
-                      "automatic_door": "motion"
+                      "capacity": "3"
                     }
                   },
                   {
-                    "id": "yes",
-                    "label": "Yes, not sure how",
+                    "id": "c4",
+                    "label": "4",
                     "setTags": {
-                      "automatic_door": "yes"
+                      "capacity": "4"
+                    }
+                  },
+                  {
+                    "id": "c5",
+                    "label": "5",
+                    "setTags": {
+                      "capacity": "5"
+                    }
+                  },
+                  {
+                    "id": "c6",
+                    "label": "6",
+                    "setTags": {
+                      "capacity": "6"
                     }
                   }
-                ],
-                "description": "A door that's propped open doesn't count."
+                ]
+              }
+            ]
+          },
+          "status": 1,
+          "mappedOn": "2026-10-07T00:00:41.893Z",
+          "completedTimeSpent": 623,
+          "completedBy": 900008,
+          "review": {},
+          "priority": 0,
+          "changesetId": 692561,
+          "completionResponses": null,
+          "bundleId": null,
+          "isBundlePrimary": null,
+          "mapillaryImages": null,
+          "errorTags": "",
+          "skipCount": 0,
+          "archived": false,
+          "tags": []
+        },
+        {
+          "id": 188,
+          "name": "node/4365677673",
+          "created": "2026-10-06T17:44:35.140Z",
+          "modified": "2026-10-10T18:12:29.978Z",
+          "parent": 3,
+          "instruction": "",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -111.8838,
+              40.7614
+            ]
+          },
+          "geometries": {
+            "type": "FeatureCollection",
+            "features": [
+              {
+                "type": "Feature",
+                "geometry": {
+                  "type": "Point",
+                  "coordinates": [
+                    -111.8838,
+                    40.7614
+                  ]
+                },
+                "properties": {
+                  "@id": "node/4365677673",
+                  "note": "MapRoulette mobile SDK disposable test bench (dev OSM)",
+                  "amenity": "bench",
+                  "backrest": "yes",
+                  "pilot_role": "has-backrest"
+                }
+              }
+            ]
+          },
+          "cooperativeWork": {
+            "meta": {
+              "type": 3,
+              "version": 2,
+              "choiceVersion": 1
+            },
+            "match": {
+              "amenity": "bench"
+            },
+            "element": "node/4365677673",
+            "outcomes": [
+              {
+                "id": "not-a-bench",
+                "label": "Not a bench",
+                "status": 2
+              },
+              {
+                "id": "gone",
+                "label": "Bench is gone",
+                "delete": true
               }
             ],
-            "liveMissingQuestions": true
+            "questions": [
+              {
+                "id": "material",
+                "expect": {
+                  "material": null
+                },
+                "prompt": "What is the seat mainly made of?",
+                "options": [
+                  {
+                    "id": "wood",
+                    "label": "Wood",
+                    "setTags": {
+                      "material": "wood"
+                    }
+                  },
+                  {
+                    "id": "metal",
+                    "label": "Metal",
+                    "setTags": {
+                      "material": "metal"
+                    }
+                  },
+                  {
+                    "id": "concrete",
+                    "label": "Concrete",
+                    "setTags": {
+                      "material": "concrete"
+                    }
+                  },
+                  {
+                    "id": "stone",
+                    "label": "Stone",
+                    "setTags": {
+                      "material": "stone"
+                    }
+                  },
+                  {
+                    "id": "plastic",
+                    "label": "Plastic",
+                    "setTags": {
+                      "material": "plastic"
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "capacity",
+                "expect": {
+                  "capacity": null
+                },
+                "prompt": "How many adults can sit on it?",
+                "options": [
+                  {
+                    "id": "c1",
+                    "label": "1",
+                    "setTags": {
+                      "capacity": "1"
+                    }
+                  },
+                  {
+                    "id": "c2",
+                    "label": "2",
+                    "setTags": {
+                      "capacity": "2"
+                    }
+                  },
+                  {
+                    "id": "c3",
+                    "label": "3",
+                    "setTags": {
+                      "capacity": "3"
+                    }
+                  },
+                  {
+                    "id": "c4",
+                    "label": "4",
+                    "setTags": {
+                      "capacity": "4"
+                    }
+                  },
+                  {
+                    "id": "c5",
+                    "label": "5",
+                    "setTags": {
+                      "capacity": "5"
+                    }
+                  },
+                  {
+                    "id": "c6",
+                    "label": "6",
+                    "setTags": {
+                      "capacity": "6"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "status": 1,
+          "mappedOn": "2026-10-10T18:12:29.978Z",
+          "completedTimeSpent": 616,
+          "completedBy": 900009,
+          "review": {},
+          "priority": 0,
+          "changesetId": 695658,
+          "completionResponses": null,
+          "bundleId": null,
+          "isBundlePrimary": null,
+          "mapillaryImages": null,
+          "errorTags": "",
+          "skipCount": 0,
+          "archived": false,
+          "tags": []
+        },
+        {
+          "id": 189,
+          "name": "node/4365677674",
+          "created": "2026-10-06T17:44:35.212Z",
+          "modified": "2026-10-11T23:27:33.338Z",
+          "parent": 3,
+          "instruction": "",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -111.885,
+              40.7606
+            ]
+          },
+          "geometries": {
+            "type": "FeatureCollection",
+            "features": [
+              {
+                "type": "Feature",
+                "geometry": {
+                  "type": "Point",
+                  "coordinates": [
+                    -111.885,
+                    40.7606
+                  ]
+                },
+                "properties": {
+                  "@id": "node/4365677674",
+                  "note": "MapRoulette mobile SDK disposable test bench (dev OSM)",
+                  "amenity": "bench",
+                  "pilot_role": "in-way"
+                }
+              }
+            ]
+          },
+          "cooperativeWork": {
+            "meta": {
+              "type": 3,
+              "version": 2,
+              "choiceVersion": 1
+            },
+            "match": {
+              "amenity": "bench"
+            },
+            "element": "node/4365677674",
+            "outcomes": [
+              {
+                "id": "not-a-bench",
+                "label": "Not a bench",
+                "status": 2
+              },
+              {
+                "id": "gone",
+                "label": "Bench is gone",
+                "delete": true
+              }
+            ],
+            "questions": [
+              {
+                "id": "backrest",
+                "expect": {
+                  "backrest": null
+                },
+                "prompt": "Does the bench have a backrest?",
+                "options": [
+                  {
+                    "id": "yes",
+                    "label": "Yes",
+                    "setTags": {
+                      "backrest": "yes"
+                    }
+                  },
+                  {
+                    "id": "no",
+                    "label": "No",
+                    "setTags": {
+                      "backrest": "no"
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "material",
+                "expect": {
+                  "material": null
+                },
+                "prompt": "What is the seat mainly made of?",
+                "options": [
+                  {
+                    "id": "wood",
+                    "label": "Wood",
+                    "setTags": {
+                      "material": "wood"
+                    }
+                  },
+                  {
+                    "id": "metal",
+                    "label": "Metal",
+                    "setTags": {
+                      "material": "metal"
+                    }
+                  },
+                  {
+                    "id": "concrete",
+                    "label": "Concrete",
+                    "setTags": {
+                      "material": "concrete"
+                    }
+                  },
+                  {
+                    "id": "stone",
+                    "label": "Stone",
+                    "setTags": {
+                      "material": "stone"
+                    }
+                  },
+                  {
+                    "id": "plastic",
+                    "label": "Plastic",
+                    "setTags": {
+                      "material": "plastic"
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "capacity",
+                "expect": {
+                  "capacity": null
+                },
+                "prompt": "How many adults can sit on it?",
+                "options": [
+                  {
+                    "id": "c1",
+                    "label": "1",
+                    "setTags": {
+                      "capacity": "1"
+                    }
+                  },
+                  {
+                    "id": "c2",
+                    "label": "2",
+                    "setTags": {
+                      "capacity": "2"
+                    }
+                  },
+                  {
+                    "id": "c3",
+                    "label": "3",
+                    "setTags": {
+                      "capacity": "3"
+                    }
+                  },
+                  {
+                    "id": "c4",
+                    "label": "4",
+                    "setTags": {
+                      "capacity": "4"
+                    }
+                  },
+                  {
+                    "id": "c5",
+                    "label": "5",
+                    "setTags": {
+                      "capacity": "5"
+                    }
+                  },
+                  {
+                    "id": "c6",
+                    "label": "6",
+                    "setTags": {
+                      "capacity": "6"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "status": 1,
+          "mappedOn": "2026-10-11T23:27:33.338Z",
+          "completedTimeSpent": 658,
+          "completedBy": 900008,
+          "review": {},
+          "priority": 0,
+          "changesetId": 696032,
+          "completionResponses": null,
+          "bundleId": null,
+          "isBundlePrimary": null,
+          "mapillaryImages": null,
+          "errorTags": "",
+          "skipCount": 0,
+          "archived": false,
+          "tags": []
+        },
+        {
+          "id": 190,
+          "name": "node/4365677675",
+          "created": "2026-10-06T17:44:35.244Z",
+          "modified": "2026-10-06T17:44:35.244Z",
+          "parent": 3,
+          "instruction": "",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -111.88355,
+              40.76155
+            ]
+          },
+          "geometries": {
+            "type": "FeatureCollection",
+            "features": [
+              {
+                "type": "Feature",
+                "geometry": {
+                  "type": "Point",
+                  "coordinates": [
+                    -111.88355,
+                    40.76155
+                  ]
+                },
+                "properties": {
+                  "@id": "node/4365677675",
+                  "note": "MapRoulette mobile SDK disposable test bench (dev OSM)",
+                  "amenity": "bench",
+                  "pilot_role": "retag-later"
+                }
+              }
+            ]
+          },
+          "cooperativeWork": {
+            "meta": {
+              "type": 3,
+              "version": 2,
+              "choiceVersion": 1
+            },
+            "match": {
+              "amenity": "bench"
+            },
+            "element": "node/4365677675",
+            "outcomes": [
+              {
+                "id": "not-a-bench",
+                "label": "Not a bench",
+                "status": 2
+              },
+              {
+                "id": "gone",
+                "label": "Bench is gone",
+                "delete": true
+              }
+            ],
+            "questions": [
+              {
+                "id": "backrest",
+                "expect": {
+                  "backrest": null
+                },
+                "prompt": "Does the bench have a backrest?",
+                "options": [
+                  {
+                    "id": "yes",
+                    "label": "Yes",
+                    "setTags": {
+                      "backrest": "yes"
+                    }
+                  },
+                  {
+                    "id": "no",
+                    "label": "No",
+                    "setTags": {
+                      "backrest": "no"
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "material",
+                "expect": {
+                  "material": null
+                },
+                "prompt": "What is the seat mainly made of?",
+                "options": [
+                  {
+                    "id": "wood",
+                    "label": "Wood",
+                    "setTags": {
+                      "material": "wood"
+                    }
+                  },
+                  {
+                    "id": "metal",
+                    "label": "Metal",
+                    "setTags": {
+                      "material": "metal"
+                    }
+                  },
+                  {
+                    "id": "concrete",
+                    "label": "Concrete",
+                    "setTags": {
+                      "material": "concrete"
+                    }
+                  },
+                  {
+                    "id": "stone",
+                    "label": "Stone",
+                    "setTags": {
+                      "material": "stone"
+                    }
+                  },
+                  {
+                    "id": "plastic",
+                    "label": "Plastic",
+                    "setTags": {
+                      "material": "plastic"
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "capacity",
+                "expect": {
+                  "capacity": null
+                },
+                "prompt": "How many adults can sit on it?",
+                "options": [
+                  {
+                    "id": "c1",
+                    "label": "1",
+                    "setTags": {
+                      "capacity": "1"
+                    }
+                  },
+                  {
+                    "id": "c2",
+                    "label": "2",
+                    "setTags": {
+                      "capacity": "2"
+                    }
+                  },
+                  {
+                    "id": "c3",
+                    "label": "3",
+                    "setTags": {
+                      "capacity": "3"
+                    }
+                  },
+                  {
+                    "id": "c4",
+                    "label": "4",
+                    "setTags": {
+                      "capacity": "4"
+                    }
+                  },
+                  {
+                    "id": "c5",
+                    "label": "5",
+                    "setTags": {
+                      "capacity": "5"
+                    }
+                  },
+                  {
+                    "id": "c6",
+                    "label": "6",
+                    "setTags": {
+                      "capacity": "6"
+                    }
+                  }
+                ]
+              }
+            ]
           },
           "status": 0,
           "mappedOn": null,
@@ -2118,17 +1354,17 @@
           "tags": []
         },
         {
-          "id": 207,
-          "name": "node/11990542516",
-          "created": "2026-10-12T00:02:44.952Z",
-          "modified": "2026-10-12T00:02:44.952Z",
-          "parent": 5,
+          "id": 191,
+          "name": "node/4365677676",
+          "created": "2026-10-06T17:44:35.275Z",
+          "modified": "2026-10-07T00:00:31.728Z",
+          "parent": 3,
           "instruction": "",
           "location": {
             "type": "Point",
             "coordinates": [
-              -111.9023026,
-              40.7630632
+              -111.8833,
+              40.7617
             ]
           },
           "geometries": {
@@ -2139,13 +1375,15 @@
                 "geometry": {
                   "type": "Point",
                   "coordinates": [
-                    -111.9023026,
-                    40.7630632
+                    -111.8833,
+                    40.7617
                   ]
                 },
                 "properties": {
-                  "@id": "node/11990542516",
-                  "entrance": "yes"
+                  "@id": "node/4365677676",
+                  "note": "MapRoulette mobile SDK disposable test bench (dev OSM)",
+                  "amenity": "bench",
+                  "pilot_role": "delete-target"
                 }
               }
             ]
@@ -2157,101 +1395,146 @@
               "choiceVersion": 1
             },
             "match": {
-              "entrance": "yes"
+              "amenity": "bench"
             },
-            "element": "node/11990542516",
+            "element": "node/4365677676",
             "outcomes": [
               {
-                "id": "no-door",
-                "label": "There's no door",
-                "status": 6,
-                "description": "It's an open doorway or a gate."
+                "id": "not-a-bench",
+                "label": "Not a bench",
+                "status": 2
+              },
+              {
+                "id": "gone",
+                "label": "Bench is gone",
+                "delete": true
               }
             ],
             "questions": [
               {
-                "id": "door-type",
+                "id": "backrest",
                 "expect": {
-                  "door": null
+                  "backrest": null
                 },
-                "prompt": "How does this door open?",
+                "prompt": "Does the bench have a backrest?",
                 "options": [
-                  {
-                    "id": "hinged",
-                    "label": "Swings open",
-                    "setTags": {
-                      "door": "hinged"
-                    }
-                  },
-                  {
-                    "id": "sliding",
-                    "label": "Slides sideways",
-                    "setTags": {
-                      "door": "sliding"
-                    }
-                  },
-                  {
-                    "id": "revolving",
-                    "label": "Revolves",
-                    "setTags": {
-                      "door": "revolving"
-                    }
-                  },
-                  {
-                    "id": "folding",
-                    "label": "Folds",
-                    "setTags": {
-                      "door": "folding"
-                    }
-                  }
-                ],
-                "description": "Look only at the door at this entrance."
-              },
-              {
-                "id": "automatic-opening",
-                "expect": {
-                  "automatic_door": null
-                },
-                "prompt": "Does it open by itself?",
-                "options": [
-                  {
-                    "id": "no",
-                    "label": "No, you push or pull it",
-                    "setTags": {
-                      "automatic_door": "no"
-                    }
-                  },
-                  {
-                    "id": "button",
-                    "label": "Yes, with a button",
-                    "setTags": {
-                      "automatic_door": "button"
-                    }
-                  },
-                  {
-                    "id": "motion",
-                    "label": "Yes, when you walk up",
-                    "setTags": {
-                      "automatic_door": "motion"
-                    }
-                  },
                   {
                     "id": "yes",
-                    "label": "Yes, not sure how",
+                    "label": "Yes",
                     "setTags": {
-                      "automatic_door": "yes"
+                      "backrest": "yes"
+                    }
+                  },
+                  {
+                    "id": "no",
+                    "label": "No",
+                    "setTags": {
+                      "backrest": "no"
                     }
                   }
-                ],
-                "description": "A door that's propped open doesn't count."
+                ]
+              },
+              {
+                "id": "material",
+                "expect": {
+                  "material": null
+                },
+                "prompt": "What is the seat mainly made of?",
+                "options": [
+                  {
+                    "id": "wood",
+                    "label": "Wood",
+                    "setTags": {
+                      "material": "wood"
+                    }
+                  },
+                  {
+                    "id": "metal",
+                    "label": "Metal",
+                    "setTags": {
+                      "material": "metal"
+                    }
+                  },
+                  {
+                    "id": "concrete",
+                    "label": "Concrete",
+                    "setTags": {
+                      "material": "concrete"
+                    }
+                  },
+                  {
+                    "id": "stone",
+                    "label": "Stone",
+                    "setTags": {
+                      "material": "stone"
+                    }
+                  },
+                  {
+                    "id": "plastic",
+                    "label": "Plastic",
+                    "setTags": {
+                      "material": "plastic"
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "capacity",
+                "expect": {
+                  "capacity": null
+                },
+                "prompt": "How many adults can sit on it?",
+                "options": [
+                  {
+                    "id": "c1",
+                    "label": "1",
+                    "setTags": {
+                      "capacity": "1"
+                    }
+                  },
+                  {
+                    "id": "c2",
+                    "label": "2",
+                    "setTags": {
+                      "capacity": "2"
+                    }
+                  },
+                  {
+                    "id": "c3",
+                    "label": "3",
+                    "setTags": {
+                      "capacity": "3"
+                    }
+                  },
+                  {
+                    "id": "c4",
+                    "label": "4",
+                    "setTags": {
+                      "capacity": "4"
+                    }
+                  },
+                  {
+                    "id": "c5",
+                    "label": "5",
+                    "setTags": {
+                      "capacity": "5"
+                    }
+                  },
+                  {
+                    "id": "c6",
+                    "label": "6",
+                    "setTags": {
+                      "capacity": "6"
+                    }
+                  }
+                ]
               }
-            ],
-            "liveMissingQuestions": true
+            ]
           },
-          "status": 0,
-          "mappedOn": null,
-          "completedTimeSpent": null,
-          "completedBy": null,
+          "status": 2,
+          "mappedOn": "2026-10-07T00:00:31.728Z",
+          "completedTimeSpent": 228,
+          "completedBy": 900008,
           "review": {},
           "priority": 0,
           "changesetId": -1,

@@ -3,21 +3,21 @@
   "recordedFrom": "https://mr-api.osm.lol",
   "call": "getChallengeTags",
   "args": {
-    "id": 5
+    "id": 3
   },
   "decode": true,
   "exchanges": [
     {
       "method": "GET",
-      "path": "/api/v2/challenge/5/tags",
+      "path": "/api/v2/challenge/3/tags",
       "status": 200,
       "body": [
         {
           "id": 4,
           "name": "mobile-survey-v1",
           "description": "",
-          "created": "2026-10-18T06:29:18.700Z",
-          "modified": "2026-10-18T06:29:18.700Z",
+          "created": "2026-10-18T06:41:04.232Z",
+          "modified": "2026-10-18T06:41:04.232Z",
           "tagType": "challenges",
           "active": true
         }

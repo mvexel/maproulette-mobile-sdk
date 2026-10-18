@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import MapRoulette
+@_spi(LowLevelTaskLifecycle) @testable import MapRoulette
 
 // Replays every fixtures/recorded/ file (real dev responses, see scripts/record-fixtures.py) through
 // the public client: each request must match the recorded method, path and query, successful
@@ -63,7 +63,10 @@ private func filter(_ args: [String: Any]) throws -> TaskFilter {
 
 /// Runs the recorded call; returns true when the SDK was expected to stop before the last exchange.
 private func call(_ name: String, _ args: [String: Any], _ wire: Replay) async throws -> Bool {
-  let client = MapRouletteClient(environment: .staging, transport: wire, accessToken: { "recorded-token" })
+  let client =
+    (args["credential"] as? String) == "apiKey"
+    ? MapRouletteClient(environment: .staging, transport: wire, apiKey: { "recorded-key" })
+    : MapRouletteClient(environment: .staging, transport: wire, accessToken: { "recorded-token" })
   switch name {
   case "searchChallenges":
     _ = try await client.searchChallenges(pageSize: int(args, "pageSize"))
@@ -121,6 +124,16 @@ private func call(_ name: String, _ args: [String: Any], _ wire: Replay) async t
     try await client.withdrawPendingChoice(try TaskID(int64(args, "task")))
   case "deleteGuest":
     try await client.deleteGuest()
+  case "setGuestEmail":
+    _ = try await client.setGuestEmail(args["email"] as! String)
+  case "startTask":
+    let id = try TaskID(int64(args, "task"))
+    _ = try await client.startTask(id)
+    if (args["release"] as? Bool) == true { try await client.releaseTask(id) }
+  case "skipTask":
+    try await client.skipTask(try TaskID(int64(args, "task")))
+  case "resolveTask":
+    try await client.resolveTask(try TaskID(int64(args, "task")), as: TaskResolution(rawValue: int(args, "status"))!)
   case "getCurrentUser":
     _ = try await client.getCurrentUser()
   case "checkChoice":

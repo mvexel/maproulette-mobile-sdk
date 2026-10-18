@@ -33,11 +33,12 @@ API = "/api/v2/"
 CLIENT_ID = "maproulette-ios-choice"
 OUT = Path(__file__).resolve().parent.parent / "fixtures" / "recorded"
 
-# Pinned dev data. PLAIN_CHALLENGE has more than one page of 100 tasks (listAllTasks paging);
-# CHOICE_CHALLENGE is a type 3 survey with a task that is still open (status 0).
+# Pinned dev data (Otto). PLAIN_CHALLENGE has more than one page of 100 tasks (listAllTasks paging);
+# CHOICE_CHALLENGE ("Bench details pilot") is a type 3 survey and CHOICE_TASK one of its tasks.
 PLAIN_CHALLENGE = 1
-CHOICE_CHALLENGE = 5
-CHOICE_TASK = 192
+CHOICE_CHALLENGE = 3
+CHOICE_TASK = 184
+WRITE_CHALLENGE = 3  # "Bench details pilot": the signed-in lifecycle writes go here (Otto)
 PLAIN_TASK = None  # first task of PLAIN_CHALLENGE
 BOUNDS = (-111.91, 40.74, -111.87, 40.78)  # west, south, east, north: SLC, covers both challenges
 
@@ -224,6 +225,9 @@ def anonymous(r):
     plain = PLAIN_TASK or plain_first
     e, _ = r.exchange("GET", f"task/{plain}")
     r.save("task-plain", "getTask", {"id": plain}, [e], "GET task/:id, a plain task.")
+    e, _ = r.exchange("GET", "user/whoami")
+    r.save("current-user-no-key", "getCurrentUser", {"credential": "apiKey"}, [e],
+           "GET user/whoami (the API-key identity read) without a valid key.")
     e, _ = r.exchange("GET", "task/999999999")
     r.save("task-missing", "getTask", {"id": 999999999}, [e], "GET task/:id for a task that does not exist.")
 
@@ -267,6 +271,9 @@ def guest(r):
         sys.exit(f"guest token failed: HTTP {status_token}")
     token = grant["access_token"]
     try:
+        e, _ = r.exchange("GET", "/oauth/mobile/me", token=token, origin_root=True)
+        r.save("current-user-guest", "getCurrentUser", {"credential": "bearer"}, [e],
+               "GET /oauth/mobile/me with a guest token, which has no tasks:read.")
         e, _ = r.exchange("GET", "mobile-guest/me", token=token)
         r.save("guest-status-new", "getGuestStatus", {}, [e], "GET mobile-guest/me for a new guest.")
 
@@ -300,12 +307,20 @@ def guest(r):
         e, _ = r.exchange("DELETE", f"task/{held}/choice/pending", token=token)
         r.save("pending-withdraw", "withdrawPendingChoice", {"task": held}, [e],
                "DELETE task/:id/choice/pending.")
+        # Dev has no mail provider, so this sends nothing (Otto: record only the refusal).
+        e, _ = r.exchange("PUT", "mobile-guest/email", body={"email": "person@example.org"}, token=token)
+        r.save("guest-email", "setGuestEmail", {"email": "person@example.org"}, [e],
+               "PUT mobile-guest/email; dev answers without sending mail.")
         e, _ = r.exchange("DELETE", "task/999999999/choice/pending", token=token)
         r.save("pending-withdraw-missing", "withdrawPendingChoice", {"task": 999999999}, [e],
                "DELETE task/:id/choice/pending for a task that does not exist.")
     finally:
         e, _ = r.exchange("DELETE", "mobile-guest", token=token)
         r.save("guest-delete", "deleteGuest", {}, [e], "DELETE mobile-guest.")
+        # The SDK reads only the status of a revoke, so this one is shape-only.
+        status, body = r.http("POST", "/oauth/mobile/revoke", form={"client_id": CLIENT_ID, "token": token})
+        r.save("token-revoke", "revoke", {}, [{"method": "POST", "path": "/oauth/mobile/revoke", "status": status,
+                                              "body": body}], "POST /oauth/mobile/revoke.", decode=False)
 
 
 def signed_in(r, token):
@@ -314,6 +329,21 @@ def signed_in(r, token):
     r.save("current-user", "getCurrentUser", {}, [e], "GET /oauth/mobile/me with an app grant.")
     e, _ = r.exchange("GET", f"task/{CHOICE_TASK}/choice/check", token=token)
     r.save("choice-check", "checkChoice", {"task": CHOICE_TASK}, [e], "GET task/:id/choice/check.")
+    # Lifecycle writes on challenge 3 (Otto): local runs only, never the nightly job, which has no token.
+    open_tasks = [t for t in open_choice_tasks(r) if t.get("parent") == WRITE_CHALLENGE]
+    if len(open_tasks) < 2:
+        print(f"  lifecycle writes: skipped (fewer than 2 open tasks in challenge {WRITE_CHALLENGE})", file=sys.stderr)
+        return
+    first, second = open_tasks[0]["id"], open_tasks[1]["id"]
+    start, _ = r.exchange("GET", f"task/{first}/start", token=token)
+    release, _ = r.exchange("GET", f"task/{first}/release", token=token)
+    r.save("task-start-release", "startTask", {"task": first, "release": True}, [start, release],
+           "GET task/:id/start, then GET task/:id/release.")
+    e, _ = r.exchange("POST", f"task/{first}/skip", token=token)
+    r.save("task-skip", "skipTask", {"task": first}, [e], "POST task/:id/skip.")
+    # Status 6 (too hard) leaves OSM alone.
+    e, _ = r.exchange("PUT", f"task/{second}/6", token=token)
+    r.save("task-resolve", "resolveTask", {"task": second, "status": 6}, [e], "PUT task/:id/6 (too hard).")
 
 
 def wizard(r, token):
@@ -427,7 +457,8 @@ def main():
         return
     skipped = set()
     if not access:
-        skipped |= {"current-user.json", "choice-check.json"}
+        skipped |= {"current-user.json", "choice-check.json", "task-start-release.json", "task-skip.json",
+                    "task-resolve.json"}
     if not admin:
         skipped |= {p.name for p in OUT.glob("wizard-*.json")}
     for name in skipped:

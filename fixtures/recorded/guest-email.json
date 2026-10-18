@@ -1,0 +1,22 @@
+{
+  "_comment": "PUT mobile-guest/email; dev answers without sending mail.",
+  "recordedFrom": "https://mr-api.osm.lol",
+  "call": "setGuestEmail",
+  "args": {
+    "email": "person@example.org"
+  },
+  "decode": true,
+  "exchanges": [
+    {
+      "method": "PUT",
+      "path": "/api/v2/mobile-guest/email",
+      "requestBody": {
+        "email": "person-17@example.org"
+      },
+      "status": 503,
+      "body": {
+        "error": "mail_unavailable"
+      }
+    }
+  ]
+}
