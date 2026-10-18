@@ -21,6 +21,9 @@ minor version, so add a default branch when you switch on them.
 - `listAllTasks(id, maxPages, concurrency)` on both platforms: every task of a challenge, streamed like
   `findAllTasksInBounds`. With no total to plan from, pages are read ahead until one comes back short (up to
   `concurrency - 1` empty reads at the end); `maxPages` full pages means the challenge may have more.
+- Recorded fixtures: `scripts/record-fixtures.py` saves real dev responses into `fixtures/recorded/`, both suites
+  replay every file through the public client, and a nightly workflow re-records against dev and fails on shape
+  drift.
 
 ### Changed
 

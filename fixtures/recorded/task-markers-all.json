@@ -1,0 +1,2190 @@
+{
+  "_comment": "PUT markers/box/w/s/e/n with {}, every status and challenge type.",
+  "recordedFrom": "https://mr-api.osm.lol",
+  "call": "findTaskMarkers",
+  "args": {
+    "bounds": [
+      -111.91,
+      40.74,
+      -111.87,
+      40.78
+    ],
+    "challengeIds": [],
+    "statuses": null,
+    "choiceOnly": false,
+    "limit": 100
+  },
+  "decode": true,
+  "exchanges": [
+    {
+      "method": "PUT",
+      "path": "/api/v2/markers/box/-111.91/40.74/-111.87/40.78",
+      "query": {
+        "cLocal": "1",
+        "ca": "false",
+        "tStatus": "-1",
+        "excludeLocked": "true",
+        "limit": "100",
+        "ce": "true",
+        "pe": "true"
+      },
+      "requestBody": {},
+      "status": 200,
+      "body": [
+        {
+          "id": 30,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n8089692675",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.7414519,
+            "lng": -111.8703695
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 35,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n8202793993",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.7785234,
+            "lng": -111.8843182
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 50,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n11647056024",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.7727959,
+            "lng": -111.8879891
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 51,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n11647056067",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.7727928,
+            "lng": -111.887967
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 53,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n11649949851",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.7690841,
+            "lng": -111.9042988
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 83,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n11992577992",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.7689589,
+            "lng": -111.9054396
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 84,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n11992578025",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.7689942,
+            "lng": -111.9051801
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 85,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n11992578051",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.7689701,
+            "lng": -111.9053506
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 86,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n11992578065",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.7689938,
+            "lng": -111.9053888
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 87,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n11992611312",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.7689586,
+            "lng": -111.9052252
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 88,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n11992611317",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.7689219,
+            "lng": -111.9051292
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 89,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n11992847816",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.7638723,
+            "lng": -111.889462
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 90,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n11992864077",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.7638727,
+            "lng": -111.889537
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 91,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n11992864093",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.7638758,
+            "lng": -111.8893843
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 92,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n11992864163",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.7638202,
+            "lng": -111.8894445
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 98,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n12329361873",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.7687244,
+            "lng": -111.90415
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 105,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n12784823107",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.7533295,
+            "lng": -111.8811245
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 106,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n12784823108",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.7530806,
+            "lng": -111.8810873
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 107,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n12867156898",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.7463327,
+            "lng": -111.8836675
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 108,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n12867156899",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.7463459,
+            "lng": -111.8836525
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 109,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n12867156900",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.746347,
+            "lng": -111.8835999
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 110,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n12867194301",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.7463317,
+            "lng": -111.883583
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 111,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n12867194369",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.746074,
+            "lng": -111.883646
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 112,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n12867194370",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.7460738,
+            "lng": -111.8835806
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 116,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n13014700214",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.7708027,
+            "lng": -111.8927958
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 117,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n13014700215",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.7707995,
+            "lng": -111.8926553
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 118,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n13014700216",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.7707324,
+            "lng": -111.8928014
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 119,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n13014700217",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.770734,
+            "lng": -111.8926486
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 120,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n13014700224",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.7711925,
+            "lng": -111.8930483
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 121,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n13014700225",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.7711903,
+            "lng": -111.8929725
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 122,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n13014700226",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.7711927,
+            "lng": -111.8931929
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 123,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n13014700227",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.7711925,
+            "lng": -111.8932657
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 125,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n13370978108",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.7744394,
+            "lng": -111.9050051
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 126,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n13390004672",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.7630416,
+            "lng": -111.9091952
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 127,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n13416130675",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.7721,
+            "lng": -111.9097265
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 128,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n13416130676",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.7721049,
+            "lng": -111.9097959
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 146,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n13859014318",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.7426231,
+            "lng": -111.8746057
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 147,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n13859014319",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.7426017,
+            "lng": -111.8750478
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 148,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n13859014320",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.7427087,
+            "lng": -111.8749196
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 149,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n13859014321",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.7437111,
+            "lng": -111.8744778
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 150,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n13859014322",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.7432125,
+            "lng": -111.8747451
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 151,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n13859170933",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.743413,
+            "lng": -111.8754259
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 152,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n13888661098",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.7598968,
+            "lng": -111.8845464
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 153,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n13888661099",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.7599498,
+            "lng": -111.8844228
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 155,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n13888671101",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.7600814,
+            "lng": -111.8843925
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 156,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n13888671102",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.7601002,
+            "lng": -111.8844168
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 157,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n13903215188",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.7716723,
+            "lng": -111.8965202
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 158,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n13903234960",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.7683296,
+            "lng": -111.8884228
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 161,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n13903261673",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.7721609,
+            "lng": -111.8994558
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 162,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n13909982892",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.7702195,
+            "lng": -111.8856753
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 163,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n13909982893",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.7701673,
+            "lng": -111.8856827
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 164,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n13909982894",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.7701638,
+            "lng": -111.8855859
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 165,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n13909982895",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.7702182,
+            "lng": -111.8855933
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 166,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n13918302776",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.7689703,
+            "lng": -111.9040642
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 169,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "probe-1",
+          "parentId": 2,
+          "parentName": "Mobile probe disposable challenge",
+          "point": {
+            "lat": 40.761,
+            "lng": -111.891
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 1,
+          "mappedOn": "2026-10-06T02:53:10.335Z",
+          "completedTimeSpent": 14000,
+          "completedBy": {
+            "username": "person-11",
+            "id": 900012
+          },
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 170,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "probe-2",
+          "parentId": 2,
+          "parentName": "Mobile probe disposable challenge",
+          "point": {
+            "lat": 40.762,
+            "lng": -111.892
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 2,
+          "mappedOn": "2026-10-06T02:53:17.324Z",
+          "completedTimeSpent": 513,
+          "completedBy": {
+            "username": "person-13",
+            "id": 900008
+          },
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 154,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n13888661100",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.7600005,
+            "lng": -111.8842861
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 2,
+          "mappedOn": "2026-10-06T03:13:20.324Z",
+          "completedTimeSpent": 293,
+          "completedBy": {
+            "username": "person-14",
+            "id": 900009
+          },
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 173,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "probe-5",
+          "parentId": 2,
+          "parentName": "Mobile probe disposable challenge",
+          "point": {
+            "lat": 40.765,
+            "lng": -111.895
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 5,
+          "mappedOn": "2026-10-06T02:53:20.371Z",
+          "completedTimeSpent": 504,
+          "completedBy": {
+            "username": "person-13",
+            "id": 900008
+          },
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 171,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "probe-3",
+          "parentId": 2,
+          "parentName": "Mobile probe disposable challenge",
+          "point": {
+            "lat": 40.763,
+            "lng": -111.893
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 1,
+          "mappedOn": "2026-10-06T02:53:21.381Z",
+          "completedTimeSpent": 14000,
+          "completedBy": {
+            "username": "person-11",
+            "id": 900012
+          },
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 174,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "probe-r1791256650-1",
+          "parentId": 2,
+          "parentName": "Mobile probe disposable challenge",
+          "point": {
+            "lat": 40.7623,
+            "lng": -111.8927
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 175,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "probe-r1791256650-2",
+          "parentId": 2,
+          "parentName": "Mobile probe disposable challenge",
+          "point": {
+            "lat": 40.7636,
+            "lng": -111.8934
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.728Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 172,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "probe-4",
+          "parentId": 2,
+          "parentName": "Mobile probe disposable challenge",
+          "point": {
+            "lat": 40.764,
+            "lng": -111.894
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.729Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 1,
+          "mappedOn": "2026-10-06T03:13:09.489Z",
+          "completedTimeSpent": 188,
+          "completedBy": {
+            "username": "person-14",
+            "id": 900009
+          },
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 177,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "probe-r1791256650-4",
+          "parentId": 2,
+          "parentName": "Mobile probe disposable challenge",
+          "point": {
+            "lat": 40.7652,
+            "lng": -111.8958
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.729Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 182,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "probe-r1791256650-9",
+          "parentId": 2,
+          "parentName": "Mobile probe disposable challenge",
+          "point": {
+            "lat": 40.7657,
+            "lng": -111.8953
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.729Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 176,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "probe-r1791256650-3",
+          "parentId": 2,
+          "parentName": "Mobile probe disposable challenge",
+          "point": {
+            "lat": 40.7649,
+            "lng": -111.8941
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.729Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 2,
+          "mappedOn": "2026-10-06T03:18:05.594Z",
+          "completedTimeSpent": 261,
+          "completedBy": {
+            "username": "person-14",
+            "id": 900009
+          },
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 183,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "probe-r1791256650-10",
+          "parentId": 2,
+          "parentName": "Mobile probe disposable challenge",
+          "point": {
+            "lat": 40.761,
+            "lng": -111.891
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.729Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 1,
+          "mappedOn": "2026-10-06T03:18:16.038Z",
+          "completedTimeSpent": 210,
+          "completedBy": {
+            "username": "person-14",
+            "id": 900009
+          },
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 181,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "probe-r1791256650-8",
+          "parentId": 2,
+          "parentName": "Mobile probe disposable challenge",
+          "point": {
+            "lat": 40.7644,
+            "lng": -111.8946
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.729Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 6,
+          "mappedOn": "2026-10-06T03:19:43.892Z",
+          "completedTimeSpent": 270,
+          "completedBy": {
+            "username": "person-13",
+            "id": 900008
+          },
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 180,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "probe-r1791256650-7",
+          "parentId": 2,
+          "parentName": "Mobile probe disposable challenge",
+          "point": {
+            "lat": 40.7631,
+            "lng": -111.8939
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.729Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 235,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "node/4365677669",
+          "parentId": 10,
+          "parentName": "SLC benches (A39 test, delete me)",
+          "point": {
+            "lat": 40.7608,
+            "lng": -111.8848
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.729Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 1,
+          "mappedOn": "2026-10-18T01:07:25.584Z",
+          "completedTimeSpent": 241133,
+          "completedBy": {
+            "username": "person-13",
+            "id": 900008
+          },
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 178,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "probe-r1791256650-5",
+          "parentId": 2,
+          "parentName": "Mobile probe disposable challenge",
+          "point": {
+            "lat": 40.7615,
+            "lng": -111.8915
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.729Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 6,
+          "mappedOn": "2026-10-16T01:26:29.840Z",
+          "completedTimeSpent": 5129,
+          "completedBy": {
+            "username": "person-14",
+            "id": 900009
+          },
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 179,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "probe-r1791256650-6",
+          "parentId": 2,
+          "parentName": "Mobile probe disposable challenge",
+          "point": {
+            "lat": 40.7628,
+            "lng": -111.8922
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.729Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "mappedOn": "2026-10-16T01:26:29.840Z",
+          "completedTimeSpent": 5129,
+          "completedBy": {
+            "username": "person-14",
+            "id": 900009
+          },
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 188,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "node/4365677673",
+          "parentId": 3,
+          "parentName": "Bench details pilot (dev OSM, disposable)",
+          "point": {
+            "lat": 40.7614,
+            "lng": -111.8838
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.729Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 1,
+          "cooperativeWork": "{\"meta\": {\"type\": 3, \"version\": 2, \"choiceVersion\": 1}, \"match\": {\"amenity\": \"bench\"}, \"element\": \"node/4365677673\", \"outcomes\": [{\"id\": \"not-a-bench\", \"label\": \"Not a bench\", \"status\": 2}, {\"id\": \"gone\", \"label\": \"Bench is gone\", \"delete\": true}], \"questions\": [{\"id\": \"material\", \"expect\": {\"material\": null}, \"prompt\": \"What is the seat mainly made of?\", \"options\": [{\"id\": \"wood\", \"label\": \"Wood\", \"setTags\": {\"material\": \"wood\"}}, {\"id\": \"metal\", \"label\": \"Metal\", \"setTags\": {\"material\": \"metal\"}}, {\"id\": \"concrete\", \"label\": \"Concrete\", \"setTags\": {\"material\": \"concrete\"}}, {\"id\": \"stone\", \"label\": \"Stone\", \"setTags\": {\"material\": \"stone\"}}, {\"id\": \"plastic\", \"label\": \"Plastic\", \"setTags\": {\"material\": \"plastic\"}}]}, {\"id\": \"capacity\", \"expect\": {\"capacity\": null}, \"prompt\": \"How many adults can sit on it?\", \"options\": [{\"id\": \"c1\", \"label\": \"1\", \"setTags\": {\"capacity\": \"1\"}}, {\"id\": \"c2\", \"label\": \"2\", \"setTags\": {\"capacity\": \"2\"}}, {\"id\": \"c3\", \"label\": \"3\", \"setTags\": {\"capacity\": \"3\"}}, {\"id\": \"c4\", \"label\": \"4\", \"setTags\": {\"capacity\": \"4\"}}, {\"id\": \"c5\", \"label\": \"5\", \"setTags\": {\"capacity\": \"5\"}}, {\"id\": \"c6\", \"label\": \"6\", \"setTags\": {\"capacity\": \"6\"}}]}]}",
+          "mappedOn": "2026-10-10T18:12:29.978Z",
+          "completedTimeSpent": 616,
+          "completedBy": {
+            "username": "person-13",
+            "id": 900008
+          },
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 239,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "node/4365677676",
+          "parentId": 10,
+          "parentName": "SLC benches (A39 test, delete me)",
+          "point": {
+            "lat": 40.7617,
+            "lng": -111.8833
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.729Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 1,
+          "mappedOn": "2026-10-18T01:45:10.730Z",
+          "completedTimeSpent": 32349,
+          "completedBy": {
+            "username": "person-13",
+            "id": 900008
+          },
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 190,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "node/4365677675",
+          "parentId": 3,
+          "parentName": "Bench details pilot (dev OSM, disposable)",
+          "point": {
+            "lat": 40.76155,
+            "lng": -111.88355
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.729Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "cooperativeWork": "{\"meta\": {\"type\": 3, \"version\": 2, \"choiceVersion\": 1}, \"match\": {\"amenity\": \"bench\"}, \"element\": \"node/4365677675\", \"outcomes\": [{\"id\": \"not-a-bench\", \"label\": \"Not a bench\", \"status\": 2}, {\"id\": \"gone\", \"label\": \"Bench is gone\", \"delete\": true}], \"questions\": [{\"id\": \"backrest\", \"expect\": {\"backrest\": null}, \"prompt\": \"Does the bench have a backrest?\", \"options\": [{\"id\": \"yes\", \"label\": \"Yes\", \"setTags\": {\"backrest\": \"yes\"}}, {\"id\": \"no\", \"label\": \"No\", \"setTags\": {\"backrest\": \"no\"}}]}, {\"id\": \"material\", \"expect\": {\"material\": null}, \"prompt\": \"What is the seat mainly made of?\", \"options\": [{\"id\": \"wood\", \"label\": \"Wood\", \"setTags\": {\"material\": \"wood\"}}, {\"id\": \"metal\", \"label\": \"Metal\", \"setTags\": {\"material\": \"metal\"}}, {\"id\": \"concrete\", \"label\": \"Concrete\", \"setTags\": {\"material\": \"concrete\"}}, {\"id\": \"stone\", \"label\": \"Stone\", \"setTags\": {\"material\": \"stone\"}}, {\"id\": \"plastic\", \"label\": \"Plastic\", \"setTags\": {\"material\": \"plastic\"}}]}, {\"id\": \"capacity\", \"expect\": {\"capacity\": null}, \"prompt\": \"How many adults can sit on it?\", \"options\": [{\"id\": \"c1\", \"label\": \"1\", \"setTags\": {\"capacity\": \"1\"}}, {\"id\": \"c2\", \"label\": \"2\", \"setTags\": {\"capacity\": \"2\"}}, {\"id\": \"c3\", \"label\": \"3\", \"setTags\": {\"capacity\": \"3\"}}, {\"id\": \"c4\", \"label\": \"4\", \"setTags\": {\"capacity\": \"4\"}}, {\"id\": \"c5\", \"label\": \"5\", \"setTags\": {\"capacity\": \"5\"}}, {\"id\": \"c6\", \"label\": \"6\", \"setTags\": {\"capacity\": \"6\"}}]}]}",
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 186,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "node/4365677671",
+          "parentId": 3,
+          "parentName": "Bench details pilot (dev OSM, disposable)",
+          "point": {
+            "lat": 40.7611,
+            "lng": -111.8843
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.729Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 1,
+          "cooperativeWork": "{\"meta\": {\"type\": 3, \"version\": 2, \"choiceVersion\": 1}, \"match\": {\"amenity\": \"bench\"}, \"element\": \"node/4365677671\", \"outcomes\": [{\"id\": \"not-a-bench\", \"label\": \"Not a bench\", \"status\": 2}, {\"id\": \"gone\", \"label\": \"Bench is gone\", \"delete\": true}], \"questions\": [{\"id\": \"backrest\", \"expect\": {\"backrest\": null}, \"prompt\": \"Does the bench have a backrest?\", \"options\": [{\"id\": \"yes\", \"label\": \"Yes\", \"setTags\": {\"backrest\": \"yes\"}}, {\"id\": \"no\", \"label\": \"No\", \"setTags\": {\"backrest\": \"no\"}}]}, {\"id\": \"material\", \"expect\": {\"material\": null}, \"prompt\": \"What is the seat mainly made of?\", \"options\": [{\"id\": \"wood\", \"label\": \"Wood\", \"setTags\": {\"material\": \"wood\"}}, {\"id\": \"metal\", \"label\": \"Metal\", \"setTags\": {\"material\": \"metal\"}}, {\"id\": \"concrete\", \"label\": \"Concrete\", \"setTags\": {\"material\": \"concrete\"}}, {\"id\": \"stone\", \"label\": \"Stone\", \"setTags\": {\"material\": \"stone\"}}, {\"id\": \"plastic\", \"label\": \"Plastic\", \"setTags\": {\"material\": \"plastic\"}}]}, {\"id\": \"capacity\", \"expect\": {\"capacity\": null}, \"prompt\": \"How many adults can sit on it?\", \"options\": [{\"id\": \"c1\", \"label\": \"1\", \"setTags\": {\"capacity\": \"1\"}}, {\"id\": \"c2\", \"label\": \"2\", \"setTags\": {\"capacity\": \"2\"}}, {\"id\": \"c3\", \"label\": \"3\", \"setTags\": {\"capacity\": \"3\"}}, {\"id\": \"c4\", \"label\": \"4\", \"setTags\": {\"capacity\": \"4\"}}, {\"id\": \"c5\", \"label\": \"5\", \"setTags\": {\"capacity\": \"5\"}}, {\"id\": \"c6\", \"label\": \"6\", \"setTags\": {\"capacity\": \"6\"}}]}]}",
+          "mappedOn": "2026-10-06T20:42:28.397Z",
+          "completedTimeSpent": 691,
+          "completedBy": {
+            "username": "person-13",
+            "id": 900008
+          },
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 191,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "node/4365677676",
+          "parentId": 3,
+          "parentName": "Bench details pilot (dev OSM, disposable)",
+          "point": {
+            "lat": 40.7617,
+            "lng": -111.8833
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.729Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 2,
+          "cooperativeWork": "{\"meta\": {\"type\": 3, \"version\": 2, \"choiceVersion\": 1}, \"match\": {\"amenity\": \"bench\"}, \"element\": \"node/4365677676\", \"outcomes\": [{\"id\": \"not-a-bench\", \"label\": \"Not a bench\", \"status\": 2}, {\"id\": \"gone\", \"label\": \"Bench is gone\", \"delete\": true}], \"questions\": [{\"id\": \"backrest\", \"expect\": {\"backrest\": null}, \"prompt\": \"Does the bench have a backrest?\", \"options\": [{\"id\": \"yes\", \"label\": \"Yes\", \"setTags\": {\"backrest\": \"yes\"}}, {\"id\": \"no\", \"label\": \"No\", \"setTags\": {\"backrest\": \"no\"}}]}, {\"id\": \"material\", \"expect\": {\"material\": null}, \"prompt\": \"What is the seat mainly made of?\", \"options\": [{\"id\": \"wood\", \"label\": \"Wood\", \"setTags\": {\"material\": \"wood\"}}, {\"id\": \"metal\", \"label\": \"Metal\", \"setTags\": {\"material\": \"metal\"}}, {\"id\": \"concrete\", \"label\": \"Concrete\", \"setTags\": {\"material\": \"concrete\"}}, {\"id\": \"stone\", \"label\": \"Stone\", \"setTags\": {\"material\": \"stone\"}}, {\"id\": \"plastic\", \"label\": \"Plastic\", \"setTags\": {\"material\": \"plastic\"}}]}, {\"id\": \"capacity\", \"expect\": {\"capacity\": null}, \"prompt\": \"How many adults can sit on it?\", \"options\": [{\"id\": \"c1\", \"label\": \"1\", \"setTags\": {\"capacity\": \"1\"}}, {\"id\": \"c2\", \"label\": \"2\", \"setTags\": {\"capacity\": \"2\"}}, {\"id\": \"c3\", \"label\": \"3\", \"setTags\": {\"capacity\": \"3\"}}, {\"id\": \"c4\", \"label\": \"4\", \"setTags\": {\"capacity\": \"4\"}}, {\"id\": \"c5\", \"label\": \"5\", \"setTags\": {\"capacity\": \"5\"}}, {\"id\": \"c6\", \"label\": \"6\", \"setTags\": {\"capacity\": \"6\"}}]}]}",
+          "mappedOn": "2026-10-07T00:00:31.728Z",
+          "completedTimeSpent": 228,
+          "completedBy": {
+            "username": "person-14",
+            "id": 900009
+          },
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 184,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "node/4365677669",
+          "parentId": 3,
+          "parentName": "Bench details pilot (dev OSM, disposable)",
+          "point": {
+            "lat": 40.7608,
+            "lng": -111.8848
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.729Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 1,
+          "cooperativeWork": "{\"meta\": {\"type\": 3, \"version\": 2, \"choiceVersion\": 1}, \"match\": {\"amenity\": \"bench\"}, \"element\": \"node/4365677669\", \"outcomes\": [{\"id\": \"not-a-bench\", \"label\": \"Not a bench\", \"status\": 2}, {\"id\": \"gone\", \"label\": \"Bench is gone\", \"delete\": true}], \"questions\": [{\"id\": \"backrest\", \"expect\": {\"backrest\": null}, \"prompt\": \"Does the bench have a backrest?\", \"options\": [{\"id\": \"yes\", \"label\": \"Yes\", \"setTags\": {\"backrest\": \"yes\"}}, {\"id\": \"no\", \"label\": \"No\", \"setTags\": {\"backrest\": \"no\"}}]}, {\"id\": \"material\", \"expect\": {\"material\": null}, \"prompt\": \"What is the seat mainly made of?\", \"options\": [{\"id\": \"wood\", \"label\": \"Wood\", \"setTags\": {\"material\": \"wood\"}}, {\"id\": \"metal\", \"label\": \"Metal\", \"setTags\": {\"material\": \"metal\"}}, {\"id\": \"concrete\", \"label\": \"Concrete\", \"setTags\": {\"material\": \"concrete\"}}, {\"id\": \"stone\", \"label\": \"Stone\", \"setTags\": {\"material\": \"stone\"}}, {\"id\": \"plastic\", \"label\": \"Plastic\", \"setTags\": {\"material\": \"plastic\"}}]}, {\"id\": \"capacity\", \"expect\": {\"capacity\": null}, \"prompt\": \"How many adults can sit on it?\", \"options\": [{\"id\": \"c1\", \"label\": \"1\", \"setTags\": {\"capacity\": \"1\"}}, {\"id\": \"c2\", \"label\": \"2\", \"setTags\": {\"capacity\": \"2\"}}, {\"id\": \"c3\", \"label\": \"3\", \"setTags\": {\"capacity\": \"3\"}}, {\"id\": \"c4\", \"label\": \"4\", \"setTags\": {\"capacity\": \"4\"}}, {\"id\": \"c5\", \"label\": \"5\", \"setTags\": {\"capacity\": \"5\"}}, {\"id\": \"c6\", \"label\": \"6\", \"setTags\": {\"capacity\": \"6\"}}]}]}",
+          "mappedOn": "2026-10-07T00:00:17.347Z",
+          "completedTimeSpent": 513,
+          "completedBy": {
+            "username": "person-14",
+            "id": 900009
+          },
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 187,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "node/4365677672",
+          "parentId": 3,
+          "parentName": "Bench details pilot (dev OSM, disposable)",
+          "point": {
+            "lat": 40.76125,
+            "lng": -111.88405
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.729Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 1,
+          "cooperativeWork": "{\"meta\": {\"type\": 3, \"version\": 2, \"choiceVersion\": 1}, \"match\": {\"amenity\": \"bench\"}, \"element\": \"node/4365677672\", \"outcomes\": [{\"id\": \"not-a-bench\", \"label\": \"Not a bench\", \"status\": 2}, {\"id\": \"gone\", \"label\": \"Bench is gone\", \"delete\": true}], \"questions\": [{\"id\": \"backrest\", \"expect\": {\"backrest\": null}, \"prompt\": \"Does the bench have a backrest?\", \"options\": [{\"id\": \"yes\", \"label\": \"Yes\", \"setTags\": {\"backrest\": \"yes\"}}, {\"id\": \"no\", \"label\": \"No\", \"setTags\": {\"backrest\": \"no\"}}]}, {\"id\": \"material\", \"expect\": {\"material\": null}, \"prompt\": \"What is the seat mainly made of?\", \"options\": [{\"id\": \"wood\", \"label\": \"Wood\", \"setTags\": {\"material\": \"wood\"}}, {\"id\": \"metal\", \"label\": \"Metal\", \"setTags\": {\"material\": \"metal\"}}, {\"id\": \"concrete\", \"label\": \"Concrete\", \"setTags\": {\"material\": \"concrete\"}}, {\"id\": \"stone\", \"label\": \"Stone\", \"setTags\": {\"material\": \"stone\"}}, {\"id\": \"plastic\", \"label\": \"Plastic\", \"setTags\": {\"material\": \"plastic\"}}]}, {\"id\": \"capacity\", \"expect\": {\"capacity\": null}, \"prompt\": \"How many adults can sit on it?\", \"options\": [{\"id\": \"c1\", \"label\": \"1\", \"setTags\": {\"capacity\": \"1\"}}, {\"id\": \"c2\", \"label\": \"2\", \"setTags\": {\"capacity\": \"2\"}}, {\"id\": \"c3\", \"label\": \"3\", \"setTags\": {\"capacity\": \"3\"}}, {\"id\": \"c4\", \"label\": \"4\", \"setTags\": {\"capacity\": \"4\"}}, {\"id\": \"c5\", \"label\": \"5\", \"setTags\": {\"capacity\": \"5\"}}, {\"id\": \"c6\", \"label\": \"6\", \"setTags\": {\"capacity\": \"6\"}}]}]}",
+          "mappedOn": "2026-10-07T00:00:41.893Z",
+          "completedTimeSpent": 623,
+          "completedBy": {
+            "username": "person-14",
+            "id": 900009
+          },
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 185,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "node/4365677670",
+          "parentId": 3,
+          "parentName": "Bench details pilot (dev OSM, disposable)",
+          "point": {
+            "lat": 40.76095,
+            "lng": -111.88455
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.729Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 1,
+          "cooperativeWork": "{\"meta\": {\"type\": 3, \"version\": 2, \"choiceVersion\": 1}, \"match\": {\"amenity\": \"bench\"}, \"element\": \"node/4365677670\", \"outcomes\": [{\"id\": \"not-a-bench\", \"label\": \"Not a bench\", \"status\": 2}, {\"id\": \"gone\", \"label\": \"Bench is gone\", \"delete\": true}], \"questions\": [{\"id\": \"backrest\", \"expect\": {\"backrest\": null}, \"prompt\": \"Does the bench have a backrest?\", \"options\": [{\"id\": \"yes\", \"label\": \"Yes\", \"setTags\": {\"backrest\": \"yes\"}}, {\"id\": \"no\", \"label\": \"No\", \"setTags\": {\"backrest\": \"no\"}}]}, {\"id\": \"material\", \"expect\": {\"material\": null}, \"prompt\": \"What is the seat mainly made of?\", \"options\": [{\"id\": \"wood\", \"label\": \"Wood\", \"setTags\": {\"material\": \"wood\"}}, {\"id\": \"metal\", \"label\": \"Metal\", \"setTags\": {\"material\": \"metal\"}}, {\"id\": \"concrete\", \"label\": \"Concrete\", \"setTags\": {\"material\": \"concrete\"}}, {\"id\": \"stone\", \"label\": \"Stone\", \"setTags\": {\"material\": \"stone\"}}, {\"id\": \"plastic\", \"label\": \"Plastic\", \"setTags\": {\"material\": \"plastic\"}}]}, {\"id\": \"capacity\", \"expect\": {\"capacity\": null}, \"prompt\": \"How many adults can sit on it?\", \"options\": [{\"id\": \"c1\", \"label\": \"1\", \"setTags\": {\"capacity\": \"1\"}}, {\"id\": \"c2\", \"label\": \"2\", \"setTags\": {\"capacity\": \"2\"}}, {\"id\": \"c3\", \"label\": \"3\", \"setTags\": {\"capacity\": \"3\"}}, {\"id\": \"c4\", \"label\": \"4\", \"setTags\": {\"capacity\": \"4\"}}, {\"id\": \"c5\", \"label\": \"5\", \"setTags\": {\"capacity\": \"5\"}}, {\"id\": \"c6\", \"label\": \"6\", \"setTags\": {\"capacity\": \"6\"}}]}]}",
+          "mappedOn": "2026-10-07T00:06:58.498Z",
+          "completedTimeSpent": 577,
+          "completedBy": {
+            "username": "person-14",
+            "id": 900009
+          },
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 192,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "node/14178183367",
+          "parentId": 5,
+          "parentName": "Woodbine entrance doors",
+          "point": {
+            "lat": 40.7538166,
+            "lng": -111.906812
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.729Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "cooperativeWork": "{\"meta\": {\"type\": 3, \"version\": 2, \"choiceVersion\": 1}, \"match\": {\"entrance\": \"main\"}, \"element\": \"node/14178183367\", \"outcomes\": [{\"id\": \"no-door\", \"label\": \"There's no door\", \"status\": 6, \"description\": \"It's an open doorway or a gate.\"}], \"questions\": [{\"id\": \"door-type\", \"expect\": {\"door\": null}, \"prompt\": \"How does this door open?\", \"options\": [{\"id\": \"hinged\", \"label\": \"Swings open\", \"setTags\": {\"door\": \"hinged\"}}, {\"id\": \"sliding\", \"label\": \"Slides sideways\", \"setTags\": {\"door\": \"sliding\"}}, {\"id\": \"revolving\", \"label\": \"Revolves\", \"setTags\": {\"door\": \"revolving\"}}, {\"id\": \"folding\", \"label\": \"Folds\", \"setTags\": {\"door\": \"folding\"}}], \"description\": \"Look only at the door at this entrance.\"}, {\"id\": \"automatic-opening\", \"expect\": {\"automatic_door\": null}, \"prompt\": \"Does it open by itself?\", \"options\": [{\"id\": \"no\", \"label\": \"No, you push or pull it\", \"setTags\": {\"automatic_door\": \"no\"}}, {\"id\": \"button\", \"label\": \"Yes, with a button\", \"setTags\": {\"automatic_door\": \"button\"}}, {\"id\": \"motion\", \"label\": \"Yes, when you walk up\", \"setTags\": {\"automatic_door\": \"motion\"}}, {\"id\": \"yes\", \"label\": \"Yes, not sure how\", \"setTags\": {\"automatic_door\": \"yes\"}}], \"description\": \"A door that's propped open doesn't count.\"}], \"liveMissingQuestions\": true}",
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 189,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "node/4365677674",
+          "parentId": 3,
+          "parentName": "Bench details pilot (dev OSM, disposable)",
+          "point": {
+            "lat": 40.7606,
+            "lng": -111.885
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.729Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 1,
+          "cooperativeWork": "{\"meta\": {\"type\": 3, \"version\": 2, \"choiceVersion\": 1}, \"match\": {\"amenity\": \"bench\"}, \"element\": \"node/4365677674\", \"outcomes\": [{\"id\": \"not-a-bench\", \"label\": \"Not a bench\", \"status\": 2}, {\"id\": \"gone\", \"label\": \"Bench is gone\", \"delete\": true}], \"questions\": [{\"id\": \"backrest\", \"expect\": {\"backrest\": null}, \"prompt\": \"Does the bench have a backrest?\", \"options\": [{\"id\": \"yes\", \"label\": \"Yes\", \"setTags\": {\"backrest\": \"yes\"}}, {\"id\": \"no\", \"label\": \"No\", \"setTags\": {\"backrest\": \"no\"}}]}, {\"id\": \"material\", \"expect\": {\"material\": null}, \"prompt\": \"What is the seat mainly made of?\", \"options\": [{\"id\": \"wood\", \"label\": \"Wood\", \"setTags\": {\"material\": \"wood\"}}, {\"id\": \"metal\", \"label\": \"Metal\", \"setTags\": {\"material\": \"metal\"}}, {\"id\": \"concrete\", \"label\": \"Concrete\", \"setTags\": {\"material\": \"concrete\"}}, {\"id\": \"stone\", \"label\": \"Stone\", \"setTags\": {\"material\": \"stone\"}}, {\"id\": \"plastic\", \"label\": \"Plastic\", \"setTags\": {\"material\": \"plastic\"}}]}, {\"id\": \"capacity\", \"expect\": {\"capacity\": null}, \"prompt\": \"How many adults can sit on it?\", \"options\": [{\"id\": \"c1\", \"label\": \"1\", \"setTags\": {\"capacity\": \"1\"}}, {\"id\": \"c2\", \"label\": \"2\", \"setTags\": {\"capacity\": \"2\"}}, {\"id\": \"c3\", \"label\": \"3\", \"setTags\": {\"capacity\": \"3\"}}, {\"id\": \"c4\", \"label\": \"4\", \"setTags\": {\"capacity\": \"4\"}}, {\"id\": \"c5\", \"label\": \"5\", \"setTags\": {\"capacity\": \"5\"}}, {\"id\": \"c6\", \"label\": \"6\", \"setTags\": {\"capacity\": \"6\"}}]}]}",
+          "mappedOn": "2026-10-11T23:27:33.338Z",
+          "completedTimeSpent": 658,
+          "completedBy": {
+            "username": "person-14",
+            "id": 900009
+          },
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 193,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "node/14178183369",
+          "parentId": 5,
+          "parentName": "Woodbine entrance doors",
+          "point": {
+            "lat": 40.7535743,
+            "lng": -111.9068124
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.729Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "cooperativeWork": "{\"meta\": {\"type\": 3, \"version\": 2, \"choiceVersion\": 1}, \"match\": {\"entrance\": \"yes\"}, \"element\": \"node/14178183369\", \"outcomes\": [{\"id\": \"no-door\", \"label\": \"There's no door\", \"status\": 6, \"description\": \"It's an open doorway or a gate.\"}], \"questions\": [{\"id\": \"door-type\", \"expect\": {\"door\": null}, \"prompt\": \"How does this door open?\", \"options\": [{\"id\": \"hinged\", \"label\": \"Swings open\", \"setTags\": {\"door\": \"hinged\"}}, {\"id\": \"sliding\", \"label\": \"Slides sideways\", \"setTags\": {\"door\": \"sliding\"}}, {\"id\": \"revolving\", \"label\": \"Revolves\", \"setTags\": {\"door\": \"revolving\"}}, {\"id\": \"folding\", \"label\": \"Folds\", \"setTags\": {\"door\": \"folding\"}}], \"description\": \"Look only at the door at this entrance.\"}, {\"id\": \"automatic-opening\", \"expect\": {\"automatic_door\": null}, \"prompt\": \"Does it open by itself?\", \"options\": [{\"id\": \"no\", \"label\": \"No, you push or pull it\", \"setTags\": {\"automatic_door\": \"no\"}}, {\"id\": \"button\", \"label\": \"Yes, with a button\", \"setTags\": {\"automatic_door\": \"button\"}}, {\"id\": \"motion\", \"label\": \"Yes, when you walk up\", \"setTags\": {\"automatic_door\": \"motion\"}}, {\"id\": \"yes\", \"label\": \"Yes, not sure how\", \"setTags\": {\"automatic_door\": \"yes\"}}], \"description\": \"A door that's propped open doesn't count.\"}], \"liveMissingQuestions\": true}",
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 194,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "node/14178183390",
+          "parentId": 5,
+          "parentName": "Woodbine entrance doors",
+          "point": {
+            "lat": 40.7527671,
+            "lng": -111.9056331
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.729Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "cooperativeWork": "{\"meta\": {\"type\": 3, \"version\": 2, \"choiceVersion\": 1}, \"match\": {\"entrance\": \"main\"}, \"element\": \"node/14178183390\", \"outcomes\": [{\"id\": \"no-door\", \"label\": \"There's no door\", \"status\": 6, \"description\": \"It's an open doorway or a gate.\"}], \"questions\": [{\"id\": \"door-type\", \"expect\": {\"door\": null}, \"prompt\": \"How does this door open?\", \"options\": [{\"id\": \"hinged\", \"label\": \"Swings open\", \"setTags\": {\"door\": \"hinged\"}}, {\"id\": \"sliding\", \"label\": \"Slides sideways\", \"setTags\": {\"door\": \"sliding\"}}, {\"id\": \"revolving\", \"label\": \"Revolves\", \"setTags\": {\"door\": \"revolving\"}}, {\"id\": \"folding\", \"label\": \"Folds\", \"setTags\": {\"door\": \"folding\"}}], \"description\": \"Look only at the door at this entrance.\"}, {\"id\": \"automatic-opening\", \"expect\": {\"automatic_door\": null}, \"prompt\": \"Does it open by itself?\", \"options\": [{\"id\": \"no\", \"label\": \"No, you push or pull it\", \"setTags\": {\"automatic_door\": \"no\"}}, {\"id\": \"button\", \"label\": \"Yes, with a button\", \"setTags\": {\"automatic_door\": \"button\"}}, {\"id\": \"motion\", \"label\": \"Yes, when you walk up\", \"setTags\": {\"automatic_door\": \"motion\"}}, {\"id\": \"yes\", \"label\": \"Yes, not sure how\", \"setTags\": {\"automatic_door\": \"yes\"}}], \"description\": \"A door that's propped open doesn't count.\"}], \"liveMissingQuestions\": true}",
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 195,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "node/10290204107",
+          "parentId": 5,
+          "parentName": "Woodbine entrance doors",
+          "point": {
+            "lat": 40.7561096,
+            "lng": -111.9078998
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.729Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "cooperativeWork": "{\"meta\": {\"type\": 3, \"version\": 2, \"choiceVersion\": 1}, \"match\": {\"entrance\": \"yes\"}, \"element\": \"node/10290204107\", \"outcomes\": [{\"id\": \"no-door\", \"label\": \"There's no door\", \"status\": 6, \"description\": \"It's an open doorway or a gate.\"}], \"questions\": [{\"id\": \"door-type\", \"expect\": {\"door\": null}, \"prompt\": \"How does this door open?\", \"options\": [{\"id\": \"hinged\", \"label\": \"Swings open\", \"setTags\": {\"door\": \"hinged\"}}, {\"id\": \"sliding\", \"label\": \"Slides sideways\", \"setTags\": {\"door\": \"sliding\"}}, {\"id\": \"revolving\", \"label\": \"Revolves\", \"setTags\": {\"door\": \"revolving\"}}, {\"id\": \"folding\", \"label\": \"Folds\", \"setTags\": {\"door\": \"folding\"}}], \"description\": \"Look only at the door at this entrance.\"}, {\"id\": \"automatic-opening\", \"expect\": {\"automatic_door\": null}, \"prompt\": \"Does it open by itself?\", \"options\": [{\"id\": \"no\", \"label\": \"No, you push or pull it\", \"setTags\": {\"automatic_door\": \"no\"}}, {\"id\": \"button\", \"label\": \"Yes, with a button\", \"setTags\": {\"automatic_door\": \"button\"}}, {\"id\": \"motion\", \"label\": \"Yes, when you walk up\", \"setTags\": {\"automatic_door\": \"motion\"}}, {\"id\": \"yes\", \"label\": \"Yes, not sure how\", \"setTags\": {\"automatic_door\": \"yes\"}}], \"description\": \"A door that's propped open doesn't count.\"}], \"liveMissingQuestions\": true}",
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 196,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "node/12790552134",
+          "parentId": 5,
+          "parentName": "Woodbine entrance doors",
+          "point": {
+            "lat": 40.7565212,
+            "lng": -111.9015878
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.729Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "cooperativeWork": "{\"meta\": {\"type\": 3, \"version\": 2, \"choiceVersion\": 1}, \"match\": {\"entrance\": \"yes\"}, \"element\": \"node/12790552134\", \"outcomes\": [{\"id\": \"no-door\", \"label\": \"There's no door\", \"status\": 6, \"description\": \"It's an open doorway or a gate.\"}], \"questions\": [{\"id\": \"door-type\", \"expect\": {\"door\": null}, \"prompt\": \"How does this door open?\", \"options\": [{\"id\": \"hinged\", \"label\": \"Swings open\", \"setTags\": {\"door\": \"hinged\"}}, {\"id\": \"sliding\", \"label\": \"Slides sideways\", \"setTags\": {\"door\": \"sliding\"}}, {\"id\": \"revolving\", \"label\": \"Revolves\", \"setTags\": {\"door\": \"revolving\"}}, {\"id\": \"folding\", \"label\": \"Folds\", \"setTags\": {\"door\": \"folding\"}}], \"description\": \"Look only at the door at this entrance.\"}, {\"id\": \"automatic-opening\", \"expect\": {\"automatic_door\": null}, \"prompt\": \"Does it open by itself?\", \"options\": [{\"id\": \"no\", \"label\": \"No, you push or pull it\", \"setTags\": {\"automatic_door\": \"no\"}}, {\"id\": \"button\", \"label\": \"Yes, with a button\", \"setTags\": {\"automatic_door\": \"button\"}}, {\"id\": \"motion\", \"label\": \"Yes, when you walk up\", \"setTags\": {\"automatic_door\": \"motion\"}}, {\"id\": \"yes\", \"label\": \"Yes, not sure how\", \"setTags\": {\"automatic_door\": \"yes\"}}], \"description\": \"A door that's propped open doesn't count.\"}], \"liveMissingQuestions\": true}",
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 197,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "node/13689903758",
+          "parentId": 5,
+          "parentName": "Woodbine entrance doors",
+          "point": {
+            "lat": 40.7521289,
+            "lng": -111.9005183
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.729Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "cooperativeWork": "{\"meta\": {\"type\": 3, \"version\": 2, \"choiceVersion\": 1}, \"match\": {\"entrance\": \"main\"}, \"element\": \"node/13689903758\", \"outcomes\": [{\"id\": \"no-door\", \"label\": \"There's no door\", \"status\": 6, \"description\": \"It's an open doorway or a gate.\"}], \"questions\": [{\"id\": \"door-type\", \"expect\": {\"door\": null}, \"prompt\": \"How does this door open?\", \"options\": [{\"id\": \"hinged\", \"label\": \"Swings open\", \"setTags\": {\"door\": \"hinged\"}}, {\"id\": \"sliding\", \"label\": \"Slides sideways\", \"setTags\": {\"door\": \"sliding\"}}, {\"id\": \"revolving\", \"label\": \"Revolves\", \"setTags\": {\"door\": \"revolving\"}}, {\"id\": \"folding\", \"label\": \"Folds\", \"setTags\": {\"door\": \"folding\"}}], \"description\": \"Look only at the door at this entrance.\"}, {\"id\": \"automatic-opening\", \"expect\": {\"automatic_door\": null}, \"prompt\": \"Does it open by itself?\", \"options\": [{\"id\": \"no\", \"label\": \"No, you push or pull it\", \"setTags\": {\"automatic_door\": \"no\"}}, {\"id\": \"button\", \"label\": \"Yes, with a button\", \"setTags\": {\"automatic_door\": \"button\"}}, {\"id\": \"motion\", \"label\": \"Yes, when you walk up\", \"setTags\": {\"automatic_door\": \"motion\"}}, {\"id\": \"yes\", \"label\": \"Yes, not sure how\", \"setTags\": {\"automatic_door\": \"yes\"}}], \"description\": \"A door that's propped open doesn't count.\"}], \"liveMissingQuestions\": true}",
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 198,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "node/13302228244",
+          "parentId": 5,
+          "parentName": "Woodbine entrance doors",
+          "point": {
+            "lat": 40.7567798,
+            "lng": -111.9015054
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.729Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "cooperativeWork": "{\"meta\": {\"type\": 3, \"version\": 2, \"choiceVersion\": 1}, \"match\": {\"entrance\": \"yes\"}, \"element\": \"node/13302228244\", \"outcomes\": [{\"id\": \"no-door\", \"label\": \"There's no door\", \"status\": 6, \"description\": \"It's an open doorway or a gate.\"}], \"questions\": [{\"id\": \"door-type\", \"expect\": {\"door\": null}, \"prompt\": \"How does this door open?\", \"options\": [{\"id\": \"hinged\", \"label\": \"Swings open\", \"setTags\": {\"door\": \"hinged\"}}, {\"id\": \"sliding\", \"label\": \"Slides sideways\", \"setTags\": {\"door\": \"sliding\"}}, {\"id\": \"revolving\", \"label\": \"Revolves\", \"setTags\": {\"door\": \"revolving\"}}, {\"id\": \"folding\", \"label\": \"Folds\", \"setTags\": {\"door\": \"folding\"}}], \"description\": \"Look only at the door at this entrance.\"}, {\"id\": \"automatic-opening\", \"expect\": {\"automatic_door\": null}, \"prompt\": \"Does it open by itself?\", \"options\": [{\"id\": \"no\", \"label\": \"No, you push or pull it\", \"setTags\": {\"automatic_door\": \"no\"}}, {\"id\": \"button\", \"label\": \"Yes, with a button\", \"setTags\": {\"automatic_door\": \"button\"}}, {\"id\": \"motion\", \"label\": \"Yes, when you walk up\", \"setTags\": {\"automatic_door\": \"motion\"}}, {\"id\": \"yes\", \"label\": \"Yes, not sure how\", \"setTags\": {\"automatic_door\": \"yes\"}}], \"description\": \"A door that's propped open doesn't count.\"}], \"liveMissingQuestions\": true}",
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 199,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "node/14013712692",
+          "parentId": 5,
+          "parentName": "Woodbine entrance doors",
+          "point": {
+            "lat": 40.7558555,
+            "lng": -111.8991422
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.729Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "cooperativeWork": "{\"meta\": {\"type\": 3, \"version\": 2, \"choiceVersion\": 1}, \"match\": {\"entrance\": \"main\"}, \"element\": \"node/14013712692\", \"outcomes\": [{\"id\": \"no-door\", \"label\": \"There's no door\", \"status\": 6, \"description\": \"It's an open doorway or a gate.\"}], \"questions\": [{\"id\": \"automatic-opening\", \"expect\": {\"automatic_door\": null}, \"prompt\": \"Does it open by itself?\", \"options\": [{\"id\": \"no\", \"label\": \"No, you push or pull it\", \"setTags\": {\"automatic_door\": \"no\"}}, {\"id\": \"button\", \"label\": \"Yes, with a button\", \"setTags\": {\"automatic_door\": \"button\"}}, {\"id\": \"motion\", \"label\": \"Yes, when you walk up\", \"setTags\": {\"automatic_door\": \"motion\"}}, {\"id\": \"yes\", \"label\": \"Yes, not sure how\", \"setTags\": {\"automatic_door\": \"yes\"}}], \"description\": \"A door that's propped open doesn't count.\"}], \"liveMissingQuestions\": true}",
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 200,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "node/10290204100",
+          "parentId": 5,
+          "parentName": "Woodbine entrance doors",
+          "point": {
+            "lat": 40.7580994,
+            "lng": -111.9004649
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.729Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "cooperativeWork": "{\"meta\": {\"type\": 3, \"version\": 2, \"choiceVersion\": 1}, \"match\": {\"entrance\": \"main\"}, \"element\": \"node/10290204100\", \"outcomes\": [{\"id\": \"no-door\", \"label\": \"There's no door\", \"status\": 6, \"description\": \"It's an open doorway or a gate.\"}], \"questions\": [{\"id\": \"door-type\", \"expect\": {\"door\": null}, \"prompt\": \"How does this door open?\", \"options\": [{\"id\": \"hinged\", \"label\": \"Swings open\", \"setTags\": {\"door\": \"hinged\"}}, {\"id\": \"sliding\", \"label\": \"Slides sideways\", \"setTags\": {\"door\": \"sliding\"}}, {\"id\": \"revolving\", \"label\": \"Revolves\", \"setTags\": {\"door\": \"revolving\"}}, {\"id\": \"folding\", \"label\": \"Folds\", \"setTags\": {\"door\": \"folding\"}}], \"description\": \"Look only at the door at this entrance.\"}, {\"id\": \"automatic-opening\", \"expect\": {\"automatic_door\": null}, \"prompt\": \"Does it open by itself?\", \"options\": [{\"id\": \"no\", \"label\": \"No, you push or pull it\", \"setTags\": {\"automatic_door\": \"no\"}}, {\"id\": \"button\", \"label\": \"Yes, with a button\", \"setTags\": {\"automatic_door\": \"button\"}}, {\"id\": \"motion\", \"label\": \"Yes, when you walk up\", \"setTags\": {\"automatic_door\": \"motion\"}}, {\"id\": \"yes\", \"label\": \"Yes, not sure how\", \"setTags\": {\"automatic_door\": \"yes\"}}], \"description\": \"A door that's propped open doesn't count.\"}], \"liveMissingQuestions\": true}",
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 201,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "node/13202963757",
+          "parentId": 5,
+          "parentName": "Woodbine entrance doors",
+          "point": {
+            "lat": 40.7487836,
+            "lng": -111.9000327
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.729Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "cooperativeWork": "{\"meta\": {\"type\": 3, \"version\": 2, \"choiceVersion\": 1}, \"match\": {\"entrance\": \"yes\"}, \"element\": \"node/13202963757\", \"outcomes\": [{\"id\": \"no-door\", \"label\": \"There's no door\", \"status\": 6, \"description\": \"It's an open doorway or a gate.\"}], \"questions\": [{\"id\": \"door-type\", \"expect\": {\"door\": null}, \"prompt\": \"How does this door open?\", \"options\": [{\"id\": \"hinged\", \"label\": \"Swings open\", \"setTags\": {\"door\": \"hinged\"}}, {\"id\": \"sliding\", \"label\": \"Slides sideways\", \"setTags\": {\"door\": \"sliding\"}}, {\"id\": \"revolving\", \"label\": \"Revolves\", \"setTags\": {\"door\": \"revolving\"}}, {\"id\": \"folding\", \"label\": \"Folds\", \"setTags\": {\"door\": \"folding\"}}], \"description\": \"Look only at the door at this entrance.\"}, {\"id\": \"automatic-opening\", \"expect\": {\"automatic_door\": null}, \"prompt\": \"Does it open by itself?\", \"options\": [{\"id\": \"no\", \"label\": \"No, you push or pull it\", \"setTags\": {\"automatic_door\": \"no\"}}, {\"id\": \"button\", \"label\": \"Yes, with a button\", \"setTags\": {\"automatic_door\": \"button\"}}, {\"id\": \"motion\", \"label\": \"Yes, when you walk up\", \"setTags\": {\"automatic_door\": \"motion\"}}, {\"id\": \"yes\", \"label\": \"Yes, not sure how\", \"setTags\": {\"automatic_door\": \"yes\"}}], \"description\": \"A door that's propped open doesn't count.\"}], \"liveMissingQuestions\": true}",
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 202,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "node/13202963756",
+          "parentId": 5,
+          "parentName": "Woodbine entrance doors",
+          "point": {
+            "lat": 40.7485544,
+            "lng": -111.8999773
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.729Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "cooperativeWork": "{\"meta\": {\"type\": 3, \"version\": 2, \"choiceVersion\": 1}, \"match\": {\"entrance\": \"yes\"}, \"element\": \"node/13202963756\", \"outcomes\": [{\"id\": \"no-door\", \"label\": \"There's no door\", \"status\": 6, \"description\": \"It's an open doorway or a gate.\"}], \"questions\": [{\"id\": \"door-type\", \"expect\": {\"door\": null}, \"prompt\": \"How does this door open?\", \"options\": [{\"id\": \"hinged\", \"label\": \"Swings open\", \"setTags\": {\"door\": \"hinged\"}}, {\"id\": \"sliding\", \"label\": \"Slides sideways\", \"setTags\": {\"door\": \"sliding\"}}, {\"id\": \"revolving\", \"label\": \"Revolves\", \"setTags\": {\"door\": \"revolving\"}}, {\"id\": \"folding\", \"label\": \"Folds\", \"setTags\": {\"door\": \"folding\"}}], \"description\": \"Look only at the door at this entrance.\"}, {\"id\": \"automatic-opening\", \"expect\": {\"automatic_door\": null}, \"prompt\": \"Does it open by itself?\", \"options\": [{\"id\": \"no\", \"label\": \"No, you push or pull it\", \"setTags\": {\"automatic_door\": \"no\"}}, {\"id\": \"button\", \"label\": \"Yes, with a button\", \"setTags\": {\"automatic_door\": \"button\"}}, {\"id\": \"motion\", \"label\": \"Yes, when you walk up\", \"setTags\": {\"automatic_door\": \"motion\"}}, {\"id\": \"yes\", \"label\": \"Yes, not sure how\", \"setTags\": {\"automatic_door\": \"yes\"}}], \"description\": \"A door that's propped open doesn't count.\"}], \"liveMissingQuestions\": true}",
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 203,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "node/12644721386",
+          "parentId": 5,
+          "parentName": "Woodbine entrance doors",
+          "point": {
+            "lat": 40.7495887,
+            "lng": -111.8980614
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.729Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "cooperativeWork": "{\"meta\": {\"type\": 3, \"version\": 2, \"choiceVersion\": 1}, \"match\": {\"entrance\": \"shop\"}, \"element\": \"node/12644721386\", \"outcomes\": [{\"id\": \"no-door\", \"label\": \"There's no door\", \"status\": 6, \"description\": \"It's an open doorway or a gate.\"}], \"questions\": [{\"id\": \"automatic-opening\", \"expect\": {\"automatic_door\": null}, \"prompt\": \"Does it open by itself?\", \"options\": [{\"id\": \"no\", \"label\": \"No, you push or pull it\", \"setTags\": {\"automatic_door\": \"no\"}}, {\"id\": \"button\", \"label\": \"Yes, with a button\", \"setTags\": {\"automatic_door\": \"button\"}}, {\"id\": \"motion\", \"label\": \"Yes, when you walk up\", \"setTags\": {\"automatic_door\": \"motion\"}}, {\"id\": \"yes\", \"label\": \"Yes, not sure how\", \"setTags\": {\"automatic_door\": \"yes\"}}], \"description\": \"A door that's propped open doesn't count.\"}], \"liveMissingQuestions\": true}",
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 204,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "node/12646613396",
+          "parentId": 5,
+          "parentName": "Woodbine entrance doors",
+          "point": {
+            "lat": 40.7499525,
+            "lng": -111.8959973
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.729Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "cooperativeWork": "{\"meta\": {\"type\": 3, \"version\": 2, \"choiceVersion\": 1}, \"match\": {\"entrance\": \"yes\"}, \"element\": \"node/12646613396\", \"outcomes\": [{\"id\": \"no-door\", \"label\": \"There's no door\", \"status\": 6, \"description\": \"It's an open doorway or a gate.\"}], \"questions\": [{\"id\": \"door-type\", \"expect\": {\"door\": null}, \"prompt\": \"How does this door open?\", \"options\": [{\"id\": \"hinged\", \"label\": \"Swings open\", \"setTags\": {\"door\": \"hinged\"}}, {\"id\": \"sliding\", \"label\": \"Slides sideways\", \"setTags\": {\"door\": \"sliding\"}}, {\"id\": \"revolving\", \"label\": \"Revolves\", \"setTags\": {\"door\": \"revolving\"}}, {\"id\": \"folding\", \"label\": \"Folds\", \"setTags\": {\"door\": \"folding\"}}], \"description\": \"Look only at the door at this entrance.\"}, {\"id\": \"automatic-opening\", \"expect\": {\"automatic_door\": null}, \"prompt\": \"Does it open by itself?\", \"options\": [{\"id\": \"no\", \"label\": \"No, you push or pull it\", \"setTags\": {\"automatic_door\": \"no\"}}, {\"id\": \"button\", \"label\": \"Yes, with a button\", \"setTags\": {\"automatic_door\": \"button\"}}, {\"id\": \"motion\", \"label\": \"Yes, when you walk up\", \"setTags\": {\"automatic_door\": \"motion\"}}, {\"id\": \"yes\", \"label\": \"Yes, not sure how\", \"setTags\": {\"automatic_door\": \"yes\"}}], \"description\": \"A door that's propped open doesn't count.\"}], \"liveMissingQuestions\": true}",
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 205,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "node/12646613395",
+          "parentId": 5,
+          "parentName": "Woodbine entrance doors",
+          "point": {
+            "lat": 40.7495785,
+            "lng": -111.8955832
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.729Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "cooperativeWork": "{\"meta\": {\"type\": 3, \"version\": 2, \"choiceVersion\": 1}, \"match\": {\"entrance\": \"shop\"}, \"element\": \"node/12646613395\", \"outcomes\": [{\"id\": \"no-door\", \"label\": \"There's no door\", \"status\": 6, \"description\": \"It's an open doorway or a gate.\"}], \"questions\": [{\"id\": \"automatic-opening\", \"expect\": {\"automatic_door\": null}, \"prompt\": \"Does it open by itself?\", \"options\": [{\"id\": \"no\", \"label\": \"No, you push or pull it\", \"setTags\": {\"automatic_door\": \"no\"}}, {\"id\": \"button\", \"label\": \"Yes, with a button\", \"setTags\": {\"automatic_door\": \"button\"}}, {\"id\": \"motion\", \"label\": \"Yes, when you walk up\", \"setTags\": {\"automatic_door\": \"motion\"}}, {\"id\": \"yes\", \"label\": \"Yes, not sure how\", \"setTags\": {\"automatic_door\": \"yes\"}}], \"description\": \"A door that's propped open doesn't count.\"}], \"liveMissingQuestions\": true}",
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 206,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "node/11284032024",
+          "parentId": 5,
+          "parentName": "Woodbine entrance doors",
+          "point": {
+            "lat": 40.7449888,
+            "lng": -111.9016133
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.729Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "cooperativeWork": "{\"meta\": {\"type\": 3, \"version\": 2, \"choiceVersion\": 1}, \"match\": {\"entrance\": \"main\"}, \"element\": \"node/11284032024\", \"outcomes\": [{\"id\": \"no-door\", \"label\": \"There's no door\", \"status\": 6, \"description\": \"It's an open doorway or a gate.\"}], \"questions\": [{\"id\": \"door-type\", \"expect\": {\"door\": null}, \"prompt\": \"How does this door open?\", \"options\": [{\"id\": \"hinged\", \"label\": \"Swings open\", \"setTags\": {\"door\": \"hinged\"}}, {\"id\": \"sliding\", \"label\": \"Slides sideways\", \"setTags\": {\"door\": \"sliding\"}}, {\"id\": \"revolving\", \"label\": \"Revolves\", \"setTags\": {\"door\": \"revolving\"}}, {\"id\": \"folding\", \"label\": \"Folds\", \"setTags\": {\"door\": \"folding\"}}], \"description\": \"Look only at the door at this entrance.\"}, {\"id\": \"automatic-opening\", \"expect\": {\"automatic_door\": null}, \"prompt\": \"Does it open by itself?\", \"options\": [{\"id\": \"no\", \"label\": \"No, you push or pull it\", \"setTags\": {\"automatic_door\": \"no\"}}, {\"id\": \"button\", \"label\": \"Yes, with a button\", \"setTags\": {\"automatic_door\": \"button\"}}, {\"id\": \"motion\", \"label\": \"Yes, when you walk up\", \"setTags\": {\"automatic_door\": \"motion\"}}, {\"id\": \"yes\", \"label\": \"Yes, not sure how\", \"setTags\": {\"automatic_door\": \"yes\"}}], \"description\": \"A door that's propped open doesn't count.\"}], \"liveMissingQuestions\": true}",
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 207,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "node/11990542516",
+          "parentId": 5,
+          "parentName": "Woodbine entrance doors",
+          "point": {
+            "lat": 40.7630632,
+            "lng": -111.9023026
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.729Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "cooperativeWork": "{\"meta\": {\"type\": 3, \"version\": 2, \"choiceVersion\": 1}, \"match\": {\"entrance\": \"yes\"}, \"element\": \"node/11990542516\", \"outcomes\": [{\"id\": \"no-door\", \"label\": \"There's no door\", \"status\": 6, \"description\": \"It's an open doorway or a gate.\"}], \"questions\": [{\"id\": \"door-type\", \"expect\": {\"door\": null}, \"prompt\": \"How does this door open?\", \"options\": [{\"id\": \"hinged\", \"label\": \"Swings open\", \"setTags\": {\"door\": \"hinged\"}}, {\"id\": \"sliding\", \"label\": \"Slides sideways\", \"setTags\": {\"door\": \"sliding\"}}, {\"id\": \"revolving\", \"label\": \"Revolves\", \"setTags\": {\"door\": \"revolving\"}}, {\"id\": \"folding\", \"label\": \"Folds\", \"setTags\": {\"door\": \"folding\"}}], \"description\": \"Look only at the door at this entrance.\"}, {\"id\": \"automatic-opening\", \"expect\": {\"automatic_door\": null}, \"prompt\": \"Does it open by itself?\", \"options\": [{\"id\": \"no\", \"label\": \"No, you push or pull it\", \"setTags\": {\"automatic_door\": \"no\"}}, {\"id\": \"button\", \"label\": \"Yes, with a button\", \"setTags\": {\"automatic_door\": \"button\"}}, {\"id\": \"motion\", \"label\": \"Yes, when you walk up\", \"setTags\": {\"automatic_door\": \"motion\"}}, {\"id\": \"yes\", \"label\": \"Yes, not sure how\", \"setTags\": {\"automatic_door\": \"yes\"}}], \"description\": \"A door that's propped open doesn't count.\"}], \"liveMissingQuestions\": true}",
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 52,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "n11649949850",
+          "parentId": 1,
+          "parentName": "SLC benches: survey backrests (staging)",
+          "point": {
+            "lat": 40.7690585,
+            "lng": -111.904327
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.729Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 1,
+          "mappedOn": "2026-10-16T15:10:34.667Z",
+          "completedTimeSpent": 14000,
+          "completedBy": {
+            "username": "person-14",
+            "id": 900009
+          },
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 208,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "node/4365677669",
+          "parentId": 6,
+          "parentName": "Bench handback test (dev OSM)",
+          "point": {
+            "lat": 40.7608,
+            "lng": -111.8848
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.729Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "cooperativeWork": "{\"meta\": {\"type\": 3, \"version\": 2, \"choiceVersion\": 1}, \"match\": {\"amenity\": \"bench\"}, \"element\": \"node/4365677669\", \"outcomes\": [{\"id\": \"not-a-bench\", \"label\": \"Not a bench\", \"status\": 2}], \"questions\": [{\"id\": \"armrest\", \"expect\": {\"armrest\": null}, \"prompt\": \"Does the bench have armrests?\", \"options\": [{\"id\": \"yes\", \"label\": \"Yes\", \"setTags\": {\"armrest\": \"yes\"}}, {\"id\": \"no\", \"label\": \"No\", \"setTags\": {\"armrest\": \"no\"}}]}, {\"id\": \"colour\", \"expect\": {\"colour\": null}, \"prompt\": \"What colour is the bench?\", \"options\": [{\"id\": \"brown\", \"label\": \"Brown\", \"setTags\": {\"colour\": \"brown\"}}, {\"id\": \"green\", \"label\": \"Green\", \"setTags\": {\"colour\": \"green\"}}, {\"id\": \"black\", \"label\": \"Black\", \"setTags\": {\"colour\": \"black\"}}, {\"id\": \"grey\", \"label\": \"Grey\", \"setTags\": {\"colour\": \"grey\"}}, {\"id\": \"white\", \"label\": \"White\", \"setTags\": {\"colour\": \"white\"}}]}], \"liveMissingQuestions\": true}",
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 209,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "node/4365677670",
+          "parentId": 6,
+          "parentName": "Bench handback test (dev OSM)",
+          "point": {
+            "lat": 40.76095,
+            "lng": -111.88455
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.729Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "cooperativeWork": "{\"meta\": {\"type\": 3, \"version\": 2, \"choiceVersion\": 1}, \"match\": {\"amenity\": \"bench\"}, \"element\": \"node/4365677670\", \"outcomes\": [{\"id\": \"not-a-bench\", \"label\": \"Not a bench\", \"status\": 2}], \"questions\": [{\"id\": \"armrest\", \"expect\": {\"armrest\": null}, \"prompt\": \"Does the bench have armrests?\", \"options\": [{\"id\": \"yes\", \"label\": \"Yes\", \"setTags\": {\"armrest\": \"yes\"}}, {\"id\": \"no\", \"label\": \"No\", \"setTags\": {\"armrest\": \"no\"}}]}, {\"id\": \"colour\", \"expect\": {\"colour\": null}, \"prompt\": \"What colour is the bench?\", \"options\": [{\"id\": \"brown\", \"label\": \"Brown\", \"setTags\": {\"colour\": \"brown\"}}, {\"id\": \"green\", \"label\": \"Green\", \"setTags\": {\"colour\": \"green\"}}, {\"id\": \"black\", \"label\": \"Black\", \"setTags\": {\"colour\": \"black\"}}, {\"id\": \"grey\", \"label\": \"Grey\", \"setTags\": {\"colour\": \"grey\"}}, {\"id\": \"white\", \"label\": \"White\", \"setTags\": {\"colour\": \"white\"}}]}], \"liveMissingQuestions\": true}",
+          "pointReview": {},
+          "priority": 0
+        },
+        {
+          "id": 210,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "node/4365677671",
+          "parentId": 6,
+          "parentName": "Bench handback test (dev OSM)",
+          "point": {
+            "lat": 40.7611,
+            "lng": -111.8843
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.729Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "cooperativeWork": "{\"meta\": {\"type\": 3, \"version\": 2, \"choiceVersion\": 1}, \"match\": {\"amenity\": \"bench\"}, \"element\": \"node/4365677671\", \"outcomes\": [{\"id\": \"not-a-bench\", \"label\": \"Not a bench\", \"status\": 2}], \"questions\": [{\"id\": \"armrest\", \"expect\": {\"armrest\": null}, \"prompt\": \"Does the bench have armrests?\", \"options\": [{\"id\": \"yes\", \"label\": \"Yes\", \"setTags\": {\"armrest\": \"yes\"}}, {\"id\": \"no\", \"label\": \"No\", \"setTags\": {\"armrest\": \"no\"}}]}, {\"id\": \"colour\", \"expect\": {\"colour\": null}, \"prompt\": \"What colour is the bench?\", \"options\": [{\"id\": \"brown\", \"label\": \"Brown\", \"setTags\": {\"colour\": \"brown\"}}, {\"id\": \"green\", \"label\": \"Green\", \"setTags\": {\"colour\": \"green\"}}, {\"id\": \"black\", \"label\": \"Black\", \"setTags\": {\"colour\": \"black\"}}, {\"id\": \"grey\", \"label\": \"Grey\", \"setTags\": {\"colour\": \"grey\"}}, {\"id\": \"white\", \"label\": \"White\", \"setTags\": {\"colour\": \"white\"}}]}], \"liveMissingQuestions\": true}",
+          "pointReview": {},
+          "priority": 0
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "_comment": "GET mobile-guest/me for a new guest.",
+  "recordedFrom": "https://mr-api.osm.lol",
+  "call": "getGuestStatus",
+  "args": {},
+  "decode": true,
+  "exchanges": [
+    {
+      "method": "GET",
+      "path": "/api/v2/mobile-guest/me",
+      "status": 200,
+      "body": {
+        "guestId": "00000000-0000-4000-8000-000000000015",
+        "state": "active",
+        "email": "none",
+        "pending": 0,
+        "published": 0,
+        "expiresAt": "2026-11-17T06:29:26.377785Z",
+        "claimedAs": null,
+        "byChallenge": {}
+      }
+    }
+  ]
+}

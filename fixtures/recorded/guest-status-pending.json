@@ -1,0 +1,29 @@
+{
+  "_comment": "GET mobile-guest/me holding one answer.",
+  "recordedFrom": "https://mr-api.osm.lol",
+  "call": "getGuestStatus",
+  "args": {},
+  "decode": true,
+  "exchanges": [
+    {
+      "method": "GET",
+      "path": "/api/v2/mobile-guest/me",
+      "status": 200,
+      "body": {
+        "guestId": "00000000-0000-4000-8000-000000000015",
+        "state": "active",
+        "email": "none",
+        "pending": 1,
+        "published": 0,
+        "expiresAt": "2026-11-17T06:29:31.837062Z",
+        "claimedAs": null,
+        "byChallenge": {
+          "8": {
+            "pending": 1,
+            "onMap": 0
+          }
+        }
+      }
+    }
+  ]
+}

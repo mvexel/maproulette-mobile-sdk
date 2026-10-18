@@ -1,0 +1,113 @@
+{
+  "_comment": "GET challenge/:id, the choice challenge.",
+  "recordedFrom": "https://mr-api.osm.lol",
+  "call": "getChallenge",
+  "args": {
+    "id": 5
+  },
+  "decode": true,
+  "exchanges": [
+    {
+      "method": "GET",
+      "path": "/api/v2/challenge/5",
+      "status": 200,
+      "body": {
+        "id": 5,
+        "name": "Woodbine entrance doors",
+        "created": "2026-10-12T00:02:37.166Z",
+        "modified": "2026-10-12T00:08:56.770Z",
+        "deleted": false,
+        "isGlobal": false,
+        "requireConfirmation": false,
+        "requireRejectReason": false,
+        "owner": 900004,
+        "parent": 6,
+        "instruction": "Survey the door at the mapped entrance node. Sets door=* and automatic_door=* only when missing. No geometry changes.",
+        "difficulty": 2,
+        "enabled": true,
+        "featured": false,
+        "cooperativeType": 3,
+        "checkinComment": "Street Tally: entrance doors near Woodbine Food Hall #StreetTallyWoodbine https://wiki.openstreetmap.org/wiki/Organised_Editing/Activities/Street_Tally_Woodbine_Entrances",
+        "checkinSource": "survey",
+        "requiresLocal": true,
+        "defaultPriority": 0,
+        "defaultZoom": 13,
+        "minZoom": 1,
+        "maxZoom": 19,
+        "updateTasks": false,
+        "limitTags": false,
+        "limitReviewTags": false,
+        "isArchived": false,
+        "paused": false,
+        "reviewSetting": 0,
+        "completionMetrics": {
+          "total": 16,
+          "available": 16,
+          "fixed": 0,
+          "falsePositive": 0,
+          "skipped": 0,
+          "deleted": 0,
+          "alreadyFixed": 0,
+          "tooHard": 0,
+          "answered": 0,
+          "validated": 0,
+          "disabled": 0,
+          "tasksRemaining": 16
+        },
+        "description": "Help map the doors around Woodbine Food Hall. At each entrance, check how the door opens and whether it opens by itself, so people with wheelchairs, strollers or walkers know what to expect.",
+        "infoLink": "",
+        "blurb": "",
+        "popularity": 1791763357,
+        "overpassQL": "",
+        "remoteGeoJson": "",
+        "overpassTargetType": "",
+        "defaultBasemap": -1,
+        "defaultBasemapId": "",
+        "customBasemap": "",
+        "exportableProperties": "",
+        "osmIdProperty": "",
+        "taskBundleIdProperty": "",
+        "taskWidgetLayout": {},
+        "status": 3,
+        "statusMessage": "",
+        "lastTaskRefresh": "2026-10-12T00:02:44.937Z",
+        "dataOriginDate": "2026-10-12T00:02:37.164Z",
+        "location": {
+          "type": "Point",
+          "coordinates": [
+            -111.901496481,
+            40.753135131
+          ]
+        },
+        "bounding": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                -111.9079998,
+                40.7448888
+              ],
+              [
+                -111.9079998,
+                40.7631632
+              ],
+              [
+                -111.8954832,
+                40.7631632
+              ],
+              [
+                -111.8954832,
+                40.7448888
+              ],
+              [
+                -111.9079998,
+                40.7448888
+              ]
+            ]
+          ]
+        },
+        "completionPercentage": 0
+      }
+    }
+  ]
+}

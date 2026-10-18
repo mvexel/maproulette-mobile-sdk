@@ -1,0 +1,65 @@
+{
+  "_comment": "PUT markers/box/w/s/e/n with {}, read-only, choice tasks only.",
+  "recordedFrom": "https://mr-api.osm.lol",
+  "call": "findTaskMarkers",
+  "args": {
+    "bounds": [
+      -111.91,
+      40.74,
+      -111.87,
+      40.78
+    ],
+    "challengeIds": [],
+    "statuses": [
+      0,
+      3,
+      6
+    ],
+    "choiceOnly": true,
+    "limit": 100
+  },
+  "decode": true,
+  "exchanges": [
+    {
+      "method": "PUT",
+      "path": "/api/v2/markers/box/-111.91/40.74/-111.87/40.78",
+      "query": {
+        "cLocal": "1",
+        "ca": "false",
+        "tStatus": "0,3,6",
+        "excludeLocked": "true",
+        "limit": "100",
+        "cct": "3",
+        "excludeStale": "true",
+        "excludePending": "true",
+        "ce": "true",
+        "pe": "true"
+      },
+      "requestBody": {},
+      "status": 200,
+      "body": [
+        {
+          "id": 220,
+          "owner": 900010,
+          "ownerName": "",
+          "title": "node/4365677671",
+          "parentId": 8,
+          "parentName": "Bench handback test 2 (dev OSM)",
+          "point": {
+            "lat": 40.7611,
+            "lng": -111.8843
+          },
+          "bounding": {},
+          "blurb": "",
+          "modified": "2026-10-18T06:29:25.307Z",
+          "difficulty": -1,
+          "type": 2,
+          "status": 0,
+          "cooperativeWork": "{\"meta\": {\"type\": 3, \"version\": 2, \"choiceVersion\": 1}, \"match\": {\"amenity\": \"bench\"}, \"element\": \"node/4365677671\", \"outcomes\": [{\"id\": \"not-a-bench\", \"label\": \"Not a bench\", \"status\": 2}], \"questions\": [{\"id\": \"armrest\", \"expect\": {\"armrest\": null}, \"prompt\": \"Does the bench have armrests?\", \"options\": [{\"id\": \"yes\", \"label\": \"Yes\", \"setTags\": {\"armrest\": \"yes\"}}, {\"id\": \"no\", \"label\": \"No\", \"setTags\": {\"armrest\": \"no\"}}]}, {\"id\": \"colour\", \"expect\": {\"colour\": null}, \"prompt\": \"What colour is the bench?\", \"options\": [{\"id\": \"brown\", \"label\": \"Brown\", \"setTags\": {\"colour\": \"brown\"}}, {\"id\": \"green\", \"label\": \"Green\", \"setTags\": {\"colour\": \"green\"}}, {\"id\": \"black\", \"label\": \"Black\", \"setTags\": {\"colour\": \"black\"}}, {\"id\": \"grey\", \"label\": \"Grey\", \"setTags\": {\"colour\": \"grey\"}}, {\"id\": \"white\", \"label\": \"White\", \"setTags\": {\"colour\": \"white\"}}]}], \"liveMissingQuestions\": true}",
+          "pointReview": {},
+          "priority": 0
+        }
+      ]
+    }
+  ]
+}

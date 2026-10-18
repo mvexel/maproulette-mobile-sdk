@@ -1,0 +1,165 @@
+{
+  "_comment": "GET task/:id, a type 3 choice task.",
+  "recordedFrom": "https://mr-api.osm.lol",
+  "call": "getTask",
+  "args": {
+    "id": 192
+  },
+  "decode": true,
+  "exchanges": [
+    {
+      "method": "GET",
+      "path": "/api/v2/task/192",
+      "status": 200,
+      "body": {
+        "id": 192,
+        "name": "node/14178183367",
+        "created": "2026-10-12T00:02:44.346Z",
+        "modified": "2026-10-12T00:02:44.346Z",
+        "parent": 5,
+        "instruction": "",
+        "location": {
+          "type": "Point",
+          "coordinates": [
+            -111.906812,
+            40.7538166
+          ]
+        },
+        "geometries": {
+          "type": "FeatureCollection",
+          "features": [
+            {
+              "type": "Feature",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [
+                  -111.906812,
+                  40.7538166
+                ]
+              },
+              "properties": {
+                "@id": "node/14178183367",
+                "entrance": "main"
+              }
+            }
+          ]
+        },
+        "cooperativeWork": {
+          "meta": {
+            "type": 3,
+            "version": 2,
+            "choiceVersion": 1
+          },
+          "match": {
+            "entrance": "main"
+          },
+          "element": "node/14178183367",
+          "outcomes": [
+            {
+              "id": "no-door",
+              "label": "There's no door",
+              "status": 6,
+              "description": "It's an open doorway or a gate."
+            }
+          ],
+          "questions": [
+            {
+              "id": "door-type",
+              "expect": {
+                "door": null
+              },
+              "prompt": "How does this door open?",
+              "options": [
+                {
+                  "id": "hinged",
+                  "label": "Swings open",
+                  "setTags": {
+                    "door": "hinged"
+                  }
+                },
+                {
+                  "id": "sliding",
+                  "label": "Slides sideways",
+                  "setTags": {
+                    "door": "sliding"
+                  }
+                },
+                {
+                  "id": "revolving",
+                  "label": "Revolves",
+                  "setTags": {
+                    "door": "revolving"
+                  }
+                },
+                {
+                  "id": "folding",
+                  "label": "Folds",
+                  "setTags": {
+                    "door": "folding"
+                  }
+                }
+              ],
+              "description": "Look only at the door at this entrance."
+            },
+            {
+              "id": "automatic-opening",
+              "expect": {
+                "automatic_door": null
+              },
+              "prompt": "Does it open by itself?",
+              "options": [
+                {
+                  "id": "no",
+                  "label": "No, you push or pull it",
+                  "setTags": {
+                    "automatic_door": "no"
+                  }
+                },
+                {
+                  "id": "button",
+                  "label": "Yes, with a button",
+                  "setTags": {
+                    "automatic_door": "button"
+                  }
+                },
+                {
+                  "id": "motion",
+                  "label": "Yes, when you walk up",
+                  "setTags": {
+                    "automatic_door": "motion"
+                  }
+                },
+                {
+                  "id": "yes",
+                  "label": "Yes, not sure how",
+                  "setTags": {
+                    "automatic_door": "yes"
+                  }
+                }
+              ],
+              "description": "A door that's propped open doesn't count."
+            }
+          ],
+          "liveMissingQuestions": true
+        },
+        "status": 0,
+        "mappedOn": null,
+        "completedTimeSpent": null,
+        "completedBy": null,
+        "review": {},
+        "priority": 0,
+        "changesetId": -1,
+        "completionResponses": null,
+        "bundleId": null,
+        "isBundlePrimary": null,
+        "mapillaryImages": null,
+        "errorTags": "",
+        "skipCount": 0,
+        "archived": false,
+        "tags": [],
+        "lockedBy": null,
+        "lockBundledTasks": []
+      }
+    }
+  ]
+}

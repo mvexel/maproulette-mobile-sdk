@@ -1,0 +1,15 @@
+{
+  "_comment": "DELETE mobile-guest.",
+  "recordedFrom": "https://mr-api.osm.lol",
+  "call": "deleteGuest",
+  "args": {},
+  "decode": true,
+  "exchanges": [
+    {
+      "method": "DELETE",
+      "path": "/api/v2/mobile-guest",
+      "status": 204,
+      "body": null
+    }
+  ]
+}

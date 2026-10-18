@@ -1,0 +1,32 @@
+{
+  "_comment": "POST /oauth/mobile/guest, then the guest grant from POST /oauth/mobile/token.",
+  "recordedFrom": "https://mr-api.osm.lol",
+  "call": "startGuest",
+  "args": {
+    "clientId": "maproulette-ios-choice"
+  },
+  "decode": true,
+  "exchanges": [
+    {
+      "method": "POST",
+      "path": "/oauth/mobile/guest",
+      "status": 201,
+      "body": {
+        "guestId": "00000000-0000-4000-8000-000000000015",
+        "guestSecret": "recorded-guestSecret-0000",
+        "expiresAt": "2026-11-17T06:29:26.377785Z"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/oauth/mobile/token",
+      "status": 200,
+      "body": {
+        "access_token": "recorded-access-token-0000",
+        "token_type": "Bearer",
+        "expires_in": 900,
+        "scope": "guest"
+      }
+    }
+  ]
+}

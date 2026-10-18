@@ -1,0 +1,91 @@
+{
+  "_comment": "GET tasks/box/w/s/e/n over all challenges, choice tasks only, two pages of 2 with totals.",
+  "recordedFrom": "https://mr-api.osm.lol",
+  "call": "findTasksInBounds",
+  "args": {
+    "bounds": [
+      -111.91,
+      40.74,
+      -111.87,
+      40.78
+    ],
+    "challengeIds": [],
+    "statuses": [
+      0,
+      3,
+      6
+    ],
+    "choiceOnly": true,
+    "pageSize": 2,
+    "pages": 2
+  },
+  "decode": true,
+  "exchanges": [
+    {
+      "method": "GET",
+      "path": "/api/v2/tasks/box/-111.91/40.74/-111.87/40.78",
+      "query": {
+        "cLocal": "1",
+        "ca": "false",
+        "tStatus": "0,3,6",
+        "includeTotal": "true",
+        "sort": "id",
+        "order": "ASC",
+        "cct": "3",
+        "excludeStale": "true",
+        "excludePending": "true",
+        "limit": "2",
+        "page": "0"
+      },
+      "status": 200,
+      "body": {
+        "total": 1,
+        "tasks": [
+          {
+            "id": 220,
+            "owner": 900010,
+            "ownerName": "",
+            "title": "node/4365677671",
+            "parentId": 8,
+            "parentName": "Bench handback test 2 (dev OSM)",
+            "point": {
+              "lat": 40.7611,
+              "lng": -111.8843
+            },
+            "bounding": {},
+            "blurb": "",
+            "modified": "2026-10-18T06:29:24.452Z",
+            "difficulty": -1,
+            "type": 2,
+            "status": 0,
+            "cooperativeWork": "{\"meta\": {\"type\": 3, \"version\": 2, \"choiceVersion\": 1}, \"match\": {\"amenity\": \"bench\"}, \"element\": \"node/4365677671\", \"outcomes\": [{\"id\": \"not-a-bench\", \"label\": \"Not a bench\", \"status\": 2}], \"questions\": [{\"id\": \"armrest\", \"expect\": {\"armrest\": null}, \"prompt\": \"Does the bench have armrests?\", \"options\": [{\"id\": \"yes\", \"label\": \"Yes\", \"setTags\": {\"armrest\": \"yes\"}}, {\"id\": \"no\", \"label\": \"No\", \"setTags\": {\"armrest\": \"no\"}}]}, {\"id\": \"colour\", \"expect\": {\"colour\": null}, \"prompt\": \"What colour is the bench?\", \"options\": [{\"id\": \"brown\", \"label\": \"Brown\", \"setTags\": {\"colour\": \"brown\"}}, {\"id\": \"green\", \"label\": \"Green\", \"setTags\": {\"colour\": \"green\"}}, {\"id\": \"black\", \"label\": \"Black\", \"setTags\": {\"colour\": \"black\"}}, {\"id\": \"grey\", \"label\": \"Grey\", \"setTags\": {\"colour\": \"grey\"}}, {\"id\": \"white\", \"label\": \"White\", \"setTags\": {\"colour\": \"white\"}}]}], \"liveMissingQuestions\": true}",
+            "pointReview": {},
+            "priority": 0
+          }
+        ]
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/tasks/box/-111.91/40.74/-111.87/40.78",
+      "query": {
+        "cLocal": "1",
+        "ca": "false",
+        "tStatus": "0,3,6",
+        "includeTotal": "true",
+        "sort": "id",
+        "order": "ASC",
+        "cct": "3",
+        "excludeStale": "true",
+        "excludePending": "true",
+        "limit": "2",
+        "page": "1"
+      },
+      "status": 200,
+      "body": {
+        "total": 1,
+        "tasks": []
+      }
+    }
+  ]
+}
